@@ -1,0 +1,52 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.playershype.app'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'com.playershype.app'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        preview {
+            if (System.getenv('PREVIEW_KEYSTORE')) {
+                storeFile file(System.getenv('PREVIEW_KEYSTORE'))
+                storePassword System.getenv('PREVIEW_STORE_PASSWORD')
+                keyAlias 'preview'
+                keyPassword System.getenv('PREVIEW_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        preview {
+            applicationIdSuffix '.preview'
+            versionNameSuffix '-preview'
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.preview
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            matchingFallbacks = ['release']
+        }
+        release {
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError true; checkReleaseBuilds true }
+}
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20250517'
+    implementation 'androidx.webkit:webkit:1.14.0'
+    implementation 'androidx.core:core:1.16.0'
+}

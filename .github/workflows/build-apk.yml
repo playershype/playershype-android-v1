@@ -1,0 +1,73 @@
+name: Build PlayersHype Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Security audit
+        run: python3 scripts/security_audit.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest testPreviewUnitTest --no-daemon
+      - name: Android lint
+        run: ./gradlew lintPreview --no-daemon
+      - name: Generate temporary Preview signing key
+        shell: bash
+        run: |
+          STORE_PASSWORD=$(openssl rand -hex 32)
+          KEY_PASSWORD=$(openssl rand -hex 32)
+          echo "::add-mask::$STORE_PASSWORD"
+          echo "::add-mask::$KEY_PASSWORD"
+          export PREVIEW_STORE_PASSWORD="$STORE_PASSWORD"
+          export PREVIEW_KEY_PASSWORD="$KEY_PASSWORD"
+          keytool -genkeypair -noprompt -storetype JKS -keystore "$RUNNER_TEMP/preview.jks" -alias preview -keyalg RSA -keysize 3072 -validity 365 -dname "CN=PlayersHype Preview QA" -storepass:env PREVIEW_STORE_PASSWORD -keypass:env PREVIEW_KEY_PASSWORD
+          echo "PREVIEW_KEYSTORE=$RUNNER_TEMP/preview.jks" >> "$GITHUB_ENV"
+          echo "PREVIEW_STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "PREVIEW_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build preview APK
+        run: ./gradlew assemblePreview --no-daemon
+      - name: Verify signed APK and package artifact
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp app/build/outputs/apk/preview/app-preview.apk artifacts/PlayersHype-App-V1-PREVIEW.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs artifacts/PlayersHype-App-V1-PREVIEW.apk | tee artifacts/signature-verification.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging artifacts/PlayersHype-App-V1-PREVIEW.apk | tee artifacts/apk-metadata.txt
+          if grep -q application-debuggable artifacts/apk-metadata.txt; then exit 1; fi
+          cd artifacts
+          sha256sum PlayersHype-App-V1-PREVIEW.apk | tee PlayersHype-App-V1-PREVIEW.apk.sha256
+          printf 'Commit: %s\n' "$GITHUB_SHA" > BUILD_COMMIT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-App-V1-Android
+          path: artifacts/
+          if-no-files-found: error
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-verification
+          path: |
+            app/build/reports/tests/
+            app/build/test-results/
+            app/build/reports/lint-results-preview.*
+          if-no-files-found: warn
+      - name: Remove temporary Preview signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/preview.jks"

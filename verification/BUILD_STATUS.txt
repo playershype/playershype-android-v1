@@ -1,0 +1,5 @@
+Initial local security audit: PASS (14 controls).
+Local Gradle execution unavailable: Java and Android SDK are not installed.
+Authoritative build, unit test and lint results are recorded by GitHub Actions
+for each commit, with downloadable reports and the signed Preview artifact.
+Historical smoke-test files describe source checks, not a device test.

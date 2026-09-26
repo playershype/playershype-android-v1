@@ -1,0 +1,12 @@
+.gradle/
+**/build/
+local.properties
+.idea/
+preview-signing/
+*.keystore
+*.jks
+*.p12
+.env
+.env.*
+.tools/
+artifacts/

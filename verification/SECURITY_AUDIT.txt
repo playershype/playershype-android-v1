@@ -1,0 +1,15 @@
+PASS - only INTERNET permission
+PASS - cleartext disabled manifest
+PASS - backup disabled
+PASS - network cleartext disabled
+PASS - webview debugging disabled
+PASS - file access disabled
+PASS - content access disabled
+PASS - file URL universal access disabled
+PASS - mixed content disabled
+PASS - no native JS bridge
+PASS - SSL fail closed
+PASS - safe browsing back to safety
+PASS - CSP present
+PASS - HTTPS connect only
+PASS: 14 controls
