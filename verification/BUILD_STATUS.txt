@@ -1,5 +1,8 @@
-Initial local security audit: PASS (14 controls).
-Local Gradle execution unavailable: Java and Android SDK are not installed.
-Authoritative build, unit test and lint results are recorded by GitHub Actions
-for each commit, with downloadable reports and the signed Preview artifact.
-Historical smoke-test files describe source checks, not a device test.
+Local verification on 2026-09-26:
+- Security audit: PASS, 22 controls.
+- testDebugUnitTest: PASS, 9 tests, 0 failures/errors/skipped.
+- testPreviewUnitTest: PASS, 9 tests, 0 failures/errors/skipped.
+- lintPreview: PASS, no errors; warnings remain in the generated report.
+- Toolchain: Java 17 / Gradle 8.13 / AGP 8.11.1 / Android API 36.
+Signed APK generation and GitHub Actions status must be verified separately.
+Device installation and live product flows have not been tested.

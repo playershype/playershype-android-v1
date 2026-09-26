@@ -19,6 +19,10 @@ For a local Preview build, provide PREVIEW_KEYSTORE, PREVIEW_STORE_PASSWORD and
 PREVIEW_KEY_PASSWORD through the environment, using key alias `preview`.
 Never put signing credentials in source files.
 
+On Windows, after the verification commands pass, set JAVA_HOME and ANDROID_HOME
+and run `./scripts/build_preview.ps1`. This creates and deletes a temporary QA
+key automatically and writes the APK, SHA-256 and signature evidence to `artifacts/`.
+
 ## Artifacts
 
 GitHub Actions artifact `PlayersHype-App-V1-Android` contains:

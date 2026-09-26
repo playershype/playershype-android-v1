@@ -6,10 +6,18 @@ PASS - webview debugging disabled
 PASS - file access disabled
 PASS - content access disabled
 PASS - file URL universal access disabled
+PASS - file URL access disabled
 PASS - mixed content disabled
 PASS - no native JS bridge
 PASS - SSL fail closed
 PASS - safe browsing back to safety
+PASS - safe browsing explicitly enabled
+PASS - external navigation uses browser
 PASS - CSP present
 PASS - HTTPS connect only
-PASS: 14 controls
+PASS - backup exclusions
+PASS - cloud extraction exclusions
+PASS - device transfer exclusions
+PASS - no signing keys tracked
+PASS - preview passwords from environment
+PASS: 22 controls

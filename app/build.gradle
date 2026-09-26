@@ -49,4 +49,5 @@ dependencies {
     testImplementation 'org.json:json:20250517'
     implementation 'androidx.webkit:webkit:1.14.0'
     implementation 'androidx.core:core:1.16.0'
+    implementation 'androidx.activity:activity:1.10.1'
 }
