@@ -19,4 +19,9 @@ public class UrlPolicyTest {
   @Test public void deceptiveInternalHostsAreExternal() {
     assertFalse(UrlPolicy.isInternal("https://appassets.androidplatform.net.evil.example/assets/index.html"));
   }
+  @Test public void internalCredentialsAndNonstandardPortsAreBlocked() {
+    assertFalse(UrlPolicy.isInternal("https://user@appassets.androidplatform.net/assets/index.html"));
+    assertFalse(UrlPolicy.isInternal("https://appassets.androidplatform.net:8443/assets/index.html"));
+    assertTrue(UrlPolicy.isInternal("https://appassets.androidplatform.net:443/assets/index.html"));
+  }
 }
