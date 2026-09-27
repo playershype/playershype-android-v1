@@ -1,51 +1,74 @@
-name: Build PlayersHype Android Ecosystem V1.2
+name: Build PlayersHype Android Ecosystem V1.3 RC
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - v1.3-release-candidate
+    paths-ignore:
+      - 'docs/**'
 
 permissions:
   contents: read
+
+concurrency:
+  group: playershype-v1-3-rc-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     env:
-      SRC_DIR: .v12/PlayersHype-Ecosystem-V1.2-Modular
+      SRC_DIR: .v13/PlayersHype-Ecosystem-V1.3-RC
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Expand PlayersHype V1.2 source package
+      - name: Expand PlayersHype V1.3 RC source package
         shell: bash
         run: |
-          rm -rf .v12
-          mkdir -p .v12
-          unzip -q PlayersHype-Ecosystem-V1.2-Modular-SOURCE.zip -d .v12
+          rm -rf .v13
+          mkdir -p .v13
+
+          unzip -q PlayersHype-Ecosystem-V1.3-RC-SOURCE.zip -d .v13
+
           test -f "$SRC_DIR/settings.gradle"
           test -f "$SRC_DIR/app-user/build.gradle"
           test -f "$SRC_DIR/app-admin/build.gradle"
+          test -f "$SRC_DIR/shared/src/main/java/com/playershype/shared/PublishController.java"
+
           chmod +x "$SRC_DIR/gradlew"
 
       - name: Security audit
         shell: bash
         run: |
           cd "$SRC_DIR"
-          mkdir -p artifacts
-          python3 scripts/security_audit.py | tee artifacts/security-audit.txt
 
-      - uses: actions/setup-java@v4
+          mkdir -p artifacts
+
+          python3 scripts/security_audit.py \
+            | tee artifacts/security-audit.txt
+
+          python3 scripts/v13_static_audit.py \
+            | tee artifacts/v13-static-audit.txt
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: '11.25.0'
 
@@ -53,29 +76,49 @@ jobs:
         shell: bash
         run: |
           cd "$SRC_DIR"
-          pnpm --dir scripts/ui-tests install --frozen-lockfile --ignore-scripts
-          node scripts/ui-tests/test.cjs | tee artifacts/ui-tests.txt
 
-      - uses: android-actions/setup-android@v3
+          pnpm --dir scripts/ui-tests install \
+            --frozen-lockfile \
+            --ignore-scripts
+
+          node scripts/ui-tests/test.cjs \
+            | tee artifacts/ui-tests.txt
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '13114758'
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
 
       - name: Install Android API 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        shell: bash
+        run: |
+          sdkmanager \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
 
       - name: Unit tests
         shell: bash
         run: |
           cd "$SRC_DIR"
-          ./gradlew :shared:testDebugUnitTest :app-user:testDebugUnitTest :app-user:testPreviewUnitTest :app-admin:testPreviewUnitTest --no-daemon
+
+          ./gradlew \
+            :shared:testDebugUnitTest \
+            :app-user:testDebugUnitTest \
+            :app-user:testPreviewUnitTest \
+            :app-admin:testPreviewUnitTest \
+            --no-daemon
 
       - name: Android lint
         shell: bash
         run: |
           cd "$SRC_DIR"
-          ./gradlew :app-user:lintPreview :app-admin:lintPreview --no-daemon
+
+          ./gradlew \
+            :app-user:lintPreview \
+            :app-admin:lintPreview \
+            --no-daemon
 
       - name: Prepare QA signing
         shell: bash
@@ -86,63 +129,142 @@ jobs:
           QA_KEY_PASSWORD: ${{ secrets.QA_KEY_PASSWORD }}
         run: |
           cd "$SRC_DIR"
+
           python3 scripts/prepare_ci_signing.py
 
-      - name: Build both V1.2 Preview APKs
+      - name: Build both V1.3 RC Preview APKs
         shell: bash
         run: |
           cd "$SRC_DIR"
-          ./gradlew :app-user:assemblePreview :app-admin:assemblePreview --no-daemon
+
+          ./gradlew \
+            :app-user:assemblePreview \
+            :app-admin:assemblePreview \
+            --no-daemon
 
       - name: Verify signatures and package artifacts
         shell: bash
         run: |
           cd "$SRC_DIR"
+
           mkdir -p artifacts
 
-          cp app-user/build/outputs/apk/preview/app-user-preview.apk \
-             artifacts/PlayersHype-App-V1.2-PREVIEW.apk
+          cp \
+            app-user/build/outputs/apk/preview/app-user-preview.apk \
+            artifacts/PlayersHype-App-V1.3-RC-PREVIEW.apk
 
-          cp app-admin/build/outputs/apk/preview/app-admin-preview.apk \
-             artifacts/PlayersHype-Admin-V1.2-PREVIEW.apk
+          cp \
+            app-admin/build/outputs/apk/preview/app-admin-preview.apk \
+            artifacts/PlayersHype-Admin-V1.3-RC-PREVIEW.apk
 
-          for role in App Admin; do
-            APK="artifacts/PlayersHype-$role-V1.2-PREVIEW.apk"
+          for role in App Admin
+          do
+            APK="artifacts/PlayersHype-$role-V1.3-RC-PREVIEW.apk"
 
             "$ANDROID_HOME/build-tools/36.0.0/apksigner" \
-              verify --verbose --print-certs "$APK" \
+              verify \
+              --verbose \
+              --print-certs \
+              "$APK" \
               > "artifacts/$role-signature.txt"
 
             "$ANDROID_HOME/build-tools/36.0.0/aapt" \
-              dump badging "$APK" \
+              dump badging \
+              "$APK" \
               > "artifacts/$role-metadata.txt"
 
-            if grep -q application-debuggable "artifacts/$role-metadata.txt"; then
+            if grep -q application-debuggable "artifacts/$role-metadata.txt"
+            then
+              echo "ERROR: $APK is debuggable"
               exit 1
             fi
           done
 
           python3 scripts/package_artifacts.py
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload V1.3 RC Android artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: PlayersHype-Ecosystem-V1.2-Android
-          path: .v12/PlayersHype-Ecosystem-V1.2-Modular/artifacts/
+          name: PlayersHype-Ecosystem-V1.3-RC-Android
+          path: .v13/PlayersHype-Ecosystem-V1.3-RC/artifacts/
           if-no-files-found: error
 
       - name: Upload test and lint evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PlayersHype-verification
+          name: PlayersHype-V1.3-RC-verification
           path: |
-            .v12/PlayersHype-Ecosystem-V1.2-Modular/app-user/build/reports/tests/
-            .v12/PlayersHype-Ecosystem-V1.2-Modular/app-user/build/test-results/
-            .v12/PlayersHype-Ecosystem-V1.2-Modular/app-user/build/reports/lint-results-preview.*
-            .v12/PlayersHype-Ecosystem-V1.2-Modular/app-admin/build/reports/lint-results-preview.*
-            .v12/PlayersHype-Ecosystem-V1.2-Modular/shared/build/test-results/
+            .v13/PlayersHype-Ecosystem-V1.3-RC/app-user/build/reports/tests/
+            .v13/PlayersHype-Ecosystem-V1.3-RC/app-user/build/test-results/
+            .v13/PlayersHype-Ecosystem-V1.3-RC/app-user/build/reports/lint-results-preview.*
+            .v13/PlayersHype-Ecosystem-V1.3-RC/app-admin/build/reports/lint-results-preview.*
+            .v13/PlayersHype-Ecosystem-V1.3-RC/shared/build/test-results/
           if-no-files-found: warn
 
       - name: Remove runner QA key
         if: always()
-        run: rm -f "$RUNNER_TEMP/playershype-qa.jks"
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/playershype-qa.jks"
+
+  emulator:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    env:
+      SRC_DIR: .v13/PlayersHype-Ecosystem-V1.3-RC
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Expand PlayersHype V1.3 RC source package
+        shell: bash
+        run: |
+          rm -rf .v13
+          mkdir -p .v13
+
+          unzip -q PlayersHype-Ecosystem-V1.3-RC-SOURCE.zip -d .v13
+
+      - name: Download built APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: PlayersHype-Ecosystem-V1.3-RC-Android
+          path: .v13/PlayersHype-Ecosystem-V1.3-RC/artifacts
+
+      - name: Enable emulator acceleration
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install and launch both signed APKs
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: >-
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+            -camera-back none
+          script: |
+            cd "$SRC_DIR"
+            python3 scripts/emulator_smoke.py
+
+      - name: Upload emulator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-V1.3-RC-emulator-evidence
+          path: .v13/PlayersHype-Ecosystem-V1.3-RC/emulator-evidence/
+          if-no-files-found: warn
