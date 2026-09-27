@@ -6,3 +6,5 @@ Run python scripts/security_audit.py first. Install locked test dependencies wit
 Set PREVIEW_KEYSTORE, PREVIEW_STORE_PASSWORD, PREVIEW_KEY_PASSWORD and optional PREVIEW_KEY_ALIAS for a QA key only. Never put them in tracked gradle.properties. scripts/build_preview.ps1 can generate a disposable local key. CI optionally consumes the four QA secrets documented in DEPLOYMENT.md; partial secret configuration fails.
 
 CI verifies signatures with apksigner, checks non-debuggable metadata, creates hashes and packages source/docs/reports. APK package IDs end in .preview. Version1.1.0-preview/code2.
+
+The emulator CI job installs both signed artifacts on API36, launches them and checks internal HypePredict navigation through the Android UI hierarchy. Its separate evidence artifact contains screenshots, UI trees and process logs. A successful emulator smoke run does not establish full device parity.
