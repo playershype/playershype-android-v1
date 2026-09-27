@@ -1,0 +1,656 @@
+{
+  "schemaVersion": 1,
+  "description": "Explicit public field projection; unknown fields are excluded. Private model configuration, source imports and Postmortem are never published.",
+  "fields": {
+    "cards[]": [
+      "dailyIntelligence",
+      "event",
+      "finalRead",
+      "hypePick6",
+      "liveResults",
+      "liveTrackOperational",
+      "product",
+      "races",
+      "schemaVersion"
+    ],
+    "cards[].event": [
+      "analysisStatus",
+      "analysisTimestamp",
+      "analyzedRaces",
+      "country",
+      "date",
+      "declaredRaceNumbers",
+      "eventId",
+      "jurisdiction",
+      "mainPool",
+      "numberOfRaces",
+      "poolLegs",
+      "poolUnit",
+      "preRaceFrozen",
+      "track",
+      "trackBias",
+      "trackCode",
+      "trackConditionOfficial",
+      "trackConditionProjected",
+      "weather"
+    ],
+    "cards[].event.trackConditionOfficial": [
+      "status",
+      "value"
+    ],
+    "cards[].event.trackBias": [
+      "confirmed",
+      "note",
+      "value"
+    ],
+    "cards[].dailyIntelligence": [
+      "criticalCoBases",
+      "mostCompressedRaces",
+      "mostDangerousLeg",
+      "primarySleeper",
+      "primaryValue",
+      "secondaryRiskLegs",
+      "strategicFixed",
+      "strategicFixedStatus",
+      "strongestBases",
+      "summary",
+      "uncomfortableCuts",
+      "vulnerableFavorite"
+    ],
+    "cards[].dailyIntelligence.strongestBases[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].dailyIntelligence.primaryValue": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].dailyIntelligence.primarySleeper": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].dailyIntelligence.vulnerableFavorite": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[]": [
+      "bettingMenu",
+      "claimingPrice",
+      "condition",
+      "conditionDisplayRaw",
+      "decision",
+      "distance",
+      "eligibility",
+      "fieldSize",
+      "generalRead",
+      "horses",
+      "hypeBet",
+      "hypeBoard",
+      "moneyDisplayRaw",
+      "officialChanges",
+      "pace",
+      "poolIntelligence",
+      "postTime",
+      "purse",
+      "quickHits",
+      "raceId",
+      "raceNumber",
+      "raceType",
+      "scratches",
+      "status",
+      "surface"
+    ],
+    "cards[].races[].distance": [
+      "display",
+      "unit",
+      "value"
+    ],
+    "cards[].races[].eligibility": [],
+    "cards[].races[].decision": [
+      "compression",
+      "decisionExplanation",
+      "fixedHorseNumber",
+      "fixedStatus",
+      "flags",
+      "gap",
+      "officialDecision",
+      "poolStatus",
+      "risk",
+      "selectConfidence",
+      "selectConfidenceSource",
+      "selectReliability"
+    ],
+    "cards[].races[].decision.risk": [
+      "display",
+      "level"
+    ],
+    "cards[].races[].decision.selectReliability": [
+      "display",
+      "rating"
+    ],
+    "cards[].races[].quickHits": [
+      "longshot",
+      "rival",
+      "select",
+      "sleeper",
+      "valuePlay"
+    ],
+    "cards[].races[].quickHits.select": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].quickHits.rival": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].quickHits.sleeper": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].quickHits.longshot": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].quickHits.valuePlay": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].pace": [
+      "alternateScenario",
+      "beneficiary",
+      "closers",
+      "pressers",
+      "pressureRelationships",
+      "scenario",
+      "scratchImpact",
+      "speed",
+      "stalkers",
+      "vulnerableHorse"
+    ],
+    "cards[].races[].pace.speed[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].pace.pressers[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].pace.stalkers[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].pace.closers[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].hypeBoard[]": [
+      "horseId",
+      "horseNumber",
+      "hypeScore",
+      "rank",
+      "reliability"
+    ],
+    "cards[].races[].hypeBoard[].reliability": [
+      "display",
+      "rating"
+    ],
+    "cards[].races[].horses[]": [
+      "connections",
+      "form",
+      "horseId",
+      "identity",
+      "model",
+      "name",
+      "paceProfile",
+      "postPosition",
+      "programNumber",
+      "raceData",
+      "reading",
+      "roles",
+      "silks",
+      "status",
+      "value",
+      "works"
+    ],
+    "cards[].races[].horses[].identity": [],
+    "cards[].races[].horses[].connections": [
+      "jockey",
+      "owner",
+      "stable",
+      "trainer"
+    ],
+    "cards[].races[].horses[].silks": [
+      "description",
+      "referenceAvailable",
+      "referenceText"
+    ],
+    "cards[].races[].horses[].raceData": [
+      "claimingPrice",
+      "daysSinceLastRace",
+      "equipment",
+      "liveOdds",
+      "medication",
+      "morningLine",
+      "powerNumber",
+      "weight",
+      "weightUnit"
+    ],
+    "cards[].races[].horses[].form": [
+      "classEvidence",
+      "consistencyEvidence",
+      "debutant",
+      "distanceEvidence",
+      "distanceRecord",
+      "formEvidence",
+      "lastFiveDisplay",
+      "recentRaces",
+      "surfaceRecord",
+      "trackRecord"
+    ],
+    "cards[].races[].horses[].works[]": [
+      "raw",
+      "distance",
+      "time",
+      "date",
+      "track",
+      "rank"
+    ],
+    "cards[].races[].horses[].model": [
+      "hypeScore",
+      "rank",
+      "reliability"
+    ],
+    "cards[].races[].horses[].model.reliability": [
+      "display",
+      "rating"
+    ],
+    "cards[].races[].horses[].roles": [
+      "primary",
+      "recommendedUse",
+      "tags"
+    ],
+    "cards[].races[].horses[].value": [
+      "comment",
+      "grade",
+      "gradeDisplay",
+      "morningLine"
+    ],
+    "cards[].races[].horses[].paceProfile": [
+      "display",
+      "paceMapPlacement",
+      "primary",
+      "projected"
+    ],
+    "cards[].races[].poolIntelligence": [
+      "applicable",
+      "base",
+      "budgetCuts",
+      "coverage",
+      "defense",
+      "firstCut",
+      "outsiders",
+      "strategy"
+    ],
+    "cards[].races[].poolIntelligence.base[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].poolIntelligence.defense[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].poolIntelligence.coverage[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].hypeBet[]": [
+      "betType",
+      "combinations",
+      "derivedCost",
+      "positions",
+      "unit"
+    ],
+    "cards[].races[].hypeBet[].positions[]": [
+      "horses",
+      "position"
+    ],
+    "cards[].races[].poolIntelligence.firstCut[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].races[].poolIntelligence.outsiders[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].hypePick6": [
+      "banger",
+      "budgetCuts",
+      "crasher",
+      "direct",
+      "poolLegs",
+      "status",
+      "strategicFixed",
+      "unit",
+      "whereToSave",
+      "whereToSpend"
+    ],
+    "cards[].hypePick6.direct": [
+      "combinations",
+      "cost",
+      "legs"
+    ],
+    "cards[].hypePick6.direct.legs": [
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9"
+    ],
+    "cards[].hypePick6.direct.cost": [
+      "derivedBaseCost",
+      "publishedCost",
+      "sourceStatedMathematicalCost",
+      "status",
+      "taxInclusiveTotalCost"
+    ],
+    "cards[].hypePick6.crasher": [
+      "combinations",
+      "cost",
+      "legs"
+    ],
+    "cards[].hypePick6.crasher.legs": [
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9"
+    ],
+    "cards[].hypePick6.crasher.cost": [
+      "derivedBaseCost",
+      "publishedCost",
+      "sourceStatedMathematicalCost",
+      "status",
+      "taxInclusiveTotalCost"
+    ],
+    "cards[].hypePick6.banger": [
+      "combinations",
+      "cost",
+      "legs"
+    ],
+    "cards[].hypePick6.banger.legs": [
+      "R2",
+      "R3",
+      "R4",
+      "R5",
+      "R6",
+      "R7",
+      "R8",
+      "R9"
+    ],
+    "cards[].hypePick6.banger.cost": [
+      "derivedBaseCost",
+      "publishedCost",
+      "sourceStatedMathematicalCost",
+      "status",
+      "taxInclusiveTotalCost"
+    ],
+    "cards[].finalRead": [
+      "keyIntelligence",
+      "programVerdict",
+      "raceOrder",
+      "riskRecap"
+    ],
+    "cards[].finalRead.raceOrder[]": [
+      "order",
+      "race"
+    ],
+    "cards[].finalRead.keyIntelligence": [
+      "dangerousLeg",
+      "primarySleeper",
+      "primaryValue",
+      "strategicFixed",
+      "strongestBases",
+      "vulnerableFavorite"
+    ],
+    "cards[].finalRead.keyIntelligence.strongestBases[]": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].finalRead.keyIntelligence.primaryValue": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].finalRead.keyIntelligence.primarySleeper": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].finalRead.keyIntelligence.vulnerableFavorite": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].finalRead.riskRecap[]": [
+      "gap",
+      "note",
+      "race",
+      "status"
+    ],
+    "cards[].liveTrackOperational": [
+      "generalChanges",
+      "scratches",
+      "sourceUpdatedLabel",
+      "surfaceConditions",
+      "trackBias",
+      "trackCondition",
+      "updatedAt"
+    ],
+    "cards[].liveTrackOperational.surfaceConditions": [
+      "dirt",
+      "turf"
+    ],
+    "cards[].liveTrackOperational.trackBias": [
+      "note",
+      "source",
+      "status",
+      "value"
+    ],
+    "cards[].liveTrackOperational.scratches": [
+      "1",
+      "10",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ],
+    "cards[].liveTrackOperational.scratches.1[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.3[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.4[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.6[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.7[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.9[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.10[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.2[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.5[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveTrackOperational.scratches.8[]": [
+      "horseId",
+      "name",
+      "programNumber",
+      "reason",
+      "source",
+      "sourceConfirmed",
+      "status"
+    ],
+    "cards[].liveResults": [
+      "count",
+      "date",
+      "ok",
+      "provider",
+      "races",
+      "track",
+      "updatedAt"
+    ],
+    "cards[].dailyIntelligence.strategicFixed": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].hypePick6.strategicFixed": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].hypePick6.whereToSpend[]": [
+      "race",
+      "reason"
+    ],
+    "cards[].hypePick6.whereToSave[]": [
+      "race",
+      "reason"
+    ],
+    "cards[].finalRead.keyIntelligence.strategicFixed": [
+      "horseId",
+      "horseNumber"
+    ],
+    "cards[].liveResults.races[]": [
+      "payout",
+      "raceId",
+      "raceNumber",
+      "source",
+      "top4",
+      "winner"
+    ],
+    "cards[].liveResults.races[].winner": [
+      "horse",
+      "horseId",
+      "jockey",
+      "matchedToCard",
+      "name",
+      "position",
+      "programNumber"
+    ],
+    "cards[].liveResults.races[].top4[]": [
+      "horse",
+      "jockey",
+      "name",
+      "position",
+      "programNumber"
+    ],
+    "cards[].liveResults.races[].payout": [
+      "exacta",
+      "place",
+      "quiniela",
+      "show",
+      "superfecta",
+      "trifecta",
+      "win"
+    ],
+    "cards[].liveTrackOperational.trackCondition": [
+      "source",
+      "status",
+      "value"
+    ],
+    "cards[].races[].poolIntelligence.budgetCuts[]": [
+      "horse",
+      "reason"
+    ],
+    "cards[].races[].poolIntelligence.budgetCuts[].horse": [
+      "horseId",
+      "horseNumber"
+    ],
+    "tracks[]": [
+      "id",
+      "order",
+      "artPosition",
+      "name",
+      "nameEn",
+      "location",
+      "locationEn",
+      "aliases",
+      "home",
+      "art",
+      "slug",
+      "timezone",
+      "active",
+      "status"
+    ]
+  }
+}

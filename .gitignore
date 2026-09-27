@@ -10,3 +10,5 @@ preview-signing/
 .env.*
 .tools/
 artifacts/
+
+**/node_modules/

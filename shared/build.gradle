@@ -1,0 +1,16 @@
+plugins { id 'com.android.library' }
+android {
+    namespace 'com.playershype.shared'
+    compileSdk 36
+    buildToolsVersion '36.0.0'
+    defaultConfig { minSdk 26 }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError true }
+}
+dependencies {
+    api 'androidx.webkit:webkit:1.14.0'
+    api 'androidx.core:core:1.16.0'
+    api 'androidx.activity:activity:1.10.1'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20250517'
+}

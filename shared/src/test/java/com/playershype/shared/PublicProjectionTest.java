@@ -1,0 +1,18 @@
+package com.playershype.shared;
+import org.junit.Test;
+import org.json.*;
+import java.nio.file.*;
+import static org.junit.Assert.*;
+public class PublicProjectionTest {
+ private PublicProjection projection()throws Exception{return new PublicProjection(new JSONObject(new String(Files.readAllBytes(Paths.get("src/main/assets/public-projection.json")), java.nio.charset.StandardCharsets.UTF_8)));}
+ private JSONObject feed()throws Exception{return new JSONObject("{cards:[{event:{date:'2026-09-26',track:'Camarero'},races:[{raceNumber:1,horses:[]}]}],tracks:[]}");}
+ @Test public void removesPrivateAndUnknownFields()throws Exception{JSONObject f=feed();f.put("promptMaestro","private");f.getJSONArray("cards").getJSONObject(0).put("postmortem",new JSONObject().put("rawText","private"));f.getJSONArray("cards").getJSONObject(0).getJSONObject("event").put("hypeScoreWeights",new JSONObject().put("speed",99));String out=projection().feed(f).toString();assertFalse(out.contains("private"));assertFalse(out.contains("hypeScoreWeights"));assertTrue(out.contains("Camarero"));}
+ @Test(expected=Exception.class) public void rejectsIncompatibleSchema()throws Exception{projection().feed(feed().put("schemaVersion",2));}
+ @Test(expected=Exception.class) public void rejectsMalformedDate()throws Exception{JSONObject f=feed();f.getJSONArray("cards").getJSONObject(0).getJSONObject("event").put("date","yesterday");projection().feed(f);}
+ @Test(expected=Exception.class) public void rejectsDuplicateRace()throws Exception{JSONObject f=feed();JSONArray r=f.getJSONArray("cards").getJSONObject(0).getJSONArray("races");r.put(r.get(0));projection().feed(f);}
+ @Test(expected=Exception.class) public void rejectsExecutableText()throws Exception{JSONObject f=feed();f.getJSONArray("cards").getJSONObject(0).getJSONObject("event").put("track","<script>alert(1)</script>");projection().feed(f);}
+ @Test public void blocksUnsafeMediaSchemes(){for(String x:new String[]{"http://example.com/a","javascript:alert(1)","data:text/html,hi","data:image/svg+xml;base64,AA==","https://user:pass@example.com/a"})assertFalse(x,PublicProjection.safeImageOrUrl(x));assertTrue(PublicProjection.safeImageOrUrl("https://example.com/a.png"));assertTrue(PublicProjection.safeImageOrUrl("data:image/png;base64,AA=="));}
+ @Test public void bundledPublicSeedPassesRealContract()throws Exception{JSONObject seed=new JSONObject(new String(Files.readAllBytes(Paths.get("../app-user/src/main/assets/hypepredict/public-seed.json")), java.nio.charset.StandardCharsets.UTF_8));assertEquals(7,projection().feed(seed).getJSONArray("cards").length());}
+ @Test public void historyKeepsPriorCardsAndReplacesSameDay()throws Exception{JSONObject a=feed().getJSONArray("cards").getJSONObject(0);JSONObject b=new JSONObject(a.toString());b.getJSONObject("event").put("date","2026-09-25");JSONObject replacement=new JSONObject(a.toString()).put("product","new");JSONArray out=FeedHistory.merge(new JSONArray().put(a).put(b),new JSONArray().put(replacement));assertEquals(2,out.length());assertEquals("new",out.getJSONObject(0).getString("product"));}
+ @Test public void historyPrunesOldAndCapsAt100()throws Exception{JSONArray a=new JSONArray();for(int i=0;i<110;i++){JSONObject c=feed().getJSONArray("cards").getJSONObject(0);c.getJSONObject("event").put("track","Track"+i);a.put(c);}assertEquals(100,FeedHistory.merge(a,new JSONArray()).length());JSONObject old=feed().getJSONArray("cards").getJSONObject(0);old.getJSONObject("event").put("date","2020-01-01");assertEquals(1,FeedHistory.merge(new JSONArray().put(old),feed().getJSONArray("cards")).length());}
+}
