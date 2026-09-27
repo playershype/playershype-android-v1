@@ -91,6 +91,109 @@ jobs:
         run: |
           cd "$SRC_DIR"
           ./gradlew :app-user:lintPreview :app-admin:lintPreview --no-daemon
+          - name: Prepare QA signing
+        
+        shell: bash
+ env:
+          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
+          QA_STORE_PASSWORD: ${{ secrets.QA_STORE_PASSWORD }}
+          QA_KEY_ALIAS: ${{ secrets.QA_KEY_ALIAS }}
+          QA_KEY_PASSWORD: ${{ secrets.QA_KEY_PASSWORD }}
+        run: |
+          cd "$SRC_DIR"
+          python3 scripts/prepare_ci_signing.py
+
+      - name: Build both V1.3.1 RC Preview APKs
+        shell: bash
+        run: |
+          cd "$SRC_DIR"
+          ./gradlew :app-user:assemblePreview :app-admin:assemblePreview --no-daemon
+
+      - name: Verify signatures and package artifacts
+        shell: bash
+        run: |
+          cd "$SRC_DIR"
+          mkdir -p artifacts
+          cp app-user/build/outputs/apk/preview/app-user-preview.apk artifacts/PlayersHype-App-V1.3.1-RC-PREVIEW.apk
+          cp app-admin/build/outputs/apk/preview/app-admin-preview.apk artifacts/PlayersHype-Admin-V1.3.1-RC-PREVIEW.apk
+          for role in App Admin; do
+            APK="artifacts/PlayersHype-$role-V1.3.1-RC-PREVIEW.apk"
+            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" > "artifacts/$role-signature.txt"
+            "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$APK" > "artifacts/$role-metadata.txt"
+            if grep -q application-debuggable "artifacts/$role-metadata.txt"; then exit 1; fi
+          done
+          python3 scripts/package_artifacts.py
+
+      - name: Upload V1.3.1 RC Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
+          path: .v131/PlayersHype-Ecosystem-V1.3.1-RC/artifacts/
+          if-no-files-found: error
+
+      - name: Upload test and lint evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-V1.3.1-RC-verification
+          path: |
+            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/reports/tests/
+            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/test-results/
+            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/reports/lint-results-preview.*
+            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-admin/build/reports/lint-results-preview.*
+            .v131/PlayersHype-Ecosystem-V1.3.1-RC/shared/build/test-results/
+          if-no-files-found: warn
+
+      - name: Remove runner QA key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/playershype-qa.jks"
+
+  emulator:
+    needs: android
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SRC_DIR: .v131/PlayersHype-Ecosystem-V1.3.1-RC
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Expand PlayersHype V1.3.1 RC source package
+        shell: bash
+        run: |
+          rm -rf .v131
+          mkdir -p .v131
+          unzip -q PlayersHype-Ecosystem-V1.3.1-RC-SOURCE.zip -d .v131
+
+      - name: Download built APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
+          path: .v131/PlayersHype-Ecosystem-V1.3.1-RC/artifacts
+
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install and launch both signed APKs
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: cd "$SRC_DIR" && python3 scripts/emulator_smoke.py
+
+      - name: Upload emulator evidence
+        if: always()
+
+
+
+          
 
       - name: Prepare QA signing
         shell: bash
