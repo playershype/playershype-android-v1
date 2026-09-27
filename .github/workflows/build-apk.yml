@@ -258,8 +258,7 @@ jobs:
             -no-boot-anim
             -camera-back none
           script: |
-            cd "$SRC_DIR"
-            python3 scripts/emulator_smoke.py
+            cd "$SRC_DIR" && python3 scripts/emulator_smoke.py
 
       - name: Upload emulator evidence
         if: always()
