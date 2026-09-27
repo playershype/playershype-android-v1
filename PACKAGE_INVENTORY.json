@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "kind": "asset inventory, not complete transitive SBOM",
+  "pipeline": {
+    "gradle": "8.13",
+    "agp": "8.11.1",
+    "api": 36,
+    "java": 17,
+    "webkit": "1.14.0"
+  },
+  "thirdPartyAssets": [
+    {
+      "name": "PDF.js",
+      "version": "3.11.174",
+      "origin": "supplied reference APKs",
+      "license": "Apache-2.0, retained file header"
+    }
+  ],
+  "assets": [
+    {
+      "path": "app-user/src/main/assets/home.js",
+      "bytes": 7622,
+      "sha256": "d1db9f9b0adae259b6818f98b97c7486bd6e7e8ff55ff59626e3237b79fbedde"
+    },
+    {
+      "path": "app-user/src/main/assets/index.html",
+      "bytes": 12195,
+      "sha256": "8ef0e8674879992ea4246932345ffda8452bdf9705c129cf4ebe01b3ce82dd29"
+    },
+    {
+      "path": "app-user/src/main/assets/hypepredict/module.js",
+      "bytes": 2073678,
+      "sha256": "c5454b58330d80ab5f89bb34b306cd69c5b03c3aaa7fbc0972898d97c22ee77c"
+    },
+    {
+      "path": "app-user/src/main/assets/hypepredict/public-seed.json",
+      "bytes": 2528664,
+      "sha256": "3b4d70f15897e15cddcc163295ce0f667653122962354c7b39117fd45a200500"
+    },
+    {
+      "path": "app-user/src/main/assets/hypepredict/public-template.html",
+      "bytes": 298777,
+      "sha256": "b8b312b83767b152a79ff6252a348d42aeb2998b9f68d666bf3f729a2178af85"
+    },
+    {
+      "path": "app-user/src/main/assets/hypepredict/runtime.js",
+      "bytes": 122,
+      "sha256": "509541c1bd128e6d61fc661f12d5b829f9edb2b55778fc8a916af1828f142d71"
+    },
+    {
+      "path": "app-user/src/main/assets/vendor/pdf.min.js",
+      "bytes": 320004,
+      "sha256": "5b5799e6f8c680663207ac5b42ee14eed2a406fa7af48f50c154f0c0b1566946"
+    },
+    {
+      "path": "app-user/src/main/assets/vendor/pdf.worker.min.js",
+      "bytes": 1087212,
+      "sha256": "feabdf309770ed24bba31a5467836cdc8cf639c705af27d52b585b041bb8527b"
+    },
+    {
+      "path": "app-admin/src/main/assets/config-contract.js",
+      "bytes": 3088,
+      "sha256": "0b0cfe240a5432b09da09165b4c6b09c3642d010e4807e66e7581332f7ce4759"
+    },
+    {
+      "path": "app-admin/src/main/assets/control.css",
+      "bytes": 877,
+      "sha256": "a75255799c721ac8d79108ba85143df343f49082db2eb80241327b07ecf8669a"
+    },
+    {
+      "path": "app-admin/src/main/assets/control.js",
+      "bytes": 2365,
+      "sha256": "3b99f4e9218080a9e73af6a93730c61797e729fb5825a0f6d4035f02af3d6a5a"
+    },
+    {
+      "path": "app-admin/src/main/assets/index.html",
+      "bytes": 1817,
+      "sha256": "8307415903ac92b78c67cd386f7152048f2d7d71db308878c127eec90b718076"
+    },
+    {
+      "path": "app-admin/src/main/assets/hypepredict/admin.html",
+      "bytes": 1859799,
+      "sha256": "103e2688b9f53bb83a75fb658fcfb0a1c81e8eb5524475cff6c0aba19ff34a4c"
+    },
+    {
+      "path": "app-admin/src/main/assets/hypepredict/export-support.js",
+      "bytes": 3101,
+      "sha256": "a8544c1500cbe99d49c268ff7bd92fe88313075f73a873fb05be11fef9b6a840"
+    },
+    {
+      "path": "app-admin/src/main/assets/hypepredict/module.js",
+      "bytes": 2260677,
+      "sha256": "e7f3338b9d39893e42c581c6c1fb7ebb36864c4f04a3ae078fec2234a39a99df"
+    },
+    {
+      "path": "app-admin/src/main/assets/hypepredict/runtime.js",
+      "bytes": 122,
+      "sha256": "509541c1bd128e6d61fc661f12d5b829f9edb2b55778fc8a916af1828f142d71"
+    },
+    {
+      "path": "app-admin/src/main/assets/public-export/module.js",
+      "bytes": 2073678,
+      "sha256": "c5454b58330d80ab5f89bb34b306cd69c5b03c3aaa7fbc0972898d97c22ee77c"
+    },
+    {
+      "path": "app-admin/src/main/assets/public-export/public-template.html",
+      "bytes": 298777,
+      "sha256": "b8b312b83767b152a79ff6252a348d42aeb2998b9f68d666bf3f729a2178af85"
+    },
+    {
+      "path": "app-admin/src/main/assets/public-export/runtime.js",
+      "bytes": 122,
+      "sha256": "509541c1bd128e6d61fc661f12d5b829f9edb2b55778fc8a916af1828f142d71"
+    },
+    {
+      "path": "app-admin/src/main/assets/vendor/pdf.min.js",
+      "bytes": 320004,
+      "sha256": "5b5799e6f8c680663207ac5b42ee14eed2a406fa7af48f50c154f0c0b1566946"
+    },
+    {
+      "path": "app-admin/src/main/assets/vendor/pdf.worker.min.js",
+      "bytes": 1087212,
+      "sha256": "feabdf309770ed24bba31a5467836cdc8cf639c705af27d52b585b041bb8527b"
+    },
+    {
+      "path": "shared/src/main/assets/public-projection.json",
+      "bytes": 13439,
+      "sha256": "031f9a762e8ccca73e13b47e3831e4f77dba8793c12faa9f3a61a7681dc43e63"
+    },
+    {
+      "path": "shared/src/main/assets/native/bridge.js",
+      "bytes": 5672,
+      "sha256": "bc2868c1aacceb0bbedd92175953e6c77ec7e33c9f5a4b9156a0eb7160e989c5"
+    }
+  ]
+}
