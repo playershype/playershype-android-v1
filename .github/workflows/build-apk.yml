@@ -2,8 +2,12 @@ name: Build PlayersHype Android Ecosystem V1.3.2 RC
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
+      - main
       - v1.3-release-candidate
     paths-ignore:
       - 'docs/**'
@@ -211,3 +215,4 @@ jobs:
           name: PlayersHype-V1.3.2-RC-emulator-evidence
           path: .v132/PlayersHype-Ecosystem-V1.3.2-RC/emulator-evidence/
           if-no-files-found: warn
+
