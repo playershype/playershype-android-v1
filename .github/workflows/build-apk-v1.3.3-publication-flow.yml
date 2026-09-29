@@ -1,0 +1,156 @@
+name: Build PlayersHype Android Ecosystem V1.3.3 Publication Flow
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - v1.3.3-publication-flow
+    paths:
+      - 'PlayersHype-Ecosystem-V1.3.3-PUBLICATION-FLOW-SOURCE.zip'
+      - '.github/workflows/build-apk-v1.3.3-publication-flow.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    name: Verify and build App + Admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+
+      - name: Locate V1.3.3 source package
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="$(find . -maxdepth 2 -type f -name 'PlayersHype-Ecosystem-V1.3.3-PUBLICATION-FLOW-SOURCE.zip' -print -quit)"
+          test -n "$ZIP" || { echo 'V1.3.3 source ZIP not found.' >&2; exit 1; }
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "Using $ZIP"
+
+      - name: Expand clean V1.3.3 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .v133
+          mkdir .v133
+          unzip -q "${{ steps.source.outputs.zip }}" -d .v133
+          test -f .v133/settings.gradle
+          test -f .v133/app-user/build.gradle
+          test -f .v133/app-admin/build.gradle
+          test -f .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+
+      - name: Stamp V1.3.3 preview version
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in .v133/app-user/build.gradle .v133/app-admin/build.gradle; do
+            sed -i "s/versionCode 6/versionCode 7/" "$f"
+            sed -i "s/versionName '1.3.2'/versionName '1.3.3'/" "$f"
+            grep -q "versionCode 7" "$f"
+            grep -q "versionName '1.3.3'" "$f"
+          done
+
+      - name: Publication-flow guardrails
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Rqs "api/publish" .v133/shared .v133/app-admin
+          grep -Rqs "LIVE_PUBLISH_TOKEN" .v133/shared .v133/app-admin
+          grep -Rqs "github" .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+          grep -Rqs "updateApp" .v133/app-admin/src/main/assets .v133/shared/src/main/assets
+          grep -Rqs "updateLive" .v133/app-admin/src/main/assets .v133/shared/src/main/assets
+          grep -Rqs "PlayersHype-App-Config" .v133/app-user/src/main/assets .v133/shared || true
+          echo "Publication-flow guardrails passed."
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 8.13
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.13'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 36
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - name: Security audit
+        working-directory: .v133
+        shell: bash
+        run: python3 scripts/security_audit.py
+
+      - name: Prepare preview signing
+        working-directory: .v133
+        env:
+          QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
+          QA_STORE_PASSWORD: ${{ secrets.QA_STORE_PASSWORD }}
+          QA_KEY_ALIAS: ${{ secrets.QA_KEY_ALIAS }}
+          QA_KEY_PASSWORD: ${{ secrets.QA_KEY_PASSWORD }}
+        shell: bash
+        run: python3 scripts/prepare_ci_signing.py
+
+      - name: Unit tests
+        working-directory: .v133
+        shell: bash
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon :shared:test :app-user:testPreviewUnitTest :app-admin:testPreviewUnitTest
+
+      - name: Android lint
+        working-directory: .v133
+        shell: bash
+        run: ./gradlew --no-daemon :app-user:lintPreview :app-admin:lintPreview
+
+      - name: Build preview APKs
+        working-directory: .v133
+        shell: bash
+        run: ./gradlew --no-daemon :app-user:assemblePreview :app-admin:assemblePreview
+
+      - name: Collect APKs and evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p output
+          USER_APK="$(find .v133/app-user/build/outputs/apk/preview -type f -name '*.apk' -print -quit)"
+          ADMIN_APK="$(find .v133/app-admin/build/outputs/apk/preview -type f -name '*.apk' -print -quit)"
+          test -n "$USER_APK"
+          test -n "$ADMIN_APK"
+          cp "$USER_APK" output/PlayersHype-App-V1.3.3-PREVIEW.apk
+          cp "$ADMIN_APK" output/PlayersHype-Admin-V1.3.3-PREVIEW.apk
+          sha256sum output/*.apk | tee output/SHA256SUMS.txt
+          printf '%s\n' "${GITHUB_SHA}" > output/BUILD_COMMIT.txt
+
+      - name: Upload PlayersHype App V1.3.3
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-App-V1.3.3-PREVIEW
+          path: |
+            output/PlayersHype-App-V1.3.3-PREVIEW.apk
+            output/SHA256SUMS.txt
+            output/BUILD_COMMIT.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload PlayersHype Admin V1.3.3
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-Admin-V1.3.3-PREVIEW
+          path: |
+            output/PlayersHype-Admin-V1.3.3-PREVIEW.apk
+            output/SHA256SUMS.txt
+            output/BUILD_COMMIT.txt
+          if-no-files-found: error
+          retention-days: 14
