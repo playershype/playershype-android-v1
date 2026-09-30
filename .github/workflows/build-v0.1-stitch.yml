@@ -175,6 +175,59 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Stitch Race Day journey — exact screens from master package.
+          race_screens={
+            "race-day.html":"race_day_center_camarero_con_m_dulo_de_clima_pista_oficial",
+            "race-live.html":"jornada_en_vivo_carrera_6_camarero_c6_1_400m",
+            "race-tracker.html":"live_race_tracker_telemetr_a_en_carrera_camarero_c6_800m",
+            "results.html":"pizarra_de_resultados_oficiales_ratificada_dividendos_camarero_c6",
+            "photo-finish.html":"photo_finish_c_mara_lenta_en_meta_llegada_camarero_c6",
+            "horse-hub.html":"horse_hub_perfil_4_mi_hermano_luis_con_sedas_oficiales",
+            "horse-pps.html":"horse_hub_past_performances_pps_genealog_a_4_mi_hermano_luis",
+          }
+          for out,key in race_screens.items():
+            src=pick(key)
+            shutil.copy2(src, EXP/out)
+          # Add route bridge without altering Stitch layout.
+          routes={
+            "race-day.html":{"EN VIVO":"race-live.html","LIVE":"race-live.html","HYPEPREDICT":"../predict.html","CABALLO":"horse-hub.html","HORSE":"horse-hub.html"},
+            "race-live.html":{"TRACKER":"race-tracker.html","RESULT":"results.html","HYPEPREDICT":"../predict.html"},
+            "race-tracker.html":{"RESULT":"results.html","PHOTO":"photo-finish.html","HYPEPREDICT":"../predict.html"},
+            "results.html":{"PHOTO":"photo-finish.html","CABALLO":"horse-hub.html","HORSE":"horse-hub.html","HYPEPREDICT":"../predict.html"},
+            "photo-finish.html":{"RESULT":"results.html","CABALLO":"horse-hub.html","HORSE":"horse-hub.html"},
+            "horse-hub.html":{"PP":"horse-pps.html","PERFORMANCE":"horse-pps.html","HYPEPREDICT":"../predict.html"},
+            "horse-pps.html":{"PERFIL":"horse-hub.html","PROFILE":"horse-hub.html","HYPEPREDICT":"../predict.html"},
+          }
+          for name,mapping in routes.items():
+            p=EXP/name; s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('TRACK')||t.includes('PISTAS')) location.href='../tracks.html';
+            else if(t.includes('FAVORIT')||t.includes('SAVED')) location.href='favorites.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')||t.includes('MANADA')) location.href='profile.html';
+            else if(t.includes('TV')) location.href='tv-live.html';
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # Entry points from Track Hub / Predict.
+          for rel in ["tracks.html","predict.html"]:
+            p=Path("app/src/main/assets")/rel; s=p.read_text(encoding="utf-8")
+            bridge="""<script>
+          document.addEventListener('click',function(e){
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            if(t.includes('RACE DAY')||t.includes('JORNADA')||t.includes('CARRERA')) location.href='expansion/race-day.html';
+            else if(t.includes('HORSE')||t.includes('EJEMPLAR')||t.includes('CABALLO')) location.href='expansion/horse-hub.html';
+          });
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
@@ -244,7 +297,7 @@ jobs:
             "expansion/super-hype.html","expansion/tipping.html",
             "expansion/profile.html","expansion/favorites.html",
             "expansion/home-non-race.html","expansion/home-pre-race.html",
-            "expansion/home-live.html","expansion/home-post-race.html",
+            "expansion/home-live.html","expansion/home-post-race.html",\n            "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",\n            "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html","expansion/horse-pps.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
