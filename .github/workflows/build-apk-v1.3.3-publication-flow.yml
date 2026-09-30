@@ -188,11 +188,11 @@ jobs:
           s=lp.read_text()
           old=re.search(r"async function updateLive\(cards,tracks,message\)\{.*?\}\nasync function updateApp",s,re.S)
           if not old: raise SystemExit('Exact updateLive function not found')
-          replacement="""async function updateLive(cards,tracks,message){await generate(cards,tracks);if(!window.HypeAndroid)throw new Error('La publicación LIVE requiere el Admin APK.');return publishContent(getGenerated().html,'text/html; charset=utf-8',message||'Update HypePredict Live','live');}\nasync function updateApp"""
+          replacement="""async function updateLive(cards,tracks,message){await generate(cards,tracks);if(!window.HypeAndroid)throw new Error('La publicación LIVE requiere el Admin APK.');return publishContent(getGenerated().html,message||'Update HypePredict Live','live','text/html');}\nasync function updateApp"""
           s=s[:old.start()]+replacement+s[old.end():]
           lp.write_text(s)
           PY
-          grep -Fq "publishContent(getGenerated().html,'text/html; charset=utf-8'" .v133/shared/src/main/assets/native/live-publish.js
+          grep -Fq "publishContent(getGenerated().html,message||'Update HypePredict Live','live','text/html')" .v133/shared/src/main/assets/native/live-publish.js
           ! grep -F "fetch(LIVE_PUBLISH_ENDPOINT" .v133/shared/src/main/assets/native/live-publish.js
           echo "Native LIVE publisher enabled; User selection logic captured above."
 
@@ -204,6 +204,12 @@ jobs:
           grep -RniE 'Invalid publish target|target.*app|target.*live|publisherPublish|publishBegin|publishFinish' .v133/shared/src/main/java .v133/app-admin/src/main/java .v133/shared/src/main/assets .v133/app-admin/src/main/assets 2>/dev/null | head -260 || true
           echo "=== USER CONFIG APPLICATION ==="
           grep -RniE 'GITHUB_APP_CONFIG|fetch\(GITHUB|schemaVersion|localStorage|cache|revision|updatedAt|analysis|19 sep|latest' .v133/app-user/src/main/assets .v133/shared/src/main/assets 2>/dev/null | head -320 || true
+          echo "=== USER HOME CONFIG FULL ==="
+          nl -ba .v133/app-user/src/main/assets/home.js | sed -n '1,220p'
+          echo "=== HYPEPREDICT READER REFRESH ==="
+          nl -ba .v133/app-user/src/main/assets/hypepredict/module.js | sed -n '2680,2785p'
+          echo "=== USER UPDATE/FALLBACK MESSAGES ==="
+          grep -RniE 'No se pudo actualizar|copia anterior|análisis más reciente|analisis mas reciente|no hay análisis|no hay analisis|readerRefresh|hpReader' .v133/app-user/src/main/assets 2>/dev/null | head -180 || true
 
       - name: Stamp V1.3.3 preview version
         shell: bash
