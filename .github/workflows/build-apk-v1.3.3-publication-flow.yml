@@ -107,32 +107,17 @@ jobs:
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('.v133/shared/src/main/java/com/playershype/shared/PublishController.java')
           s=p.read_text()
-          # V1.3.3 legitimately publishes two bounded targets: Live HTML and App JSON.
-          # Keep traversal/absolute-path protection while allowing the configured docs targets.
-          s=s.replace('if (!path.endsWith(".html")) throw new IllegalArgumentException("Invalid HTML path");',
-                      'if (path == null || path.isBlank() || path.startsWith("/") || path.contains("..") || !(path.endsWith(".html") || path.endsWith(".json"))) throw new IllegalArgumentException("Invalid publish path");')
+          old='if (!v.matches("[A-Za-z0-9._/-]{1,240}") || v.contains("..") || v.startsWith("/") || !v.toLowerCase(Locale.ROOT).endsWith(".html")) throw new IllegalArgumentException("Invalid HTML path");'
+          new='if (!v.matches("[A-Za-z0-9._/-]{1,240}") || v.contains("..") || v.startsWith("/") || !(v.toLowerCase(Locale.ROOT).endsWith(".html") || v.toLowerCase(Locale.ROOT).endsWith(".json"))) throw new IllegalArgumentException("Invalid publish path");'
+          if old not in s: raise SystemExit('cleanPath validation target not found')
+          s=s.replace(old,new,1)
           p.write_text(s)
           PY
           grep -Fq 'Invalid publish path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          grep -Fq 'path.endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          ! grep -Fq 'Invalid HTML path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-
-      - name: Fix V1.3.3 publisher path validation
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('.v133/shared/src/main/java/com/playershype/shared/PublishController.java')
-          s=p.read_text()
-          s=s.replace('if (!path.endsWith(".html")) throw new IllegalArgumentException("Invalid HTML path");','if (path == null || path.isBlank() || path.startsWith("/") || path.contains("..") || !(path.endsWith(".html") || path.endsWith(".json"))) throw new IllegalArgumentException("Invalid publish path");')
-          p.write_text(s)
-          PY
-          grep -Fq 'Invalid publish path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          grep -Fq 'path.endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          ! grep -Fq 'Invalid HTML path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+          grep -Fq 'endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
 
       - name: Stamp V1.3.3 preview version
         shell: bash
