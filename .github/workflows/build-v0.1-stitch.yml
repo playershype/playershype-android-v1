@@ -236,7 +236,8 @@ jobs:
           mkdir -p artifacts
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/PlayersHype-App-V0.1-STITCH.apk
           echo "${GITHUB_SHA}" > artifacts/BUILD_COMMIT.txt
-          sha256sum artifacts/PlayersHype-App-V0.1-STITCH.apk > artifacts/SHA256SUMS.txt\n          cp route-audit.json artifacts/ROUTE_AUDIT.json
+          sha256sum artifacts/PlayersHype-App-V0.1-STITCH.apk > artifacts/SHA256SUMS.txt
+          cp route-audit.json artifacts/ROUTE_AUDIT.json
       - uses: actions/upload-artifact@v4
         with:
           name: PlayersHype-App-V0.1-STITCH
