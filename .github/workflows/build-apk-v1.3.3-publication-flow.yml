@@ -70,8 +70,11 @@ jobs:
             echo "## Full live-publish.js"
             cat .v133/shared/src/main/assets/native/live-publish.js
             echo
-            echo "## MainActivity publisher bridge references"
-            grep -RniE 'PublishController|publisher|HypeLive|WebMessage|postMessage' .v133/app-admin/src/main/java 2>/dev/null || true
+            echo "## Full MainActivity.java"
+            cat .v133/app-admin/src/main/java/com/playershype/admin/MainActivity.java
+            echo
+            echo "## Full PublishController.java"
+            cat .v133/shared/src/main/java/com/playershype/shared/PublishController.java
           } >> publisher-wiring-diagnostic.txt
 
       - name: Fix Admin publisher setup UX
