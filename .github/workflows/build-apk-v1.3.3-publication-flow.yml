@@ -217,6 +217,22 @@ jobs:
           echo "=== PUBLIC FEED STORE FULL ==="
           nl -ba .v133/shared/src/main/java/com/playershype/shared/PublicFeedStore.java | sed -n '1,240p'
 
+      - name: Diagnose HypePredict public feed endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== PUBLIC FEED STORE EXACT SOURCE ==="
+          cat .v133/shared/src/main/java/com/playershype/shared/PublicFeedStore.java
+          echo "=== PUBLIC FEED SOURCE URL ==="
+          grep -nE 'SOURCE_URL|https?://' .v133/shared/src/main/java/com/playershype/shared/PublicFeedStore.java || true
+          URL="$(grep -oE 'https://[^"]+' .v133/shared/src/main/java/com/playershype/shared/PublicFeedStore.java | head -1 || true)"
+          if [ -n "$URL" ]; then
+            echo "Testing $URL"
+            curl -sS -L --connect-timeout 10 --max-time 20 -o /tmp/public-feed-response -w 'HTTP=%{http_code} TYPE=%{content_type} SIZE=%{size_download}\\n' "$URL" || true
+            head -c 500 /tmp/public-feed-response 2>/dev/null || true
+            echo
+          fi
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
