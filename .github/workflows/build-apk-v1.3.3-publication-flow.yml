@@ -122,6 +122,37 @@ jobs:
           grep -Fq 'Invalid publish path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
           grep -Fq 'endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
 
+      - name: Fix User App refresh + native Cloudflare Live publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          # User App: point the packaged/public config fallback at the file ACTUALIZAR APP really publishes.
+          roots=[Path('.v133/shared/src/main/assets'),Path('.v133/app-user/src/main/assets')]
+          old_urls=[
+            'https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json',
+            'https://playershype.github.io/playershype-android-v1/app/config.json'
+          ]
+          target='https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json'
+          touched=0
+          for root in roots:
+            if not root.exists(): continue
+            for p in root.rglob('*'):
+              if not p.is_file(): continue
+              try: s=p.read_text()
+              except: continue
+              if 'config.json' in s and ('github' in s.lower() or 'playershype' in s.lower()):
+                ns=s
+                for u in old_urls: ns=ns.replace(u,target)
+                if ns!=s: p.write_text(ns); touched+=1
+          print('User config URL files touched:',touched)
+          PY
+          echo "=== User config endpoints ==="
+          grep -RniE 'config\.json|raw\.githubusercontent|github\.io' .v133/app-user/src/main .v133/shared/src/main 2>/dev/null | head -120 || true
+          echo "=== Live publishing implementation ==="
+          grep -RniE 'api/publish|LIVE_PUBLISH_TOKEN|updateLive|fetch\(' .v133/app-admin/src/main/assets .v133/shared/src/main/assets .v133/app-admin/src/main/java 2>/dev/null | head -160 || true
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
