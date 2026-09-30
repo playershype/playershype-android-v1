@@ -30,9 +30,9 @@ jobs:
           unzip -q PlayersHype-V0.1-STITCH-APP-SOURCE.zip -d .stitch-v01
           echo "Stitch package contents:"
           find .stitch-v01 -maxdepth 4 -type f -print
-          HOME_HTML="$(find .stitch-v01 -type f -path '*/playershype_user_app_home/code.html' | head -1)"
-          TRACKS_HTML="$(find .stitch-v01 -type f -path '*/playershype_track_hub/code.html' | head -1)"
-          PREDICT_HTML="$(find .stitch-v01 -type f -path '*/hypepredict_race_intelligence_analysis/code.html' | head -1)"
+          HOME_HTML=".stitch-v01/home/code.html"
+          TRACKS_HTML=".stitch-v01/track-hub/code.html"
+          PREDICT_HTML=".stitch-v01/hypepredict/code.html"
           test -n "$HOME_HTML" && test -f "$HOME_HTML"
           test -n "$TRACKS_HTML" && test -f "$TRACKS_HTML"
           test -n "$PREDICT_HTML" && test -f "$PREDICT_HTML"
