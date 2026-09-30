@@ -240,6 +240,49 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Stitch User Utilities — exact screens from Expansion 03.
+          pkg3=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-03.zip")
+          if not pkg3.exists():
+            raise SystemExit("Missing Expansion 03 package")
+          root3=Path(".stitch-exp03")
+          if root3.exists(): shutil.rmtree(root3)
+          root3.mkdir()
+          with zipfile.ZipFile(pkg3) as z: z.extractall(root3)
+          utility_screens={
+            "search.html":"buscador_universal_b_squeda_global_con_filtros_y_resultados",
+            "notifications.html":"centro_de_notificaciones_con_filtros_y_gesti_n_de_alertas",
+            "share.html":"compartir_en_redes_sociales_share_sheet_nativo",
+            "weather-alert.html":"alerta_meteorol_gica_push_in_app_por_pista",
+          }
+          for out,key in utility_screens.items():
+            matches=[p for p in root3.rglob("code.html") if p.parent.name==key]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Expansion 03 screen for {key}, found {len(matches)}: {matches}")
+            shutil.copy2(matches[0], EXP/out)
+          utility_routes={
+            "search.html":{"NOTIFIC":"notifications.html","ALERTA":"weather-alert.html","SHARE":"share.html","COMPART":"share.html"},
+            "notifications.html":{"BUSCAR":"search.html","SEARCH":"search.html","CLIMA":"weather-alert.html","WEATHER":"weather-alert.html"},
+            "weather-alert.html":{"NOTIFIC":"notifications.html","BUSCAR":"search.html","SEARCH":"search.html"},
+            "share.html":{"BUSCAR":"search.html","SEARCH":"search.html","NOTIFIC":"notifications.html"},
+          }
+          for name,mapping in utility_routes.items():
+            p=EXP/name; s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('TRACK')||t.includes('PISTAS')) location.href='../tracks.html';
+            else if(t.includes('PREDICT')||t.includes('HYPEPREDICT')) location.href='../predict.html';
+            else if(t.includes('FAVORIT')||t.includes('SAVED')) location.href='favorites.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')||t.includes('MANADA')) location.href='profile.html';
+            else if(t.includes('TV')) location.href='tv-live.html';
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
@@ -312,6 +355,7 @@ jobs:
             "expansion/home-live.html","expansion/home-post-race.html",
           "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",
           "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html","expansion/horse-pps.html",
+          "expansion/search.html","expansion/notifications.html","expansion/share.html","expansion/weather-alert.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
