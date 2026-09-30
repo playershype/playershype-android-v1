@@ -290,27 +290,24 @@ jobs:
           if root4.exists(): shutil.rmtree(root4)
           root4.mkdir()
           with zipfile.ZipFile(pkg4) as z: z.extractall(root4)
-          # Resolve Expansion 04 from the package itself; never depend on transliterated folder names.
-          all4=list(root4.rglob("code.html"))
-          selectors={
-            "manada.html":["manada","nivel"],
-            "membership.html":["membres","beneficio"],
-            "customize.html":["personaliza","perfil"],
-            "sticker-shop.html":["sticker","shop"],
-            "shop.html":["shop","merch","filt"],
-            "product.html":["shop","producto"],
-            "checkout.html":["checkout","usps","ath"],
-            "order-confirmation.html":["confirm","compra","tracking"],
-            "orders.html":["pedidos","historial"],
-            "receipts.html":["recibos","facturas"],
-            "receipt.html":["detalle","recibo"],
+          # Expansion 04 — exact folder names reported by the package itself in build #32.
+          commerce_screens={
+            "manada.html":"tiers_de_membres_a_la_manada",
+            "membership.html":"perfil_de_usuario_membres_a_la_manada",
+            "customize.html":"user_profile_customization_la_manada_sticker_library",
+            "sticker-shop.html":"la_manada_sticker_shop_coleccionables_oficiales",
+            "shop.html":"playershype_shop_ropa_coleccionables_drops",
+            "product.html":"playershype_shop_detalle_de_producto_carrito_drawer",
+            "checkout.html":"playershype_shop_shipping_checkout_seguro_usps_ath_m_vil",
+            "order-confirmation.html":"playershype_shop_confirmaci_n_de_pedido_tracking_usps",
+            "orders.html":"historial_de_pedidos_compras_de_la_tienda_mi_perfil",
+            "receipts.html":"historial_de_recibos_facturaci_n_desglose_de_impuestos_ivu",
+            "receipt.html":"la_manada_sticker_shop_coleccionables_packs",
           }
-          used=set()
-          for out,tokens in selectors.items():
-            matches=[p for p in all4 if all(tok in p.parent.name.lower() for tok in tokens) and p not in used]
+          for out,key in commerce_screens.items():
+            matches=[p for p in root4.rglob("code.html") if p.parent.name==key]
             if len(matches)!=1:
-              raise SystemExit(f"Expansion 04 selector {out} tokens={tokens} found {len(matches)}: {[p.parent.name for p in matches]}; available={[p.parent.name for p in all4]}")
-            used.add(matches[0])
+              raise SystemExit(f"Expected exactly one Expansion 04 screen for {key}, found {len(matches)}: {matches}")
             shutil.copy2(matches[0], EXP/out)
           commerce_routes={
             "manada.html":{"MEMBRES":"membership.html","NIVEL":"membership.html","TIER":"membership.html","PERSONAL":"customize.html","STICKER":"sticker-shop.html"},
