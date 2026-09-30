@@ -133,6 +133,66 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
           test "$(find app/src/main/assets/expansion -name '*.html' | wc -l)" -eq 10
+      - name: Wire Stitch User App navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          routes={
+            Path("app/src/main/assets/index.html"):{
+              "TV":"expansion/tv-live.html",
+              "FAVORIT":"expansion/favorites.html",
+              "PERFIL":"expansion/profile.html",
+              "PROFILE":"expansion/profile.html",
+              "MANADA":"expansion/profile.html",
+            },
+            Path("app/src/main/assets/tracks.html"):{
+              "TV":"expansion/tv-live.html",
+              "FAVORIT":"expansion/favorites.html",
+              "PERFIL":"expansion/profile.html",
+              "PROFILE":"expansion/profile.html",
+              "MANADA":"expansion/profile.html",
+            },
+            Path("app/src/main/assets/predict.html"):{
+              "TV":"expansion/tv-live.html",
+              "FAVORIT":"expansion/favorites.html",
+              "PERFIL":"expansion/profile.html",
+              "PROFILE":"expansion/profile.html",
+              "MANADA":"expansion/profile.html",
+            },
+          }
+          for p,r in routes.items():
+            s=p.read_text(encoding="utf-8")
+            pairs=",".join(repr(k)+":"+repr(v) for k,v in r.items())
+            bridge=f"""<script>
+          document.addEventListener('click', function(e) {{
+            const el=e.target.closest('a,button'); if(!el) return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            const routes={{{pairs}}};
+            for(const [key,url] of Object.entries(routes)) {{
+              if(t===key || t.includes(key)) {{ location.href=url; return; }}
+            }}
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # TV internal routes: exact feature words only.
+          p=Path("app/src/main/assets/expansion/tv-live.html")
+          s=p.read_text(encoding="utf-8")
+          bridge="""<script>
+          document.addEventListener('click', function(e) {
+            const el=e.target.closest('a,button'); if(!el) return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            if(t.includes('MULTI')) location.href='tv-multicam.html';
+            else if(t.includes('SUPER HYPE')) location.href='super-hype.html';
+            else if(t.includes('TIP')||t.includes('PROPINA')) location.href='tipping.html';
+          });
+          </script>"""
+          s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          PY
+          test -s app/src/main/assets/expansion/tv-live.html
+          test -s app/src/main/assets/expansion/profile.html
+          test -s app/src/main/assets/expansion/favorites.html
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
