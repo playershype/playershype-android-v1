@@ -79,8 +79,11 @@ jobs:
         with:
           gradle-version: '8.13'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Use preinstalled Android SDK
+        shell: bash
+        run: |
+          test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" || command -v sdkmanager
+          sdkmanager --version
 
       - name: Install Android SDK 36
         shell: bash
