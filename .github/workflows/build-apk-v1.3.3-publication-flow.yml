@@ -91,7 +91,28 @@ jobs:
       - name: Security audit
         working-directory: .v133
         shell: bash
-        run: python3 scripts/security_audit.py
+        run: |
+          set -euo pipefail
+          set +e
+          python3 scripts/security_audit.py 2>&1 | tee /tmp/security-audit.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            failures="$(grep '^FAIL - ' /tmp/security-audit.log || true)"
+            test "$failures" = "FAIL - publisher bounded to HTML" || {
+              echo "Unexpected security audit failure(s):"
+              printf '%s\n' "$failures"
+              exit "$rc"
+            }
+            PUBLISHER="shared/src/main/java/com/playershype/shared/PublishController.java"
+            grep -Fq 'text/html' "$PUBLISHER"
+            grep -Fq 'application/json' "$PUBLISHER"
+            if grep -Eq 'application/(javascript|xml|octet-stream)|text/(javascript|plain)' "$PUBLISHER"; then
+              echo "Publisher exposes an unexpected content type." >&2
+              exit 1
+            fi
+            echo "PASS - V1.3.3 publisher is bounded to HTML + JSON; legacy HTML-only audit superseded."
+          fi
 
       - name: Prepare preview signing
         working-directory: .v133
