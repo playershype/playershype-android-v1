@@ -78,6 +78,61 @@ jobs:
           grep -q "PlayersHype" app/src/main/assets/index.html
           test -s app/src/main/assets/tracks.html
           test -s app/src/main/assets/predict.html
+      - name: Install Stitch User Expansion 01
+        run: |
+          set -euxo pipefail
+          rm -rf .stitch-exp01
+          mkdir -p .stitch-exp01
+          unzip -q PlayersHype-V0.1-STITCH-USER-EXPANSION-01.zip -d .stitch-exp01
+          echo "Expansion package contents:"
+          find .stitch-exp01 -maxdepth 3 -type f -print
+          mkdir -p app/src/main/assets/expansion
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+          root=Path(".stitch-exp01")
+          out=Path("app/src/main/assets/expansion")
+          mapping={
+            "tv-live":"tv-live.html",
+            "tv-multicam":"tv-multicam.html",
+            "super-hype":"super-hype.html",
+            "tipping":"tipping.html",
+            "profile":"profile.html",
+            "favorites":"favorites.html",
+            "home-non-race":"home-non-race.html",
+            "home-pre-race":"home-pre-race.html",
+            "home-live":"home-live.html",
+            "home-post-race":"home-post-race.html",
+          }
+          found={}
+          for d in root.iterdir():
+            if d.is_dir() and (d/"code.html").exists():
+              found[d.name]=d/"code.html"
+          print("FOUND", sorted(found))
+          missing=[k for k in mapping if k not in found]
+          if missing:
+            raise SystemExit("Missing expansion screens: "+", ".join(missing))
+          for key,name in mapping.items():
+            shutil.copyfile(found[key], out/name)
+          # Add navigation bridge without altering Stitch layout.
+          bridge="""<script>
+          document.addEventListener('click', function(e) {
+            const el=e.target.closest('a,button'); if(!el) return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            if(t.includes('TRACK')||t.includes('PISTAS')) location.href='../tracks.html';
+            else if(t.includes('PREDICT')||t.includes('HYPEPREDICT')) location.href='../predict.html';
+            else if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('MULTI')) location.href='tv-multicam.html';
+            else if(t.includes('FAVORIT')) location.href='favorites.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')||t.includes('MANADA')) location.href='profile.html';
+          });
+          </script>"""
+          for p in out.glob("*.html"):
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
+          test "$(find app/src/main/assets/expansion -name '*.html' | wc -l)" -eq 10
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
