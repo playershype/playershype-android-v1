@@ -520,3 +520,5 @@ jobs:
             output/BUILD_COMMIT.txt
           if-no-files-found: error
           retention-days: 14
+
+# rebuild-trigger: user-app-remote-config-validation
