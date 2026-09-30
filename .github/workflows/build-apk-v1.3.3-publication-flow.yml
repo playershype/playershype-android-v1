@@ -153,42 +153,17 @@ jobs:
           echo "=== Live publishing implementation ==="
           grep -RniE 'api/publish|LIVE_PUBLISH_TOKEN|updateLive|fetch\(' .v133/app-admin/src/main/assets .v133/shared/src/main/assets .v133/app-admin/src/main/java 2>/dev/null | head -160 || true
 
-      - name: Fix User refresh cache-busting and Live native transport
+      - name: Capture exact User refresh and Admin native bridge source
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          # USER: force every manual refresh to bypass intermediary caches while preserving the canonical GitHub config.
-          p=Path('.v133/app-user/src/main/assets/home.js')
-          s=p.read_text()
-          old="fetch(GITHUB_APP_CONFIG,{cache:'no-store'})"
-          new="fetch(GITHUB_APP_CONFIG+(GITHUB_APP_CONFIG.includes('?')?'&':'?')+'_='+Date.now(),{cache:'no-store',headers:{'Cache-Control':'no-cache'}})"
-          if old in s:
-            s=s.replace(old,new)
-          else:
-            # handle spacing/variant conservatively
-            import re
-            s,n=re.subn(r"fetch\(GITHUB_APP_CONFIG\s*,\s*\{cache:'no-store'\}\)",new,s,count=1)
-            if not n: raise SystemExit('User GitHub fetch target not found')
-          p.write_text(s)
+          echo "=== USER REFRESH SOURCES ==="
+          grep -RniE 'GITHUB_APP_CONFIG|raw\.githubusercontent|config\.json|async.*refresh|fetch\(' .v133/app-user/src/main/assets .v133/app-user/src/main/java .v133/shared/src/main 2>/dev/null | grep -v vendor | head -240 || true
+          echo "=== ADMIN BRIDGE SOURCE ==="
+          grep -RniE 'HypeAndroid|request\(|publisherConfigure|publisherPublish|postMessage|WebMessage|WebView' .v133/app-admin/src/main/java .v133/shared/src/main/java 2>/dev/null | head -260 || true
+          echo "=== LIVE JS ==="
+          nl -ba .v133/shared/src/main/assets/native/live-publish.js | sed -n '1,130p'
 
-          # LIVE: WebView cross-origin fetch is the failure point. Route Cloudflare publish through native Android HTTPS.
-          p=Path('.v133/shared/src/main/assets/native/live-publish.js')
-          s=p.read_text()
-          old="const r=await fetch(LIVE_PUBLISH_ENDPOINT,{method:'POST',headers:{'Content-Type':'text/html; charset=utf-8','Authorization':'Bearer '+token,'X-PlayersHype-Message':message||'Update HypePredict Live'},body:getGenerated().html});const d=await r.json().catch(()=>({}));if(r.status===401){liveToken(true);throw new Error('Token de Cloudflare incorrecto.');}if(!r.ok||d.ok===false)throw new Error(d.error||('Cloudflare HTTP '+r.status));return {...d,ok:true,target:'live',manual:false,liveUrl:LEGACY_LIVE_URL};"
-          new="const r=await HypeAndroid.request('cloudflarePublish',{endpoint:LIVE_PUBLISH_ENDPOINT,token,message:message||'Update HypePredict Live',html:getGenerated().html});if(!r||r.ok===false)throw new Error(r?.error||'Cloudflare publish failed');return {...r,ok:true,target:'live',manual:false,liveUrl:LEGACY_LIVE_URL};"
-          if old not in s: raise SystemExit('Live fetch target not found')
-          p.write_text(s.replace(old,new,1))
-
-          # Add bounded native action to Admin MainActivity using HttpsURLConnection; no browser CORS involved.
-          p=Path('.v133/app-admin/src/main/java/com/playershype/admin/MainActivity.java')
-          s=p.read_text()
-          # inspectable marker only: bridge action insertion depends on exact dispatcher shape
-          if 'cloudflarePublish' not in s:
-            raise SystemExit('NEED_NATIVE_BRIDGE_SHAPE')
-          p.write_text(s)
-          PY
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
