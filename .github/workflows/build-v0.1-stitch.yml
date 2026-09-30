@@ -176,7 +176,7 @@ jobs:
             s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           # Stitch Race Day journey — exact screens from Expansion 02.
-          import zipfile
+          import zipfile, shutil
           pkg=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-02.zip")
           if not pkg.exists():
             raise SystemExit("Missing Expansion 02 package")
