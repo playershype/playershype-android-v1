@@ -219,9 +219,15 @@ jobs:
           SecureActivity.respond(reply, id, true, status().toString());
           break;'''
           if 'case "publisherConfigureLive":' not in s:
-            if old not in s:
-              raise SystemExit('publisherConfigure switch block not found')
-            s=s.replace(old,new,1)
+            anchor_case='''        case "publisherClearToken":'''
+            if anchor_case not in s:
+              raise SystemExit('publisherClearToken anchor not found')
+            live_case='''        case "publisherConfigureLive":
+          configureLive(m);
+          SecureActivity.respond(reply, id, true, status().toString());
+          break;
+'''
+            s=s.replace(anchor_case,live_case+anchor_case,1)
 
           anchor='''  private JSONObject status() throws Exception {'''
           livecfg='''  private void configureLive(JSONObject m) throws Exception {
