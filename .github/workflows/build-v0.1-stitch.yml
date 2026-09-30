@@ -175,6 +175,44 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Home state controller. Default stays on the validated Stitch Home.
+          # Admin/config can later set localStorage.playershypeHomeState to:
+          # non-race, pre-race, live, post-race.
+          p=Path("app/src/main/assets/index.html")
+          s=p.read_text(encoding="utf-8")
+          bridge="""<script>
+          (function(){
+            const map={
+              'non-race':'expansion/home-non-race.html',
+              'pre-race':'expansion/home-pre-race.html',
+              'live':'expansion/home-live.html',
+              'post-race':'expansion/home-post-race.html'
+            };
+            const qs=new URLSearchParams(location.search);
+            const state=qs.get('state') || localStorage.getItem('playershypeHomeState');
+            if(state && map[state]) location.replace(map[state]);
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          # Ensure every dynamic Home can return to the validated root Home.
+          for name in ["home-non-race.html","home-pre-race.html","home-live.html","home-post-race.html"]:
+            p=Path("app/src/main/assets/expansion")/name
+            s=p.read_text(encoding="utf-8")
+            bridge="""<script>
+          document.addEventListener('click', function(e) {
+            const el=e.target.closest('a,button'); if(!el) return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('FAVORIT')||t.includes('SAVED')) location.href='favorites.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')||t.includes('MANADA')) location.href='profile.html';
+            else if(t.includes('TV')) location.href='tv-live.html';
+            else if(t.includes('TRACK')||t.includes('PISTAS')) location.href='../tracks.html';
+            else if(t.includes('PREDICT')||t.includes('HYPEPREDICT')) location.href='../predict.html';
+          });
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
           # TV internal routes: exact feature words only.
           p=Path("app/src/main/assets/expansion/tv-live.html")
           s=p.read_text(encoding="utf-8")
@@ -184,7 +222,7 @@ jobs:
             const t=(el.innerText||el.textContent||'').trim().toUpperCase();
             if(t.includes('MULTI')) location.href='tv-multicam.html';
             else if(t.includes('SUPER HYPE')) location.href='super-hype.html';
-            else if(t.includes('TIP')||t.includes('PROPINA')) location.href='tipping.html';
+            // Tipping intentionally disabled by default in V0.1.
           });
           </script>"""
           s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
@@ -224,10 +262,10 @@ jobs:
           Path("route-audit.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
           print(json.dumps(report,indent=2))
           # Tipping remains packaged for design parity but is not approved as a visible default feature.
-          critical=[p for p in required if p!="expansion/tipping.html"]
+          critical=[p for p in required if p not in {"expansion/tipping.html","expansion/super-hype.html"}]
           orphan=[p for p in critical if p!="index.html" and not inbound[p]]
           if orphan:
-            print("WARNING orphan pages:", orphan)
+            raise SystemExit("Critical orphan pages: "+", ".join(orphan))
           PY
       - name: Build V0.1 debug APK
         run: |
