@@ -233,6 +233,21 @@ jobs:
             echo
           fi
 
+          {
+            echo
+            echo "## User home.js"
+            cat .v133/app-user/src/main/assets/home.js
+            echo
+            echo "## User HypePredict refresh excerpt"
+            sed -n '2680,2785p' .v133/app-user/src/main/assets/hypepredict/module.js
+            echo
+            echo "## User MainActivity.java"
+            cat .v133/app-user/src/main/java/com/playershype/app/MainActivity.java
+            echo
+            echo "## Shared native/sync candidates"
+            grep -RniE 'sync|sourceUrl|contentHash|public-seed|feed|raw\\.githubusercontent|playershype\\.net' .v133/shared/src/main/java .v133/app-user/src/main/java 2>/dev/null || true
+          } >> publisher-wiring-diagnostic.txt
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
