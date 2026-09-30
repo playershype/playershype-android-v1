@@ -62,6 +62,17 @@ jobs:
             echo "## Admin bridge/assets"
             grep -RniE 'configurePublisher|isPublisherConfigured|requestPublisher|github.*publisher|Configure GitHub publisher first' .v133/app-admin/src/main/java .v133/app-admin/src/main/assets .v133/shared/src/main/assets 2>/dev/null | head -200 || true
           } > publisher-wiring-diagnostic.txt
+          {
+            echo
+            echo "## Full control.js"
+            cat .v133/app-admin/src/main/assets/control.js
+            echo
+            echo "## Full live-publish.js"
+            cat .v133/shared/src/main/assets/native/live-publish.js
+            echo
+            echo "## MainActivity publisher bridge references"
+            grep -RniE 'PublishController|publisher|HypeLive|WebMessage|postMessage' .v133/app-admin/src/main/java 2>/dev/null || true
+          } >> publisher-wiring-diagnostic.txt
 
       - name: Stamp V1.3.3 preview version
         shell: bash
