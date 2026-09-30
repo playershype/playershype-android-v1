@@ -196,6 +196,15 @@ jobs:
           ! grep -F "fetch(LIVE_PUBLISH_ENDPOINT" .v133/shared/src/main/assets/native/live-publish.js
           echo "Native LIVE publisher enabled; User selection logic captured above."
 
+      - name: Capture publisher target rules and User config application
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== PUBLISH TARGET RULES ==="
+          grep -RniE 'Invalid publish target|target.*app|target.*live|publisherPublish|publishBegin|publishFinish' .v133/shared/src/main/java .v133/app-admin/src/main/java .v133/shared/src/main/assets .v133/app-admin/src/main/assets 2>/dev/null | head -260 || true
+          echo "=== USER CONFIG APPLICATION ==="
+          grep -RniE 'GITHUB_APP_CONFIG|fetch\(GITHUB|schemaVersion|localStorage|cache|revision|updatedAt|analysis|19 sep|latest' .v133/app-user/src/main/assets .v133/shared/src/main/assets 2>/dev/null | head -320 || true
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
