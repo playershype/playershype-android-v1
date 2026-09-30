@@ -22,6 +22,62 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - name: Install Android SDK 36
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Install official Stitch V0.1 screens
+        run: |
+          set -euxo pipefail
+          rm -rf .stitch-v01
+          mkdir -p .stitch-v01
+          unzip -q PlayersHype-V0.1-STITCH-APP-SOURCE.zip -d .stitch-v01
+          echo "Stitch package contents:"
+          find .stitch-v01 -maxdepth 4 -type f -print
+          HOME_HTML="$(find .stitch-v01 -type f -path '*/playershype_user_app_home/code.html' | head -1)"
+          TRACKS_HTML="$(find .stitch-v01 -type f -path '*/playershype_track_hub/code.html' | head -1)"
+          PREDICT_HTML="$(find .stitch-v01 -type f -path '*/hypepredict_race_intelligence_analysis/code.html' | head -1)"
+          test -n "$HOME_HTML" && test -f "$HOME_HTML"
+          test -n "$TRACKS_HTML" && test -f "$TRACKS_HTML"
+          test -n "$PREDICT_HTML" && test -f "$PREDICT_HTML"
+          mkdir -p app/src/main/assets
+          cp "$HOME_HTML" app/src/main/assets/index.html
+          cp "$TRACKS_HTML" app/src/main/assets/tracks.html
+          cp "$PREDICT_HTML" app/src/main/assets/predict.html
+          python3 - <<'PY'
+          from pathlib import Path
+          files = {
+              Path("app/src/main/assets/index.html"): {
+                  "TRACK_HUB": "tracks.html",
+                  "HYPEPREDICT": "predict.html",
+              },
+              Path("app/src/main/assets/tracks.html"): {
+                  "HOME": "index.html",
+                  "HYPEPREDICT": "predict.html",
+              },
+              Path("app/src/main/assets/predict.html"): {
+                  "HOME": "index.html",
+                  "TRACK_HUB": "tracks.html",
+              },
+          }
+          # Preserve Stitch markup. Add only a tiny native navigation bridge
+          # where matching labels/buttons exist, without redesigning the UI.
+          for path, targets in files.items():
+              s = path.read_text(encoding="utf-8")
+              bridge = """
+          <script>
+          document.addEventListener('click', function(e) {
+            const el = e.target.closest('a,button');
+            if (!el) return;
+            const t = (el.innerText || el.textContent || '').trim().toUpperCase();
+            if (t.includes('TRACK') || t.includes('PISTAS')) { location.href='tracks.html'; }
+            else if (t.includes('PREDICT') || t.includes('HYPEPREDICT')) { location.href='predict.html'; }
+            else if (t === 'HOME' || t.includes('INICIO')) { location.href='index.html'; }
+          });
+          </script>
+          """
+              s = s.replace("</body>", bridge + "\n</body>") if "</body>" in s else s + bridge
+              path.write_text(s, encoding="utf-8")
+          PY
+          grep -q "PlayersHype" app/src/main/assets/index.html
+          test -s app/src/main/assets/tracks.html
+          test -s app/src/main/assets/predict.html
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
