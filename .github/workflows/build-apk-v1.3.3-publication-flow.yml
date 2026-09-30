@@ -53,6 +53,15 @@ jobs:
           grep -nE 'configure|isConfigured|repository|branch|path|token|publish' .v133/shared/src/main/java/com/playershype/shared/PublishController.java | sed -E 's/(token[^=]*=).*/\1<redacted>/I' || true
           echo "=== Admin bridge/publisher calls ==="
           grep -RniE 'configurePublisher|isPublisherConfigured|requestPublisher|github.*publisher|Configure GitHub publisher first' .v133/app-admin/src/main/java .v133/app-admin/src/main/assets .v133/shared/src/main/assets 2>/dev/null | head -120 || true
+          {
+            echo "# Publisher wiring diagnostic"
+            echo
+            echo "## PublishController"
+            grep -nE 'configure|isConfigured|repository|branch|path|token|publish' .v133/shared/src/main/java/com/playershype/shared/PublishController.java | sed -E 's/(token[^=]*=).*/\1<redacted>/I' || true
+            echo
+            echo "## Admin bridge/assets"
+            grep -RniE 'configurePublisher|isPublisherConfigured|requestPublisher|github.*publisher|Configure GitHub publisher first' .v133/app-admin/src/main/java .v133/app-admin/src/main/assets .v133/shared/src/main/assets 2>/dev/null | head -200 || true
+          } > publisher-wiring-diagnostic.txt
 
       - name: Stamp V1.3.3 preview version
         shell: bash
@@ -163,6 +172,14 @@ jobs:
           cp "$ADMIN_APK" output/PlayersHype-Admin-V1.3.3-PREVIEW.apk
           sha256sum output/*.apk | tee output/SHA256SUMS.txt
           printf '%s\n' "${GITHUB_SHA}" > output/BUILD_COMMIT.txt
+
+      - name: Upload publisher wiring diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: Publisher-Wiring-Diagnostic
+          path: publisher-wiring-diagnostic.txt
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Upload PlayersHype App V1.3.3
         uses: actions/upload-artifact@v4
