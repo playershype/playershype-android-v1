@@ -175,30 +175,31 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
-          # Locate exact Stitch master screens from the package available in this checkout.
-          MASTER=Path(".stitch-master")
-          if not MASTER.exists():
-            MASTER=Path(".stitch-v01")
-          def pick(key):
-            matches=[p for p in MASTER.rglob("code.html") if key in str(p.parent).lower()]
-            if len(matches)!=1:
-              raise SystemExit(f"Expected exactly one Stitch screen for {key}, found {len(matches)}: {matches}")
-            return matches[0]
+          # Stitch Race Day journey — exact screens from Expansion 02.
+          import zipfile
+          pkg=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-02.zip")
+          if not pkg.exists():
+            raise SystemExit("Missing Expansion 02 package")
+          root=Path(".stitch-exp02")
+          if root.exists(): shutil.rmtree(root)
+          root.mkdir()
+          with zipfile.ZipFile(pkg) as z: z.extractall(root)
           EXP=Path("app/src/main/assets/expansion")
           EXP.mkdir(parents=True,exist_ok=True)
-          # Stitch Race Day journey — exact screens from master package.
           race_screens={
-            "race-day.html":"race_day_center_camarero_con_m_dulo_de_clima_pista_oficial",
-            "race-live.html":"jornada_en_vivo_carrera_6_camarero_c6_1_400m",
-            "race-tracker.html":"live_race_tracker_telemetr_a_en_carrera_camarero_c6_800m",
-            "results.html":"pizarra_de_resultados_oficiales_ratificada_dividendos_camarero_c6",
-            "photo-finish.html":"photo_finish_c_mara_lenta_en_meta_llegada_camarero_c6",
-            "horse-hub.html":"horse_hub_perfil_4_mi_hermano_luis_con_sedas_oficiales",
-            "horse-pps.html":"horse_hub_past_performances_pps_genealog_a_4_mi_hermano_luis",
+            "race-day.html":"race-day",
+            "race-live.html":"race-live",
+            "race-tracker.html":"race-tracker",
+            "results.html":"results",
+            "photo-finish.html":"photo-finish",
+            "horse-hub.html":"horse-hub",
+            "horse-pps.html":"horse-pps",
           }
           for out,key in race_screens.items():
-            src=pick(key)
-            shutil.copy2(src, EXP/out)
+            matches=[p for p in root.rglob("code.html") if p.parent.name==key]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Expansion 02 screen for {key}, found {len(matches)}: {matches}")
+            shutil.copy2(matches[0], EXP/out)
           # Add route bridge without altering Stitch layout.
           routes={
             "race-day.html":{"EN VIVO":"race-live.html","LIVE":"race-live.html","HYPEPREDICT":"../predict.html","CABALLO":"horse-hub.html","HORSE":"horse-hub.html"},
