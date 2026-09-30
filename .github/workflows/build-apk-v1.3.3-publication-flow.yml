@@ -74,6 +74,33 @@ jobs:
             grep -RniE 'PublishController|publisher|HypeLive|WebMessage|postMessage' .v133/app-admin/src/main/java 2>/dev/null || true
           } >> publisher-wiring-diagnostic.txt
 
+      - name: Fix Admin publisher setup UX
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.v133/app-admin/src/main/assets/control.js')
+          s=p.read_text()
+          old="else if(action==='live-update-app'){const valid=persist();liveOp('Publicando APP…');const r=await HypeLive.updateApp(valid,'Update PlayersHype App');"
+          new="else if(action==='live-update-app'){const valid=persist();let ps=await HypeLive.status();if(!ps.configured){const token=$('pub-token').value.trim();if(!token)throw new Error('Pega el token de GitHub en Conexión GitHub antes de ACTUALIZAR APP.');const cfg={owner:$('pub-owner').value.trim(),repo:$('pub-repo').value.trim(),branch:$('pub-branch').value.trim()||'main',livePath:$('pub-path').value.trim()||'docs/index.html',appPath:$('pub-app-path').value.trim()||'docs/app/config.json',liveUrl:$('pub-live-url').value.trim(),token};liveOp('Guardando conexión GitHub segura…');await HypeLive.configure(cfg);$('pub-token').value='';ps=await HypeLive.status();if(!ps.configured)throw new Error('No se pudo guardar la conexión GitHub.');}liveOp('Publicando APP…');const r=await HypeLive.updateApp(valid,'Update PlayersHype App');"
+          if old not in s: raise SystemExit('live-update-app target not found')
+          s=s.replace(old,new,1)
+          old2="pill.textContent='MODO MANUAL';pill.classList.add('ready');pill.classList.remove('pending');"
+          new2="pill.textContent=s.configured?'GITHUB CONFIGURADO':'GITHUB PENDIENTE';pill.classList.toggle('ready',!!s.configured);pill.classList.toggle('pending',!s.configured);"
+          if old2 not in s: raise SystemExit('publisher pill target not found')
+          s=s.replace(old2,new2,1)
+          p.write_text(s)
+
+          h=Path('.v133/app-admin/src/main/assets/index.html')
+          x=h.read_text()
+          x=x.replace('Conexión futura / GitHub (opcional)','Conexión GitHub · ACTUALIZAR APP',1)
+          h.write_text(x)
+          PY
+          grep -Fq "GITHUB CONFIGURADO" .v133/app-admin/src/main/assets/control.js
+          grep -Fq "Pega el token de GitHub" .v133/app-admin/src/main/assets/control.js
+          grep -Fq "Conexión GitHub · ACTUALIZAR APP" .v133/app-admin/src/main/assets/index.html
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
