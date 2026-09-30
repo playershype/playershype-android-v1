@@ -193,6 +193,42 @@ jobs:
           test -s app/src/main/assets/expansion/tv-live.html
           test -s app/src/main/assets/expansion/profile.html
           test -s app/src/main/assets/expansion/favorites.html
+      - name: Audit V0.1 User App route coverage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json
+          root=Path("app/src/main/assets")
+          pages=sorted(str(p.relative_to(root)) for p in root.rglob("*.html"))
+          required=[
+            "index.html","tracks.html","predict.html",
+            "expansion/tv-live.html","expansion/tv-multicam.html",
+            "expansion/super-hype.html","expansion/tipping.html",
+            "expansion/profile.html","expansion/favorites.html",
+            "expansion/home-non-race.html","expansion/home-pre-race.html",
+            "expansion/home-live.html","expansion/home-post-race.html",
+          ]
+          missing=[p for p in required if p not in pages]
+          if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
+          refs={p:[] for p in pages}
+          for p in pages:
+            s=(root/p).read_text(encoding="utf-8")
+            for q in pages:
+              if q==p: continue
+              name=Path(q).name
+              if name in s: refs[p].append(q)
+          inbound={p:[] for p in pages}
+          for src,targets in refs.items():
+            for dst in targets: inbound[dst].append(src)
+          report={"pages":pages,"outbound":refs,"inbound":inbound}
+          Path("route-audit.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
+          print(json.dumps(report,indent=2))
+          # Tipping remains packaged for design parity but is not approved as a visible default feature.
+          critical=[p for p in required if p!="expansion/tipping.html"]
+          orphan=[p for p in critical if p!="index.html" and not inbound[p]]
+          if orphan:
+            print("WARNING orphan pages:", orphan)
+          PY
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
@@ -200,7 +236,7 @@ jobs:
           mkdir -p artifacts
           cp app/build/outputs/apk/debug/app-debug.apk artifacts/PlayersHype-App-V0.1-STITCH.apk
           echo "${GITHUB_SHA}" > artifacts/BUILD_COMMIT.txt
-          sha256sum artifacts/PlayersHype-App-V0.1-STITCH.apk > artifacts/SHA256SUMS.txt
+          sha256sum artifacts/PlayersHype-App-V0.1-STITCH.apk > artifacts/SHA256SUMS.txt\n          cp route-audit.json artifacts/ROUTE_AUDIT.json
       - uses: actions/upload-artifact@v4
         with:
           name: PlayersHype-App-V0.1-STITCH
