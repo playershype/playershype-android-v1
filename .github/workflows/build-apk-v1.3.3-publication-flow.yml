@@ -119,6 +119,21 @@ jobs:
           grep -Fq 'path.endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
           ! grep -Fq 'Invalid HTML path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
 
+      - name: Fix V1.3.3 publisher path validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('.v133/shared/src/main/java/com/playershype/shared/PublishController.java')
+          s=p.read_text()
+          s=s.replace('if (!path.endsWith(".html")) throw new IllegalArgumentException("Invalid HTML path");','if (path == null || path.isBlank() || path.startsWith("/") || path.contains("..") || !(path.endsWith(".html") || path.endsWith(".json"))) throw new IllegalArgumentException("Invalid publish path");')
+          p.write_text(s)
+          PY
+          grep -Fq 'Invalid publish path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+          grep -Fq 'path.endsWith(".json")' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+          ! grep -Fq 'Invalid HTML path' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
