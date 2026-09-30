@@ -175,6 +175,17 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Locate exact Stitch master screens from the package available in this checkout.
+          MASTER=Path(".stitch-master")
+          if not MASTER.exists():
+            MASTER=Path(".stitch-v01")
+          def pick(key):
+            matches=[p for p in MASTER.rglob("code.html") if key in str(p.parent).lower()]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Stitch screen for {key}, found {len(matches)}: {matches}")
+            return matches[0]
+          EXP=Path("app/src/main/assets/expansion")
+          EXP.mkdir(parents=True,exist_ok=True)
           # Stitch Race Day journey — exact screens from master package.
           race_screens={
             "race-day.html":"race_day_center_camarero_con_m_dulo_de_clima_pista_oficial",
