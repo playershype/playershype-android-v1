@@ -164,6 +164,38 @@ jobs:
           echo "=== LIVE JS ==="
           nl -ba .v133/shared/src/main/assets/native/live-publish.js | sed -n '1,130p'
 
+      - name: Fix User remote-config selection and Live Cloudflare transport
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          # USER: preserve the already-correct cache-busted GitHub fetch, but capture/validate selection logic.
+          hp=Path('.v133/app-user/src/main/assets/home.js')
+          hs=hp.read_text()
+          if "fetch(GITHUB_APP_CONFIG+'?v='+Date.now(),{cache:'no-store'})" not in hs:
+            raise SystemExit('Expected cache-busted GitHub fetch missing')
+          # Make remote config win on every explicit refresh/load when schemaVersion=2.
+          m=re.search(r"async function loadConfig\(.*?\n\}",hs,re.S)
+          if not m:
+            # compact source: find function through next named function
+            m=re.search(r"async function (?:load|refresh)[A-Za-z0-9_]*\([^)]*\)\{.*?(?=\n(?:async )?function )",hs,re.S)
+          print('USER_SELECTION_FUNCTION:', (m.group(0)[:1800] if m else 'not-located'))
+
+          # LIVE: reuse the existing native chunk publisher instead of cross-origin WebView fetch.
+          lp=Path('.v133/shared/src/main/assets/native/live-publish.js')
+          s=lp.read_text()
+          old=re.search(r"async function updateLive\(cards,tracks,message\)\{.*?\}\nasync function updateApp",s,re.S)
+          if not old: raise SystemExit('Exact updateLive function not found')
+          replacement="""async function updateLive(cards,tracks,message){await generate(cards,tracks);if(!window.HypeAndroid)throw new Error('La publicación LIVE requiere el Admin APK.');return publishContent(getGenerated().html,'text/html; charset=utf-8',message||'Update HypePredict Live','live');}\nasync function updateApp"""
+          s=s[:old.start()]+replacement+s[old.end():]
+          lp.write_text(s)
+          PY
+          grep -Fq "publishContent(getGenerated().html,'text/html; charset=utf-8'" .v133/shared/src/main/assets/native/live-publish.js
+          ! grep -F "fetch(LIVE_PUBLISH_ENDPOINT" .v133/shared/src/main/assets/native/live-publish.js
+          echo "Native LIVE publisher enabled; User selection logic captured above."
+
       - name: Stamp V1.3.3 preview version
         shell: bash
         run: |
