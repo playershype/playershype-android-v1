@@ -187,13 +187,13 @@ jobs:
           EXP=Path("app/src/main/assets/expansion")
           EXP.mkdir(parents=True,exist_ok=True)
           race_screens={
-            "race-day.html":"race-day",
-            "race-live.html":"race-live",
-            "race-tracker.html":"race-tracker",
-            "results.html":"results",
-            "photo-finish.html":"photo-finish",
-            "horse-hub.html":"horse-hub",
-            "horse-pps.html":"horse-pps",
+            "race-day.html":"race_day_center_camarero_con_m_dulo_de_clima_pista_oficial",
+            "race-live.html":"jornada_en_vivo_carrera_6_camarero_c6_1_400m",
+            "race-tracker.html":"live_race_tracker_telemetr_a_en_carrera_camarero_c6_800m",
+            "results.html":"pizarra_de_resultados_oficiales_ratificada_dividendos_camarero_c6",
+            "photo-finish.html":"photo_finish_c_mara_lenta_en_meta_llegada_camarero_c6",
+            "horse-hub.html":"horse_hub_perfil_4_mi_hermano_luis_con_sedas_oficiales",
+            "horse-pps.html":"horse_hub_past_performances_pps_genealog_a_4_mi_hermano_luis",
           }
           for out,key in race_screens.items():
             matches=[p for p in root.rglob("code.html") if p.parent.name==key]
