@@ -309,7 +309,9 @@ jobs:
             "expansion/super-hype.html","expansion/tipping.html",
             "expansion/profile.html","expansion/favorites.html",
             "expansion/home-non-race.html","expansion/home-pre-race.html",
-            "expansion/home-live.html","expansion/home-post-race.html",\n            "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",\n            "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html","expansion/horse-pps.html",
+            "expansion/home-live.html","expansion/home-post-race.html",
+          "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",
+          "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html","expansion/horse-pps.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
