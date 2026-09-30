@@ -95,8 +95,8 @@ jobs:
           mapping={
             "tv-live":"tv-live.html",
             "tv-multicam":"tv-multicam.html",
-            "super-hype":"super-hype.html",
-            "tipping":"tipping.html",
+            "tv-super-hype":"super-hype.html",
+            "tv-tipping":"tipping.html",
             "profile":"profile.html",
             "favorites":"favorites.html",
             "home-non-race":"home-non-race.html",
