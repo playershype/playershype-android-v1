@@ -214,7 +214,7 @@ jobs:
           configure(m);
           SecureActivity.respond(reply, id, true, status().toString());
           break;
-        case "publisherConfigureLive":
+          case "publisherConfigureLive":
           configureLive(m);
           SecureActivity.respond(reply, id, true, status().toString());
           break;'''
@@ -223,94 +223,94 @@ jobs:
 
           anchor='''  private JSONObject status() throws Exception {'''
           livecfg='''  private void configureLive(JSONObject m) throws Exception {
-    String token = normalizeToken(m.optString("token", ""));
-    if (token.length() < 20 || token.length() > 500) throw new IllegalArgumentException("Invalid LIVE token");
-    prefs.edit().putString("liveToken", encrypt(token)).apply();
-  }
+          String token = normalizeToken(m.optString("token", ""));
+          if (token.length() < 20 || token.length() > 500) throw new IllegalArgumentException("Invalid LIVE token");
+          prefs.edit().putString("liveToken", encrypt(token)).apply();
+          }
 
-'''
+          '''
           if anchor not in s: raise SystemExit('status anchor not found')
           s=s.replace(anchor,livecfg+anchor,1)
 
           old='''    boolean hasToken = false;
-    try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
-    return new JSONObject()
-      .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)'''
+          try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
+          return new JSONObject()
+          .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)'''
           new='''    boolean hasToken = false, hasLiveToken = false;
-    try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
-    try { hasLiveToken = !decryptLiveToken().isEmpty(); } catch (Exception ignored) {}
-    return new JSONObject()
-      .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)
-      .put("liveConfigured", hasLiveToken)'''
+          try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
+          try { hasLiveToken = !decryptLiveToken().isEmpty(); } catch (Exception ignored) {}
+          return new JSONObject()
+          .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)
+          .put("liveConfigured", hasLiveToken)'''
           if old not in s: raise SystemExit('status token block not found')
           s=s.replace(old,new,1)
 
           old='''    JSONObject s = status();
-    if (!s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
-    publishTarget = cleanTarget(m.optString("target", "live"));'''
+          if (!s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
+          publishTarget = cleanTarget(m.optString("target", "live"));'''
           new='''    JSONObject s = status();
-    publishTarget = cleanTarget(m.optString("target", "live"));
-    if ("app".equals(publishTarget) && !s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
-    if ("live".equals(publishTarget) && !s.getBoolean("liveConfigured")) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");'''
+          publishTarget = cleanTarget(m.optString("target", "live"));
+          if ("app".equals(publishTarget) && !s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
+          if ("live".equals(publishTarget) && !s.getBoolean("liveConfigured")) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");'''
           if old not in s: raise SystemExit('begin configuration block not found')
           s=s.replace(old,new,1)
 
           old='''  private JSONObject publish(File source, String message, String target) throws Exception {
-    String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
-    String path = "app".equals(target) ? prefs.getString("appPath", "docs/app/config.json") : prefs.getString("livePath", prefs.getString("path", "docs/index.html"));'''
+          String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
+          String path = "app".equals(target) ? prefs.getString("appPath", "docs/app/config.json") : prefs.getString("livePath", prefs.getString("path", "docs/index.html"));'''
           new='''  private JSONObject publish(File source, String message, String target) throws Exception {
-    if ("live".equals(target)) return publishCloudflare(source, message);
-    String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
-    String path = prefs.getString("appPath", "docs/app/config.json");'''
+          if ("live".equals(target)) return publishCloudflare(source, message);
+          String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
+          String path = prefs.getString("appPath", "docs/app/config.json");'''
           if old not in s: raise SystemExit('publish dispatcher block not found')
           s=s.replace(old,new,1)
 
           anchor='''  private String currentSha(String endpoint, String branch, String token) throws Exception {'''
           cloud='''  private JSONObject publishCloudflare(File source, String message) throws Exception {
-    String token = decryptLiveToken();
-    if (token.isEmpty()) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");
-    byte[] bytes = readAll(source, MAX);
-    URL url = new URL("https://hypepredict-live.players-hype1.workers.dev/api/publish");
-    HttpsURLConnection c = (HttpsURLConnection) url.openConnection();
-    c.setRequestMethod("POST"); c.setConnectTimeout(20000); c.setReadTimeout(45000); c.setUseCaches(false);
-    c.setDoOutput(true);
-    c.setRequestProperty("Authorization", "Bearer " + token);
-    c.setRequestProperty("Content-Type", "text/html; charset=utf-8");
-    c.setRequestProperty("Accept", "application/json");
-    c.setRequestProperty("X-PlayersHype-Message", message);
-    c.setFixedLengthStreamingMode(bytes.length);
-    try (OutputStream o = c.getOutputStream()) { o.write(bytes); }
-    int code = c.getResponseCode();
-    String response = readResponse(c, code);
-    if (code < 200 || code >= 300) throw new IOException("Cloudflare " + code + ": " + apiMessage(response));
-    JSONObject remote;
-    try { remote = response.isEmpty() ? new JSONObject() : new JSONObject(response); } catch (Exception ignored) { remote = new JSONObject(); }
-    if (remote.optBoolean("ok", true) == false) throw new IOException(remote.optString("error", "Cloudflare rejected publication"));
-    return new JSONObject().put("ok", true).put("target", "live")
-      .put("liveUrl", "https://hypepredict-live.players-hype1.workers.dev/")
-      .put("publishedAt", new Date().toInstant().toString());
-  }
+          String token = decryptLiveToken();
+          if (token.isEmpty()) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");
+          byte[] bytes = readAll(source, MAX);
+          URL url = new URL("https://hypepredict-live.players-hype1.workers.dev/api/publish");
+          HttpsURLConnection c = (HttpsURLConnection) url.openConnection();
+          c.setRequestMethod("POST"); c.setConnectTimeout(20000); c.setReadTimeout(45000); c.setUseCaches(false);
+          c.setDoOutput(true);
+          c.setRequestProperty("Authorization", "Bearer " + token);
+          c.setRequestProperty("Content-Type", "text/html; charset=utf-8");
+          c.setRequestProperty("Accept", "application/json");
+          c.setRequestProperty("X-PlayersHype-Message", message);
+          c.setFixedLengthStreamingMode(bytes.length);
+          try (OutputStream o = c.getOutputStream()) { o.write(bytes); }
+          int code = c.getResponseCode();
+          String response = readResponse(c, code);
+          if (code < 200 || code >= 300) throw new IOException("Cloudflare " + code + ": " + apiMessage(response));
+          JSONObject remote;
+          try { remote = response.isEmpty() ? new JSONObject() : new JSONObject(response); } catch (Exception ignored) { remote = new JSONObject(); }
+          if (remote.optBoolean("ok", true) == false) throw new IOException(remote.optString("error", "Cloudflare rejected publication"));
+          return new JSONObject().put("ok", true).put("target", "live")
+          .put("liveUrl", "https://hypepredict-live.players-hype1.workers.dev/")
+          .put("publishedAt", new Date().toInstant().toString());
+          }
 
-'''
+          '''
           if anchor not in s: raise SystemExit('currentSha anchor not found')
           s=s.replace(anchor,cloud+anchor,1)
 
           old='''  private String decryptToken() throws Exception {
-    String stored = prefs.getString("token", ""); if (stored.isEmpty()) return "";
-    byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
-    byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
-    Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
-    return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
-  }'''
+          String stored = prefs.getString("token", ""); if (stored.isEmpty()) return "";
+          byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
+          byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
+          Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
+          return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
+          }'''
           new='''  private String decryptToken() throws Exception { return decryptStored("token"); }
-  private String decryptLiveToken() throws Exception { return decryptStored("liveToken"); }
-  private String decryptStored(String prefKey) throws Exception {
-    String stored = prefs.getString(prefKey, ""); if (stored.isEmpty()) return "";
-    byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
-    byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
-    Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
-    return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
-  }'''
+          private String decryptLiveToken() throws Exception { return decryptStored("liveToken"); }
+          private String decryptStored(String prefKey) throws Exception {
+          String stored = prefs.getString(prefKey, ""); if (stored.isEmpty()) return "";
+          byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
+          byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
+          Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
+          return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
+          }'''
           if old not in s: raise SystemExit('decryptToken block not found')
           s=s.replace(old,new,1)
           p.write_text(s)
