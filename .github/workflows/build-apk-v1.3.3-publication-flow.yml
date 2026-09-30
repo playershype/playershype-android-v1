@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - v1.3.3-publication-flow
+      - phase2-v1.3.3-integration
     paths:
       - 'PlayersHype-Ecosystem-V1.3.3-PUBLICATION-FLOW-SOURCE.zip'
       - '.github/workflows/build-apk-v1.3.3-publication-flow.yml'
