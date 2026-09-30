@@ -283,6 +283,64 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Stitch Community + Commerce — exact screens from Expansion 04.
+          pkg4=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-04.zip")
+          if not pkg4.exists(): raise SystemExit("Missing Expansion 04 package")
+          root4=Path(".stitch-exp04")
+          if root4.exists(): shutil.rmtree(root4)
+          root4.mkdir()
+          with zipfile.ZipFile(pkg4) as z: z.extractall(root4)
+          commerce_screens={
+            "manada.html":"la_manada_elige_tu_nivel_tiers_de_membres_a",
+            "membership.html":"mi_membres_a_la_manada_resumen_de_suscripci_n_y_beneficios",
+            "customize.html":"personaliza_tu_perfil_stickers_marcos_y_distintivos",
+            "sticker-shop.html":"sticker_shop_cat_logo_de_stickers_digitales_y_marcos",
+            "shop.html":"playershype_shop_cat_logo_de_merch_f_sico_con_filtros",
+            "product.html":"playershype_shop_detalle_de_producto_merch_f_sico",
+            "checkout.html":"checkout_usps_ath_m_vil_env_o_y_resumen_de_compra",
+            "order-confirmation.html":"confirmaci_n_de_compra_tracking_usps",
+            "orders.html":"mis_pedidos_historial_y_tracking_usps",
+            "receipts.html":"historial_de_recibos_y_facturas_con_ivu",
+            "receipt.html":"detalle_de_recibo_factura_con_ivu_y_descarga",
+          }
+          for out,key in commerce_screens.items():
+            matches=[p for p in root4.rglob("code.html") if p.parent.name==key]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Expansion 04 screen for {key}, found {len(matches)}: {matches}")
+            shutil.copy2(matches[0], EXP/out)
+          commerce_routes={
+            "manada.html":{"MEMBRES":"membership.html","NIVEL":"membership.html","TIER":"membership.html","PERSONAL":"customize.html","STICKER":"sticker-shop.html"},
+            "membership.html":{"PERSONAL":"customize.html","STICKER":"sticker-shop.html","SHOP":"shop.html"},
+            "customize.html":{"STICKER":"sticker-shop.html","MEMBRES":"membership.html"},
+            "sticker-shop.html":{"PERSONAL":"customize.html","SHOP":"shop.html"},
+            "shop.html":{"PRODUCT":"product.html","PRODUCTO":"product.html","CARRITO":"product.html","CART":"product.html"},
+            "product.html":{"CHECKOUT":"checkout.html","COMPRAR":"checkout.html","CARRITO":"checkout.html","CART":"checkout.html"},
+            "checkout.html":{"ATH":"order-confirmation.html","PAGAR":"order-confirmation.html","CONFIRM":"order-confirmation.html"},
+            "order-confirmation.html":{"PEDIDO":"orders.html","ORDER":"orders.html","RECIBO":"receipt.html","RECEIPT":"receipt.html"},
+            "orders.html":{"RECIBO":"receipts.html","RECEIPT":"receipts.html","TRACK":"order-confirmation.html"},
+            "receipts.html":{"RECIBO":"receipt.html","RECEIPT":"receipt.html"},
+            "receipt.html":{"PEDIDO":"orders.html","ORDER":"orders.html","RECIBOS":"receipts.html"},
+          }
+          for name,mapping in commerce_routes.items():
+            p=EXP/name; s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('TRACK')||t.includes('PISTAS')) location.href='../tracks.html';
+            else if(t.includes('PREDICT')||t.includes('HYPEPREDICT')) location.href='../predict.html';
+            else if(t.includes('FAVORIT')||t.includes('SAVED')) location.href='favorites.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')) location.href='profile.html';
+            else if(t.includes('MANADA')) location.href='manada.html';
+            else if(t.includes('SHOP')||t.includes('TIENDA')) location.href='shop.html';
+            else if(t.includes('TV')) location.href='tv-live.html';
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
@@ -356,6 +414,9 @@ jobs:
           "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",
           "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html","expansion/horse-pps.html",
           "expansion/search.html","expansion/notifications.html","expansion/share.html","expansion/weather-alert.html",
+          "expansion/manada.html","expansion/membership.html","expansion/customize.html","expansion/sticker-shop.html",
+          "expansion/shop.html","expansion/product.html","expansion/checkout.html","expansion/order-confirmation.html",
+          "expansion/orders.html","expansion/receipts.html","expansion/receipt.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
