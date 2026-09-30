@@ -219,8 +219,14 @@ jobs:
           SecureActivity.respond(reply, id, true, status().toString());
           break;'''
           if 'case "publisherConfigureLive":' not in s:
-            if old not in s: raise SystemExit('publisherConfigure switch block not found')
-            s=s.replace(old,new,1)
+            import re
+            pat=r'(\\s*case "publisherConfigure":\\s*\\n\\s*configure\\(m\\);\\s*\\n\\s*SecureActivity\\.respond\\(reply, id, true, status\\(\\)\\.toString\\(\\)\\);\\s*\\n\\s*break;)'
+            m=re.search(pat,s)
+            if not m: raise SystemExit('publisherConfigure switch block not found')
+            block=m.group(1)
+            indent=re.search(r'\\n(\\s*)case "publisherConfigure":',block).group(1)
+            addition='\\n'+indent+'case "publisherConfigureLive":\\n'+indent+'  configureLive(m);\\n'+indent+'  SecureActivity.respond(reply, id, true, status().toString());\\n'+indent+'  break;'
+            s=s[:m.end()]+addition+s[m.end():]
 
           anchor='''  private JSONObject status() throws Exception {'''
           livecfg='''  private void configureLive(JSONObject m) throws Exception {
