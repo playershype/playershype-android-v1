@@ -249,10 +249,10 @@ jobs:
           root3.mkdir()
           with zipfile.ZipFile(pkg3) as z: z.extractall(root3)
           utility_screens={
-            "search.html":"buscador_universal_b_squeda_global_con_filtros_y_resultados",
-            "notifications.html":"centro_de_notificaciones_con_filtros_y_gesti_n_de_alertas",
-            "share.html":"compartir_en_redes_sociales_share_sheet_nativo",
-            "weather-alert.html":"alerta_meteorol_gica_push_in_app_por_pista",
+            "search.html":"buscador_universal_mi_colecci_n_playershype",
+            "notifications.html":"centro_de_notificaciones_push_alertas_de_usuario",
+            "share.html":"modal_compartir_en_redes_sociales_ficha_viral_screen_c",
+            "weather-alert.html":"modal_alerta_meteorol_gica_protocolo_de_comisarios_lluvia_en_jornada",
           }
           for out,key in utility_screens.items():
             matches=[p for p in root3.rglob("code.html") if p.parent.name==key]
