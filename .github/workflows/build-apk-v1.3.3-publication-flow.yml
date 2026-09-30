@@ -218,8 +218,9 @@ jobs:
           configureLive(m);
           SecureActivity.respond(reply, id, true, status().toString());
           break;'''
-          if old not in s: raise SystemExit('publisherConfigure switch block not found')
-          s=s.replace(old,new,1)
+          if 'case "publisherConfigureLive":' not in s:
+            if old not in s: raise SystemExit('publisherConfigure switch block not found')
+            s=s.replace(old,new,1)
 
           anchor='''  private JSONObject status() throws Exception {'''
           livecfg='''  private void configureLive(JSONObject m) throws Exception {
