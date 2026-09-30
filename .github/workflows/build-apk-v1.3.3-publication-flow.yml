@@ -214,6 +214,8 @@ jobs:
           grep -RniE 'case[[:space:]]*"sync"|request.*sync|sync\(|contentHash|sourceUrl|playershype\.net|raw\.githubusercontent|public-seed|feed' .v133/app-user/src/main/java .v133/shared/src/main/java 2>/dev/null | head -320 || true
           echo "=== USER MAINACTIVITY FULL ==="
           nl -ba .v133/app-user/src/main/java/com/playershype/app/MainActivity.java | sed -n '1,360p'
+          echo "=== PUBLIC FEED STORE FULL ==="
+          nl -ba .v133/shared/src/main/java/com/playershype/shared/PublicFeedStore.java | sed -n '1,240p'
 
       - name: Stamp V1.3.3 preview version
         shell: bash
