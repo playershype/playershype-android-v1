@@ -1092,6 +1092,38 @@ jobs:
             x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
             q.write_text(x,encoding="utf-8")
           PY
+      - name: Verify Track Race HypePredict Horse context contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          predict=(root/"predict.html").read_text(encoding="utf-8")
+          hub=(root/"expansion/horse-hub.html").read_text(encoding="utf-8")
+          pps=(root/"expansion/horse-pps.html").read_text(encoding="utf-8")
+          required_predict=[
+            "playershype:selectedRace",
+            "item.trackId===trackId",
+            "String(item.raceId)===raceKey",
+            "analysis.horses",
+            "playershype:selectedHorse",
+            "trackId:(race&&race.trackId)",
+            "raceId:String((race&&(race.id??race.number??race.index))",
+          ]
+          for token in required_predict:
+            if token not in predict:
+              raise SystemExit(f"Predict context contract missing: {token}")
+          for name,html in [("horse-hub",hub),("horse-pps",pps)]:
+            for token in [
+              "playershype:selectedHorse",
+              "playershype:selectedRace",
+              "selected.trackId!==String(race.trackId||'')",
+              "selected.raceId!==raceId",
+              "playershype:horse-context",
+            ]:
+              if token not in html:
+                raise SystemExit(f"{name} context contract missing: {token}")
+          print("E2E CONTEXT CONTRACT OK: Track -> Race -> HypePredict -> Horse -> Horse Hub/PPs")
+          PY
       - name: Add validated remote config with local fallback
         run: |
           python3 - <<'PY'
