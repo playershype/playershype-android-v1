@@ -1705,6 +1705,42 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Bind Racing Horse and HypePredict User journeys
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          pages=[p for p in root.rglob("*.html") if p.name!="code.html"]
+          bridge=r"""<script>
+          (function(){
+            const inExp=location.pathname.includes('/assets/expansion/');
+            const go=u=>location.href=(inExp?'':'expansion/')+u;
+            const txt=el=>((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.innerText||'')).toUpperCase();
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]'); if(!el)return;
+              const t=txt(el); let u=null;
+              if(t.includes('PAST PERFORMANCE')||t.includes('PPs')||t.includes('PPS')||t.includes('BIOMEC'))u='horse-pps.html';
+              else if(t.includes('HORSE HUB')||t.includes('VER FICHA')||t.includes('PERFIL DEL CABALLO'))u='horse-hub.html';
+              else if(t.includes('HEAD-TO-HEAD')||t.includes('HEAD TO HEAD')||t.includes('COMPARATIVA'))u='tale-of-tape.html';
+              else if(t.includes('PACE MAP'))u='pace-map.html';
+              else if(t.includes('PROJECTED FINISH')||t.includes('PROYECCI'))u='projection.html';
+              else if(t.includes('HYPEBOARD')||t.includes('HYPE BOARD')||t.includes('RACE INTELLIGENCE'))u='hype-board.html';
+              else if(t.includes('PHOTO FINISH')||t.includes('FOTO FINISH'))u='photo-finish.html';
+              else if(t.includes('RESULTADOS')||t.includes('PIZARRA'))u='results.html';
+              else if(t.includes('RACE TRACKER')||t.includes('TELEMETR'))u='race-tracker.html';
+              else if(t.includes('EN VIVO')&&t.includes('CARRERA'))u='race-live.html';
+              else if(t.includes('RACE DAY')||t.includes('JORNADA'))u='race-day.html';
+              if(u){e.preventDefault();e.stopImmediatePropagation();go(u);}
+            },true);
+          })();
+          </script>"""
+          for p in pages:
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          print("RACING/HORSE JOURNEYS BOUND:",len(pages),"screens")
+          PY
+
       - name: Normalize global User navigation controls
         run: |
           python3 - <<'PY'
