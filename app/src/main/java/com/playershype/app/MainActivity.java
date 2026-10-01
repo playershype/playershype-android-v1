@@ -24,14 +24,20 @@ import androidx.webkit.WebViewClientCompat;
 import androidx.webkit.WebViewFeature;
 
 public final class MainActivity extends ComponentActivity {
-  private static final String START="https://"+UrlPolicy.INTERNAL_HOST+"/assets/index.html";
+  private static final String HOME="https://"+UrlPolicy.INTERNAL_HOST+"/assets/index.html";
+  private static final String SPLASH="https://"+UrlPolicy.INTERNAL_HOST+"/assets/expansion/splash.html";
+  private static final String START=SPLASH;
   private WebView web;
   private WebViewAssetLoader loader;
   private OnBackPressedCallback backCallback;
   @Override protected void onCreate(@Nullable Bundle state){
     super.onCreate(state);
     backCallback=new OnBackPressedCallback(false){
-      @Override public void handleOnBackPressed(){if(web!=null&&web.canGoBack())web.goBack();}
+      @Override public void handleOnBackPressed(){
+        if(web==null)return;
+        if(web.canGoBack())web.goBack();
+        else if(!HOME.equals(web.getUrl()))web.loadUrl(HOME);
+      }
     };
     getOnBackPressedDispatcher().addCallback(this,backCallback);
     getWindow().setStatusBarColor(Color.rgb(7,17,29));getWindow().setNavigationBarColor(Color.rgb(7,17,29));
@@ -50,7 +56,12 @@ public final class MainActivity extends ComponentActivity {
     v.setWebViewClient(new SecureClient());
   }
   private final class SecureClient extends WebViewClientCompat {
-    @Override public void onPageFinished(@NonNull WebView v,@NonNull String url){backCallback.setEnabled(v.canGoBack());}
+    @Override public void onPageFinished(@NonNull WebView v,@NonNull String url){
+      backCallback.setEnabled(v.canGoBack()||!HOME.equals(url));
+      if(SPLASH.equals(url)){
+        v.postDelayed(() -> { if(web!=null && SPLASH.equals(web.getUrl())) web.loadUrl(HOME); }, 1600);
+      }
+    }
     @Nullable @Override public WebResourceResponse shouldInterceptRequest(@NonNull WebView v,@NonNull WebResourceRequest r){Uri u=r.getUrl();if(UrlPolicy.isInternal(u.toString()))return loader.shouldInterceptRequest(u);return super.shouldInterceptRequest(v,r);}
     @Override public boolean shouldOverrideUrlLoading(@NonNull WebView v,@NonNull WebResourceRequest r){String url=r.getUrl().toString();if(UrlPolicy.isInternal(url))return false;if(UrlPolicy.isAllowedExternal(url)){open(r.getUrl());return true;}Toast.makeText(MainActivity.this,"Enlace bloqueado por seguridad",Toast.LENGTH_SHORT).show();return true;}
     @Override public void onReceivedSslError(@NonNull WebView v,@NonNull SslErrorHandler h,@NonNull SslError e){h.cancel();Toast.makeText(MainActivity.this,"Conexión segura rechazada",Toast.LENGTH_SHORT).show();}
