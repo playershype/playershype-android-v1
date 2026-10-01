@@ -978,7 +978,20 @@ jobs:
               const trackId=r.trackId||(window.PLAYERSHYPE_SELECTED_TRACK&&window.PLAYERSHYPE_SELECTED_TRACK.id)||'';
               const raceKey=String(r.id??r.number??r.index??'');
               const analyses=(cfg.hypepredict&&cfg.hypepredict.analyses)||{};
-              const analysis=(analyses[trackId]&&analyses[trackId][raceKey])||{status:'unpublished',entries:[]};
+              let analysis=null;
+              // Canonical V0.1 source contract: each analysis carries trackId + raceId.
+              for(const [analysisId,item] of Object.entries(analyses)){
+                if(item&&item.trackId===trackId&&String(item.raceId)===raceKey){
+                  analysis={...item,id:item.id||analysisId};
+                  break;
+                }
+              }
+              // Backward compatibility for earlier nested prototype payloads only.
+              if(!analysis&&analyses[trackId]&&analyses[trackId][raceKey]) analysis=analyses[trackId][raceKey];
+              if(!analysis) analysis={status:'unpublished',horses:[],entries:[]};
+              if(!Array.isArray(analysis.entries)&&Array.isArray(analysis.horses)){
+                analysis={...analysis,entries:analysis.horses.map(h=>({...h,id:h.id||h.entryId}))};
+              }
               window.PLAYERSHYPE_ANALYSIS=analysis;
               document.documentElement.dataset.phAnalysisStatus=analysis.status||'unpublished';
               document.documentElement.dataset.phAnalysisTrack=trackId;
@@ -999,7 +1012,11 @@ jobs:
           x=d["hypepredict"]["scoreContract"]["components"]
           assert len(x)==8 and round(sum(i["weight"] for i in x),2)==10.00
           assert isinstance(d["hypepredict"]["analyses"],dict)
-          print("HypePredict per-race contract valid; score weights preserved")
+          # Runtime and source schema must agree on canonical analysis identity.
+          wf=Path(".github/workflows/build-v0.1-stitch.yml").read_text(encoding="utf-8")
+          assert "item.trackId===trackId" in wf and "String(item.raceId)===raceKey" in wf
+          assert "analysis.horses" in wf and "analysis.entries" in wf
+          print("HypePredict per-race contract valid; score weights preserved; runtime schema aligned")
           PY
       - name: Render safe HypePredict analysis state
         run: |
