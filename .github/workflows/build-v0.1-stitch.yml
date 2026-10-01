@@ -1231,6 +1231,72 @@ jobs:
           p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Suppress Stitch demo leakage when operational data is unpublished
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          targets=[root/"tracks.html",root/"expansion/race-day.html",root/"predict.html"]
+          bridge=r"""<script>
+          (function(){
+            const selectors='main, [role="main"]';
+            function operationalRoot(){return document.querySelector(selectors)||document.body;}
+            function ensure(){
+              let n=document.getElementById('ph-unpublished-operational');
+              if(!n){
+                n=document.createElement('section'); n.id='ph-unpublished-operational';
+                n.style.cssText='margin:16px;padding:18px 14px;border-radius:16px;background:#07111d;color:#fff;border:1px solid rgba(255,255,255,.16);font-family:system-ui;text-align:center';
+                n.innerHTML='<div style="font-weight:800;font-size:16px">Jornada no publicada</div><div style="margin-top:6px;font-size:12px;opacity:.75">Los datos operativos aparecerán cuando PlayersHype publique la jornada.</div>';
+              }
+              return n;
+            }
+            function hideDemo(){
+              const root=operationalRoot(), state=ensure();
+              if(!state.isConnected) root.prepend(state);
+              document.documentElement.dataset.phDemoSuppressed='true';
+              // Hide demo operational values by exact known prototype text/content,
+              // while preserving navigation/header/track identity.
+              const needles=['PRÓXIMA SALIDA','PROXIMA SALIDA','POST TIME:','7 CARRERAS','$64,820','CLÁSICO SAN JERÓNIMO','CLASICO SAN JERONIMO','EL GRAN HY','RELÁMPAGO BORICUA','RELAMPAGO BORICUA','DON KIKE','94% HYPESCORE','86% HYPESCORE','78% HYPESCORE'];
+              [...root.querySelectorAll('section,article,div,li')].forEach(el=>{
+                if(el.id==='ph-unpublished-operational'||el.contains(state))return;
+                const t=(el.innerText||'').toUpperCase();
+                if(!t)return;
+                if(needles.some(n=>t.includes(n))){
+                  // choose the smallest meaningful container, not the entire main/root.
+                  const children=[...el.children].filter(x=>(x.innerText||'').trim());
+                  if(children.some(ch=>needles.some(n=>(ch.innerText||'').toUpperCase().includes(n)))) return;
+                  el.dataset.phDemoOperational='true'; el.style.display='none';
+                }
+              });
+            }
+            function showReal(){
+              document.getElementById('ph-unpublished-operational')?.remove();
+              document.querySelectorAll('[data-ph-demo-operational]').forEach(el=>{el.style.display='';delete el.dataset.phDemoOperational;});
+              document.documentElement.dataset.phDemoSuppressed='false';
+            }
+            function apply(cfg){
+              let track=null; try{track=window.PLAYERSHYPE_SELECTED_TRACK||JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){}
+              if(!track&&location.pathname.endsWith('/tracks.html')) track={id:'camarero'};
+              if(!cfg||!track||!track.id)return;
+              const day=cfg.raceDays&&cfg.raceDays[track.id];
+              const unpublished=!day||day.status==='unpublished'||!Array.isArray(day.races)||day.races.length===0;
+              unpublished?hideDemo():showReal();
+            }
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+            window.addEventListener('playershype:track-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
+            window.addEventListener('playershype:race-day',e=>{
+              const d=e.detail&&e.detail.raceDay;
+              (!d||d.status==='unpublished'||!Array.isArray(d.races)||d.races.length===0)?hideDemo():showReal();
+            });
+          })();
+          </script>"""
+          for p in targets:
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
@@ -1261,6 +1327,12 @@ jobs:
           assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in race
           assert "Jornada todavía no publicada para esta pista." in race
           assert "Análisis HypePredict no publicado para la carrera seleccionada." in predict
+          tracks=(root/"tracks.html").read_text(encoding="utf-8")
+          assert "ph-unpublished-operational" in tracks
+          assert "Jornada no publicada" in tracks
+          assert "phDemoSuppressed" in tracks
+          assert "ph-unpublished-operational" in race
+          assert "ph-unpublished-operational" in predict
           print("SOURCE CONTRACT + FINAL HOME NAVIGATION VERIFIED")
           PY
 
