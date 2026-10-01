@@ -88,46 +88,52 @@
     "version": "V1",
     "scoreContract": {
       "total": 10,
+      "engine": "PERFORMANCE-FIT-DYNAMICS",
       "components": [
         {
-          "id": "pace",
-          "label": "Pace",
-          "weight": 1.45
+          "id": "hypePerformance",
+          "label": "HypePerformance / Speed",
+          "weight": 2
         },
         {
-          "id": "trip",
-          "label": "Viaje",
+          "id": "raceStrength",
+          "label": "Race Strength",
+          "weight": 1.2
+        },
+        {
+          "id": "formTrend",
+          "label": "Form Trend",
           "weight": 1
         },
         {
-          "id": "class",
-          "label": "Clase",
-          "weight": 2.2
+          "id": "distanceSurfaceFit",
+          "label": "Distance / Surface Fit",
+          "weight": 1.6
         },
         {
-          "id": "distance",
-          "label": "Distancia",
-          "weight": 1.9
-        },
-        {
-          "id": "form",
-          "label": "Forma",
-          "weight": 1.5
-        },
-        {
-          "id": "consistency",
-          "label": "Consistencia",
-          "weight": 1.05
+          "id": "readinessFitness",
+          "label": "Readiness / Fitness",
+          "weight": 0.75
         },
         {
           "id": "weight",
-          "label": "Peso",
-          "weight": 0.6
+          "label": "Weight",
+          "weight": 0.45
         },
         {
-          "id": "workouts",
-          "label": "Briseos",
-          "weight": 0.3
+          "id": "earlyPaceAbility",
+          "label": "Early Pace Ability",
+          "weight": 1
+        },
+        {
+          "id": "raceShapePaceMatchup",
+          "label": "Race Shape / Pace Matchup",
+          "weight": 1
+        },
+        {
+          "id": "projectedTripPost",
+          "label": "Projected Trip / Post",
+          "weight": 1
         }
       ]
     },
