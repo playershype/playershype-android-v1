@@ -1006,7 +1006,10 @@ jobs:
           (function(){{
             const REMOTE={remote!r};
             const LOCAL='data/config.json';
-            function valid(c){{return !!(c&&Number(c.schemaVersion)>=2&&Array.isArray(c.tracks)&&c.hypepredict&&typeof c.hypepredict==='object');}}
+            function valid(c){{return !!(c&&Number(c.schemaVersion)>=2&&typeof c.revision==='string'&&c.revision.length>0&&Array.isArray(c.tracks)&&c.hypepredict&&typeof c.hypepredict==='object');}}
+            const CACHE='playershype:config-cache:v0.1';
+            function saveCache(c){{try{{localStorage.setItem(CACHE,JSON.stringify(c));}}catch(_){{}}}}
+            function readCache(){{try{{const c=JSON.parse(localStorage.getItem(CACHE)||'null');return valid(c)?c:null;}}catch(_){{return null;}}}}
             function publish(c,source){{
               if(!valid(c))return false;
               window.PLAYERSHYPE_CONFIG=c;
@@ -1019,11 +1022,15 @@ jobs:
             }}
             fetch(REMOTE,{{cache:'no-store',mode:'cors'}})
               .then(r=>{{if(!r.ok)throw new Error('remote '+r.status);return r.json();}})
-              .then(c=>{{if(!publish(c,'remote'))throw new Error('invalid remote config');}})
-              .catch(()=>fetch(LOCAL,{{cache:'no-store'}})
-                .then(r=>{{if(!r.ok)throw new Error('local '+r.status);return r.json();}})
-                .then(c=>{{if(!publish(c,'local'))throw new Error('invalid local config');}})
-                .catch(()=>{{document.documentElement.dataset.phConfig='unavailable';window.dispatchEvent(new CustomEvent('playershype:config-error'));}}));
+              .then(c=>{{if(!publish(c,'remote'))throw new Error('invalid remote config');saveCache(c);}})
+              .catch(()=>{{
+                const cached=readCache();
+                if(cached&&publish(cached,'cache'))return;
+                fetch(LOCAL,{{cache:'no-store'}})
+                  .then(r=>{{if(!r.ok)throw new Error('local '+r.status);return r.json();}})
+                  .then(c=>{{if(!publish(c,'local'))throw new Error('invalid local config');}})
+                  .catch(()=>{{document.documentElement.dataset.phConfig='unavailable';window.dispatchEvent(new CustomEvent('playershype:config-error'));}});
+              }});
           }})();
           </script>"""
           for rel in ["index.html","tracks.html","predict.html"]:
