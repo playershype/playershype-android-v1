@@ -22,6 +22,19 @@ jobs:
           cmdline-tools-version: '13114758'
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
+      - name: Dry-run V0.1 config publication contract
+        run: |
+          python3 scripts/publish_v01_config.py docs/app/config.json
+          test -s artifacts/v01-config-publication.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open("artifacts/v01-config-publication.json",encoding="utf-8"))
+          assert d["mode"]=="dry-run"
+          assert d["target"]=={"branch":"main","path":"docs/app/config.json"}
+          assert d["config"]["revision"]==d["revision"]
+          print("V0.1 publication payload verified")
+          PY
+
       - name: Verify V0.1 config consumer compatibility
         run: |
           python3 - <<'PY'
