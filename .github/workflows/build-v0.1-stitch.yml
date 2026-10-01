@@ -1297,6 +1297,69 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Hard-gate unpublished operational prototype content
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          # Hard gate: unpublished remote state wins over prototype/demo presentation.
+          gate=r"""<style id="ph-hard-gate-style">
+          html.ph-unpublished-hardgate body > *:not(#ph-hardgate-shell):not(script):not(style){display:none!important}
+          #ph-hardgate-shell{min-height:100vh;background:#031322;color:#fff;font-family:system-ui,sans-serif;padding:calc(env(safe-area-inset-top,0px) + 24px) 20px 100px;box-sizing:border-box}
+          #ph-hardgate-shell .brand{font-size:24px;font-weight:900;letter-spacing:.3px}
+          #ph-hardgate-shell .brand b{color:#a8e000}
+          #ph-hardgate-shell .card{margin-top:42px;padding:24px 18px;border-radius:20px;background:#0b2033;border:1px solid rgba(255,255,255,.12)}
+          #ph-hardgate-shell h1{margin:0 0 8px;font-size:25px}
+          #ph-hardgate-shell p{margin:0;color:#b9c4cf;line-height:1.5}
+          #ph-hardgate-shell .track{margin-top:14px;color:#57d6ed;font-weight:800}
+          #ph-hardgate-shell nav{position:fixed;left:0;right:0;bottom:0;padding:14px 20px calc(env(safe-area-inset-bottom,0px) + 14px);background:#031322;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-around}
+          #ph-hardgate-shell nav a{color:#c5ced7;text-decoration:none;font-size:12px;font-weight:800}
+          </style>
+          <script>
+          (function(){
+            function track(){
+              try{return window.PLAYERSHYPE_SELECTED_TRACK||JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){return null;}
+            }
+            function shell(t,isPredict){
+              let n=document.getElementById('ph-hardgate-shell');
+              if(!n){n=document.createElement('div');n.id='ph-hardgate-shell';document.body.appendChild(n);}
+              const name=(t&&t.name)||(t&&t.id)||'Hipódromo';
+              n.innerHTML='<div class="brand">PLAYERS<b>HYPE</b></div><div class="card"><div style="font-size:12px;font-weight:800;color:#a8e000">ESTADO DE JORNADA</div><h1>'+(isPredict?'HypePredict no publicado':'Jornada no publicada')+'</h1><p>'+(isPredict?'No hay un análisis HypePredict publicado para la carrera seleccionada.':'Los datos operativos aparecerán cuando PlayersHype publique la jornada.')+'</p><div class="track">'+name+'</div></div><nav><a href="index.html">HOME</a><a href="tracks.html">TRACKS</a><a href="predict.html">PREDICT</a></nav>';
+              document.documentElement.classList.add('ph-unpublished-hardgate');
+              document.documentElement.dataset.phHardGate='unpublished';
+            }
+            function release(){
+              document.documentElement.classList.remove('ph-unpublished-hardgate');
+              document.getElementById('ph-hardgate-shell')?.remove();
+              document.documentElement.dataset.phHardGate='published';
+            }
+            function apply(cfg){
+              const t=track(); if(!cfg)return;
+              const isPredict=location.pathname.endsWith('/predict.html');
+              if(isPredict){
+                let r=null;try{r=window.PLAYERSHYPE_SELECTED_RACE||JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');}catch(_){}
+                const tid=(r&&r.trackId)||(t&&t.id)||'', key=r?String(r.id??r.number??r.index??''):'';
+                const a=cfg.hypepredict&&cfg.hypepredict.analyses&&cfg.hypepredict.analyses[tid]&&cfg.hypepredict.analyses[tid][key];
+                (!a||a.status!=='published')?shell(t,true):release();
+              }else{
+                if(!t||!t.id)return;
+                const d=cfg.raceDays&&cfg.raceDays[t.id];
+                (!d||d.status==='unpublished'||!Array.isArray(d.races)||!d.races.length)?shell(t,false):release();
+              }
+            }
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+            window.addEventListener('playershype:track-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
+            window.addEventListener('playershype:race-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
+          })();
+          </script>"""
+          # Root TRACKS and PREDICT are the two screens proven leaking on-device.
+          for rel in ["tracks.html","predict.html"]:
+            p=root/rel; s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",gate+"\n</body>") if "</body>" in s else s+gate
+            p.write_text(s,encoding="utf-8")
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
@@ -1333,6 +1396,10 @@ jobs:
           assert "phDemoSuppressed" in tracks
           assert "ph-unpublished-operational" in race
           assert "ph-unpublished-operational" in predict
+          assert "ph-unpublished-hardgate" in tracks
+          assert "ph-hardgate-shell" in tracks
+          assert "ph-unpublished-hardgate" in predict
+          assert "HypePredict no publicado" in predict
           print("SOURCE CONTRACT + FINAL HOME NAVIGATION VERIFIED")
           PY
 
