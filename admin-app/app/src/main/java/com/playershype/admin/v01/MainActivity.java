@@ -2,6 +2,8 @@ package com.playershype.admin.v01;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.ContentValues;
+import android.provider.MediaStore;
 import android.graphics.Color;
 import android.net.Uri;
 import android.net.http.SslError;
@@ -50,6 +52,7 @@ public final class MainActivity extends ComponentActivity {
     @JavascriptInterface public boolean isPublisherConfigured(){try{return secret()!=null&&!secret().trim().isEmpty();}catch(Exception e){return false;}}
     @JavascriptInterface public boolean configurePublisher(String t){if(t==null||t.trim().length()<20||t.trim().length()>512)return false;try{saveSecret(t.trim());return true;}catch(Exception e){return false;}}
     @JavascriptInterface public void clearPublisher(){getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit().remove(TOKEN).apply();}
+    @JavascriptInterface public boolean exportFile(String filename,String mime,String content){try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.Downloads.DISPLAY_NAME,safe);v.put(MediaStore.Downloads.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.Downloads.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;o.write((content==null?"":content).getBytes(StandardCharsets.UTF_8));}v.clear();v.put(MediaStore.Downloads.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
     @JavascriptInterface public void publishConfig(String json){io.execute(()->{try{String token=secret();if(token==null||token.isEmpty())throw new Exception("Conexión GitHub no configurada.");JSONObject candidate=new JSONObject(json);basicValidate(candidate);JSONObject remote=getConfig(token,PROD);boolean control="control-center".equals(candidate.optString("publishScope"));String tid=control?"":target(candidate);JSONObject merged=control?mergeControlCenter(remote,candidate):merge(remote,candidate,tid);basicValidate(merged);String label=tid.isEmpty()?"control-center":tid;String body=merged.toString(2)+"\n";putConfig(token,SOURCE,body,"config: stage PlayersHype V0.1 · "+label);putConfig(token,PROD,body,"config: publish PlayersHype V0.1 · "+label);JSONObject verify=getConfig(token,PROD);if(!merged.getString("revision").equals(verify.optString("revision")))throw new Exception("La revisión publicada no coincide.");callback(true,tid.isEmpty()?"Control Center · config remoto confirmado":tid+" · "+verify.getJSONObject("raceDays").getJSONObject(tid).optString("date")+" · config remoto confirmado");}catch(Exception e){callback(false,e.getMessage()==null?"Error de publicación":e.getMessage());}});}
   }
 
