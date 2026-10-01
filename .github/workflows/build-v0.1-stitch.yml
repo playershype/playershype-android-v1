@@ -581,6 +581,60 @@ jobs:
           test -s app/src/main/assets/expansion/tv-live.html
           test -s app/src/main/assets/expansion/profile.html
           test -s app/src/main/assets/expansion/favorites.html
+      - name: Normalize critical User journey navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          rules={
+            "tracks.html":[
+              (["HYPEPREDICT"],"predict.html"),
+              (["RACE DAY","JORNADA","CARRERA"],"expansion/race-day.html"),
+              (["HORSE","EJEMPLAR","CABALLO"],"expansion/horse-hub.html"),
+            ],
+            "predict.html":[
+              (["TRACK HUB","PISTAS"],"tracks.html"),
+              (["RACE DAY","JORNADA"],"expansion/race-day.html"),
+              (["HORSE","EJEMPLAR","CABALLO"],"expansion/horse-hub.html"),
+              (["HYPEBOARD","RANKING"],"expansion/hype-board.html"),
+              (["PACE"],"expansion/pace-map.html"),
+              (["PROYE"],"expansion/projection.html"),
+              (["TALE"],"expansion/tale-of-tape.html"),
+            ],
+            "expansion/race-day.html":[
+              (["HYPEPREDICT"],"../predict.html"),
+              (["CABALLO","HORSE","EJEMPLAR"],"horse-hub.html"),
+              (["EN VIVO","LIVE"],"race-live.html"),
+              (["GATERA","GATE"],"gate-call.html"),
+            ],
+            "expansion/horse-hub.html":[
+              (["HYPEPREDICT"],"../predict.html"),
+              (["PAST PERFORMANCE","PERFORMANCE","PP"],"horse-pps.html"),
+              (["TRACK HUB","PISTAS"],"../tracks.html"),
+            ],
+            "expansion/horse-pps.html":[
+              (["HYPEPREDICT"],"../predict.html"),
+              (["PERFIL","PROFILE"],"horse-hub.html"),
+              (["TRACK HUB","PISTAS"],"../tracks.html"),
+            ],
+          }
+          for rel,items in rules.items():
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            js=[]
+            for terms,dst in items:
+              cond="||".join([f"t.includes({x!r})" for x in terms])
+              js.append(f"if({cond}){{e.preventDefault();e.stopImmediatePropagation();location.href={dst!r};return;}}")
+            bridge="""<script>
+          document.addEventListener('click',function(e){
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            RULES
+          },true);
+          </script>""".replace("RULES","".join(js))
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
       - name: Audit V0.1 User App route coverage
         run: |
           python3 - <<'PY'
