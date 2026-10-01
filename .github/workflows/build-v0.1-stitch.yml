@@ -881,6 +881,60 @@ jobs:
           s=s.replace("</body>",consume+"\n</body>") if "</body>" in s else s+consume
           p.write_text(s,encoding="utf-8")
           PY
+      - name: Add per-race HypePredict analysis contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          cfgp=Path("app/src/main/assets/data/config.json")
+          cfg=json.loads(cfgp.read_text(encoding="utf-8"))
+          hp=cfg.setdefault("hypepredict",{})
+          hp.setdefault("analyses",{})
+          hp["scoreContract"]={
+            "scale":10.0,
+            "components":[
+              {"id":"pace","weight":1.45},{"id":"trip","weight":1.00},
+              {"id":"class","weight":2.20},{"id":"distance","weight":1.90},
+              {"id":"form","weight":1.50},{"id":"consistency","weight":1.05},
+              {"id":"weight","weight":0.60},{"id":"workouts","weight":0.30}
+            ]
+          }
+          total=sum(x["weight"] for x in hp["scoreContract"]["components"])
+          if round(total,2)!=10.00: raise SystemExit(f"HypeScore contract changed: {total}")
+          cfgp.write_text(json.dumps(cfg,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          p=Path("app/src/main/assets/predict.html")
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function race(){try{return window.PLAYERSHYPE_SELECTED_RACE||JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');}catch(_){return null;}}
+            function apply(cfg){
+              const r=race(); if(!cfg||!r)return;
+              const trackId=r.trackId||(window.PLAYERSHYPE_SELECTED_TRACK&&window.PLAYERSHYPE_SELECTED_TRACK.id)||'';
+              const raceKey=String(r.id??r.number??r.index??'');
+              const analyses=(cfg.hypepredict&&cfg.hypepredict.analyses)||{};
+              const analysis=(analyses[trackId]&&analyses[trackId][raceKey])||{status:'unpublished',entries:[]};
+              window.PLAYERSHYPE_ANALYSIS=analysis;
+              document.documentElement.dataset.phAnalysisStatus=analysis.status||'unpublished';
+              document.documentElement.dataset.phAnalysisTrack=trackId;
+              document.documentElement.dataset.phAnalysisRace=raceKey;
+              window.dispatchEvent(new CustomEvent('playershype:analysis',{detail:{trackId:trackId,raceKey:raceKey,analysis:analysis}}));
+            }
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+            window.addEventListener('playershype:race-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          PY
+          python3 - <<'PY'
+          import json
+          d=json.load(open("app/src/main/assets/data/config.json",encoding="utf-8"))
+          x=d["hypepredict"]["scoreContract"]["components"]
+          assert len(x)==8 and round(sum(i["weight"] for i in x),2)==10.00
+          assert isinstance(d["hypepredict"]["analyses"],dict)
+          print("HypePredict per-race contract valid; score weights preserved")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
