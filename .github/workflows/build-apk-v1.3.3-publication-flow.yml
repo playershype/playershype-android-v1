@@ -43,6 +43,19 @@ jobs:
           test -f .v133/settings.gradle
           test -f .v133/app-user/build.gradle
           test -f .v133/app-admin/build.gradle
+
+      - name: Overlay patched User App remote-config loader
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="app/src/main/assets/index.html"
+          DST=".v133/app-user/src/main/assets/index.html"
+          test -f "$SRC" || { echo "Patched User App index missing: $SRC" >&2; exit 1; }
+          test -f "$DST" || { echo "V1.3.3 User App index missing: $DST" >&2; exit 1; }
+          cp "$SRC" "$DST"
+          grep -Fq 'DEFAULT_CONFIG_URL = "https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json"' "$DST"
+          grep -Fq 'SOURCE: LOCAL' "$DST"
+          echo "Patched User App loader overlaid into V1.3.3 source."
           test -f .v133/shared/src/main/java/com/playershype/shared/PublishController.java
 
       - name: Diagnose publisher wiring
