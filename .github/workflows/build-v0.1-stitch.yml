@@ -1900,36 +1900,25 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root=Path("app/src/main/assets")
-          shop=r"""<script>
-          (function(){
-            if(document.querySelector('[data-ph-shop-tab]'))return;
-            const nav=[...document.querySelectorAll('nav')].find(n=>/HOME|TRACKS|PREDICT|TV/i.test(n.innerText||''));
-            if(!nav)return;
-            const items=[...nav.querySelectorAll(':scope > *')];
-            const row=items.length===1 && items[0].children.length>=4 ? items[0] : nav;
-            [...row.children].forEach(el=>{
-              const t=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')).trim().toUpperCase();
-              if(t==='SHOP'||t.includes('SHOP SHOP')) el.remove();
-            });
-            row.style.display='grid';
-            row.style.gridTemplateColumns='repeat(5,minmax(0,1fr))';
-            row.style.width='100%';
-            const a=document.createElement('button');
-            a.type='button';a.dataset.phShopTab='true';a.setAttribute('aria-label','Shop');
-            a.style.cssText='background:none;border:0;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;width:100%;padding:6px 2px;cursor:pointer';
-            a.innerHTML='<span class="material-symbols-outlined" style="font-size:22px">shopping_bag</span><span style="font-size:10px;font-weight:700">SHOP</span>';
-            a.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/shop.html';},true);
-            row.appendChild(a);
-          })();
-          </script>"""
-          for name in ["index.html","tracks.html","predict.html"]:
-            p=root/name;s=p.read_text(encoding="utf-8")
-            s=s.replace("</body>",shop+"\n</body>") if "</body>" in s else s+shop
+          def bar(prefix="",active=""):
+            routes={"HOME":prefix+"index.html","TRACKS":prefix+"tracks.html","PREDICT":prefix+"predict.html","TV":prefix+"expansion/tv-live.html","SHOP":prefix+"expansion/shop.html"}
+            icons={"HOME":"grid_view","TRACKS":"flag","PREDICT":"bolt","TV":"smart_display","SHOP":"shopping_bag"}
+            items="".join(f'<a href="{routes[k]}" class="ph5-item {"on" if k==active else ""}"><span class="material-symbols-outlined">{icons[k]}</span><b>{k}</b></a>' for k in routes)
+            return f"""<style>
+            html{{padding-bottom:84px!important}}
+            #ph-five-nav{{position:fixed;left:0;right:0;bottom:0;height:76px;z-index:2147483000;background:#031326;border-top:1px solid rgba(127,127,127,.22);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:5px max(4px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left));box-sizing:border-box}}
+            #ph-five-nav .ph5-item{{min-width:0;color:#aeb6c5;text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:system-ui;text-align:center}}
+            #ph-five-nav .ph5-item .material-symbols-outlined{{font-size:23px;line-height:1}}
+            #ph-five-nav .ph5-item b{{font-size:9px;line-height:1.1;letter-spacing:.02em;white-space:nowrap}}
+            #ph-five-nav .ph5-item.on{{color:#b7e600}}
+            </style><nav id="ph-five-nav" aria-label="PlayersHype primary navigation">{items}</nav>"""
+          pages=[("index.html","HOME",""),("tracks.html","TRACKS",""),("predict.html","PREDICT",""),("expansion/tv-live.html","TV","../"),("expansion/shop.html","SHOP","../")]
+          for rel,active,prefix in pages:
+            p=root/rel;s=p.read_text(encoding="utf-8")
+            hide=r"""<script>(function(){const candidates=[...document.querySelectorAll('nav')].filter(n=>n.id!=='ph-five-nav'&&/HOME|TRACKS|PREDICT|TV/i.test(n.innerText||''));candidates.forEach(n=>n.style.display='none');})();</script>"""
+            inject=hide+bar(prefix,active)
+            s=s.replace("</body>",inject+"\n</body>") if "</body>" in s else s+inject
             p.write_text(s,encoding="utf-8")
-          p=root/"expansion/tv-live.html";s=p.read_text(encoding="utf-8")
-          tvshop=shop.replace("location.href='expansion/shop.html'","location.href='shop.html'")
-          s=s.replace("</body>",tvshop+"\n</body>") if "</body>" in s else s+tvshop
-          p.write_text(s,encoding="utf-8")
 
           home=root/"index.html";s=home.read_text(encoding="utf-8")
           manada=r"""<script>
@@ -1938,7 +1927,7 @@ jobs:
             const host=document.querySelector('main')||document.body;
             const card=document.createElement('button');
             card.type='button';card.dataset.phManadaHome='true';card.setAttribute('aria-label','La Manada');
-            card.style.cssText='display:block;width:calc(100% - 32px);margin:18px 16px;padding:18px;border:1px solid rgba(127,127,127,.24);border-radius:18px;background:rgba(127,127,127,.08);color:inherit;text-align:left;cursor:pointer';
+            card.style.cssText='display:block;width:calc(100% - 32px);margin:18px 16px 92px;padding:18px;border:1px solid rgba(127,127,127,.24);border-radius:18px;background:rgba(127,127,127,.08);color:inherit;text-align:left;cursor:pointer';
             card.innerHTML='<div style="font:800 12px/1.2 system-ui;letter-spacing:.12em;opacity:.65">COMUNIDAD</div><div style="font:800 22px/1.2 system-ui;margin-top:6px">LA MANADA</div><div style="font:500 13px/1.4 system-ui;margin-top:6px;opacity:.72">Entra a la comunidad de PlayersHype.</div>';
             card.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/manada.html';},true);
             host.appendChild(card);
@@ -1950,17 +1939,16 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           root=Path("app/src/main/assets")
-          for name in ["index.html","tracks.html","predict.html"]:
-            s=(root/name).read_text(encoding="utf-8")
-            if "data-ph-shop-tab" not in s or "expansion/shop.html" not in s:
-              raise SystemExit(f"{name}: visible Shop tab missing")
-          tv=(root/"expansion/tv-live.html").read_text(encoding="utf-8")
-          if "data-ph-shop-tab" not in tv or "location.href='shop.html'" not in tv:
-            raise SystemExit("TV: visible Shop tab missing")
+          expected={"index.html":"HOME","tracks.html":"TRACKS","predict.html":"PREDICT","expansion/tv-live.html":"TV","expansion/shop.html":"SHOP"}
+          for rel,active in expected.items():
+            s=(root/rel).read_text(encoding="utf-8")
+            if 'id="ph-five-nav"' not in s or "repeat(5,minmax(0,1fr))" not in s:
+              raise SystemExit(f"{rel}: canonical five-tab bar missing")
+            for label in expected.values():
+              if f'<b>{label}</b>' not in s: raise SystemExit(f"{rel}: {label} tab missing")
           home=(root/"index.html").read_text(encoding="utf-8")
-          if "data-ph-manada-home" not in home or "expansion/manada.html" not in home:
-            raise SystemExit("HOME: visible La Manada entry missing")
-          print("USER DISCOVERY OK: SHOP tab + HOME La Manada entry")
+          if "data-ph-manada-home" not in home: raise SystemExit("HOME: La Manada entry missing")
+          print("USER NAV VISUAL CONTRACT OK: one controlled five-tab bar + HOME La Manada")
           PY
 
       - name: Enforce La Manada membership safety contract
