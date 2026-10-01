@@ -1,0 +1,31 @@
+HIPÓDROMO: Gulfstream Park
+FECHA: 2026-09-26
+ÚLTIMA ACTUALIZACIÓN: 11:21 AM ET
+FIRST POST: 12:20 PM ET
+
+CONDICIÓN DE PISTA
+Dirt: Fast
+Turf: Good
+All Weather: Fast
+
+==============================
+RETIROS
+==============================
+
+Carrera 1
+#3 Intriga Coco
+RETIRO: Veterinarian
+
+==============================
+CAMBIOS
+==============================
+
+Carrera 1
+TEMP RAIL: 73 ft
+
+Carrera 10
+#1 Skyliner
+JOCKEY: Wesley Henry → Diego A. Herrera
+
+Canonical command:
+Analiza de la (CARRERA #) A LA (CARRERA #) DEL (HIPÓDROMO X) PARA (FECHA)
