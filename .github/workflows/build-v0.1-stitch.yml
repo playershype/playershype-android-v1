@@ -935,6 +935,67 @@ jobs:
           assert isinstance(d["hypepredict"]["analyses"],dict)
           print("HypePredict per-race contract valid; score weights preserved")
           PY
+      - name: Render safe HypePredict analysis state
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/predict.html")
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function render(payload){
+              if(!payload||!payload.analysis)return;
+              document.querySelectorAll('[data-ph-analysis-state]').forEach(n=>n.remove());
+              const a=payload.analysis, entries=Array.isArray(a.entries)?a.entries:[];
+              const box=document.createElement('div');
+              box.dataset.phAnalysisState='true';
+              box.style.cssText='margin:12px 16px;padding:10px 12px;border-radius:12px;background:rgba(127,127,127,.12);font:600 12px/1.35 system-ui';
+              if((a.status||'unpublished')!=='published'){
+                box.textContent='Análisis HypePredict todavía no publicado para esta carrera.';
+              }else{
+                box.textContent='HypePredict publicado · '+entries.length+' ejemplares';
+                entries.forEach((entry,i)=>{
+                  const b=document.createElement('button');
+                  b.type='button';
+                  b.style.cssText='display:block;width:100%;margin-top:8px;padding:9px 10px;border:0;border-radius:9px;text-align:left;font:600 12px/1.2 system-ui;cursor:pointer';
+                  b.textContent=entry.name||entry.horseName||('Ejemplar '+(i+1));
+                  b.addEventListener('click',function(e){
+                    e.preventDefault();e.stopImmediatePropagation();
+                    try{localStorage.setItem('playershype:selectedHorse',JSON.stringify(entry));}catch(_){}
+                    location.href='expansion/horse-hub.html';
+                  },true);
+                  box.appendChild(b);
+                });
+              }
+              const host=document.querySelector('main')||document.body;
+              host.appendChild(box);
+            }
+            window.addEventListener('playershype:analysis',e=>render(e.detail));
+            if(window.PLAYERSHYPE_ANALYSIS){
+              render({analysis:window.PLAYERSHYPE_ANALYSIS});
+            }
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+
+          for rel in ["expansion/horse-hub.html","expansion/horse-pps.html"]:
+            q=Path("app/src/main/assets")/rel
+            x=q.read_text(encoding="utf-8")
+            consume=r"""<script>
+          (function(){
+            try{
+              const horse=JSON.parse(localStorage.getItem('playershype:selectedHorse')||'null');
+              if(!horse)return;
+              window.PLAYERSHYPE_SELECTED_HORSE=horse;
+              document.documentElement.dataset.phHorse=String(horse.id||horse.name||horse.horseName||'');
+              window.dispatchEvent(new CustomEvent('playershype:horse-context',{detail:horse}));
+            }catch(_){}
+          })();
+          </script>"""
+            x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
+            q.write_text(x,encoding="utf-8")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
