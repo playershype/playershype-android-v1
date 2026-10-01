@@ -34,7 +34,7 @@ jobs:
                   "trackId":tid,"raceId":rid,"status":"published",
                   "horses":[{
                       "entryId":eid,
-                      "scores":{"pace":1.45,"trip":1.0,"class":2.2,"distance":1.9,"form":1.5,"consistency":1.05,"weight":0.6,"workouts":0.3},
+                      "scores":{"hypePerformance":2.0,"raceStrength":1.2,"formTrend":1.0,"distanceSurfaceFit":1.6,"readinessFitness":0.75,"weight":0.45,"earlyPaceAbility":1.0,"raceShapePaceMatchup":1.0,"projectedTripPost":1.0},
                       "hypeScore":10.0
                   }]
               }
@@ -1009,10 +1009,11 @@ jobs:
           hp["scoreContract"]={
             "scale":10.0,
             "components":[
-              {"id":"pace","weight":1.45},{"id":"trip","weight":1.00},
-              {"id":"class","weight":2.20},{"id":"distance","weight":1.90},
-              {"id":"form","weight":1.50},{"id":"consistency","weight":1.05},
-              {"id":"weight","weight":0.60},{"id":"workouts","weight":0.30}
+              {"id":"hypePerformance","weight":2.00},{"id":"raceStrength","weight":1.20},
+              {"id":"formTrend","weight":1.00},{"id":"distanceSurfaceFit","weight":1.60},
+              {"id":"readinessFitness","weight":0.75},{"id":"weight","weight":0.45},
+              {"id":"earlyPaceAbility","weight":1.00},{"id":"raceShapePaceMatchup","weight":1.00},
+              {"id":"projectedTripPost","weight":1.00}
             ]
           }
           total=sum(x["weight"] for x in hp["scoreContract"]["components"])
@@ -1061,13 +1062,16 @@ jobs:
           from pathlib import Path
           d=json.load(open("app/src/main/assets/data/config.json",encoding="utf-8"))
           x=d["hypepredict"]["scoreContract"]["components"]
-          assert len(x)==8 and round(sum(i["weight"] for i in x),2)==10.00
+          assert len(x)==9 and round(sum(i["weight"] for i in x),2)==10.00
+          assert {i["id"] for i in x}=={"hypePerformance","raceStrength","formTrend","distanceSurfaceFit","readinessFitness","weight","earlyPaceAbility","raceShapePaceMatchup","projectedTripPost"}
           assert isinstance(d["hypepredict"]["analyses"],dict)
           # Runtime and source schema must agree on canonical analysis identity.
           wf=Path(".github/workflows/build-v0.1-stitch.yml").read_text(encoding="utf-8")
           assert "item.trackId===trackId" in wf and "String(item.raceId)===raceKey" in wf
           assert "analysis.horses" in wf and "analysis.entries" in wf
-          print("HypePredict per-race contract valid; score weights preserved; runtime schema aligned")
+          legacy={"pace","trip","class","distance","form","consistency","workouts"}
+          assert not ({i["id"] for i in x} & legacy)
+          print("HypePredict per-race contract valid; nine-factor Performance-Fit-Dynamics engine aligned")
           PY
       - name: Render safe HypePredict analysis state
         run: |
@@ -2491,7 +2495,7 @@ jobs:
           assert isinstance(hp.get("analyses"),dict)
           sc=hp.get("scoreContract")
           assert sc and abs(float(sc["total"])-10.0)<1e-9
-          expected={"pace":1.45,"trip":1.00,"class":2.20,"distance":1.90,"form":1.50,"consistency":1.05,"weight":0.60,"workouts":0.30}
+          expected={"hypePerformance":2.00,"raceStrength":1.20,"formTrend":1.00,"distanceSurfaceFit":1.60,"readinessFitness":0.75,"weight":0.45,"earlyPaceAbility":1.00,"raceShapePaceMatchup":1.00,"projectedTripPost":1.00}
           actual={x["id"]:float(x["weight"]) for x in sc["components"]}
           assert actual==expected and abs(sum(actual.values())-10.0)<1e-9
           root=Path("app/src/main/assets")
