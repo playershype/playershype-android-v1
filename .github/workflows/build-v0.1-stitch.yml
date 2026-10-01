@@ -2620,6 +2620,33 @@ jobs:
           name: PlayersHype-App-V0.1-STITCH
           path: artifacts/
           if-no-files-found: error
+      - name: Audit Admin intake and exact export controls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path("admin-app/app/src/main/assets/admin.html").read_text(encoding="utf-8")
+          required=[
+            "data-target=\"journeyText\"",
+            "data-target=\"hypeText\"",
+            "data-target=\"horseData\"",
+            "function loadTextFile(input,target)",
+            "function readTextFile(file,target)",
+            "addEventListener('drop'",
+            "EXPORTAR CONFIG.JSON",
+            "function exportCandidate()",
+            "playershype-v0.1-config.json",
+            "PUBLICAR permanece bloqueado",
+          ]
+          missing=[x for x in required if x not in s]
+          if missing:
+              raise SystemExit("Admin intake/export contract missing: "+", ".join(missing))
+          forbidden=["github_pat_","ghp_","Authorization: Bearer","Authorization: token"]
+          leaked=[x for x in forbidden if x in s]
+          if leaked:
+              raise SystemExit("Credential-like material detected in Admin HTML: "+", ".join(leaked))
+          print("ADMIN INTAKE + EXACT EXPORT CONTROLS VERIFIED")
+          PY
+
       - name: Audit Admin canonical publication preview contract
         run: |
           python3 - <<'PY'
