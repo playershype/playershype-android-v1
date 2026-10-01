@@ -1045,7 +1045,9 @@ jobs:
                   b.textContent=entry.name||entry.horseName||('Ejemplar '+(i+1));
                   b.addEventListener('click',function(e){
                     e.preventDefault();e.stopImmediatePropagation();
-                    try{localStorage.setItem('playershype:selectedHorse',JSON.stringify(entry));}catch(_){}
+                    const race=window.PLAYERSHYPE_SELECTED_RACE||(()=>{try{return JSON.parse(localStorage.getItem('playershype:selectedRace')||'null')}catch(_){return null}})();
+                    const selected={trackId:(race&&race.trackId)||'',raceId:String((race&&(race.id??race.number??race.index))??''),entry:entry};
+                    try{localStorage.setItem('playershype:selectedHorse',JSON.stringify(selected));}catch(_){}
                     location.href='expansion/horse-hub.html';
                   },true);
                   box.appendChild(b);
@@ -1069,11 +1071,21 @@ jobs:
             consume=r"""<script>
           (function(){
             try{
-              const horse=JSON.parse(localStorage.getItem('playershype:selectedHorse')||'null');
-              if(!horse)return;
+              const selected=JSON.parse(localStorage.getItem('playershype:selectedHorse')||'null');
+              const race=JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');
+              if(!selected||!selected.entry||!race)return;
+              const raceId=String(race.id??race.number??race.index??'');
+              if(selected.trackId!==String(race.trackId||'')||selected.raceId!==raceId){
+                localStorage.removeItem('playershype:selectedHorse');
+                document.documentElement.dataset.phHorseContext='stale';
+                return;
+              }
+              const horse=selected.entry;
               window.PLAYERSHYPE_SELECTED_HORSE=horse;
-              document.documentElement.dataset.phHorse=String(horse.id||horse.name||horse.horseName||'');
-              window.dispatchEvent(new CustomEvent('playershype:horse-context',{detail:horse}));
+              window.PLAYERSHYPE_SELECTED_HORSE_CONTEXT=selected;
+              document.documentElement.dataset.phHorse=String(horse.id||horse.entryId||horse.name||horse.horseName||'');
+              document.documentElement.dataset.phHorseContext='valid';
+              window.dispatchEvent(new CustomEvent('playershype:horse-context',{detail:selected}));
             }catch(_){}
           })();
           </script>"""
