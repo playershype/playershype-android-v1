@@ -2606,6 +2606,44 @@ jobs:
           if orphan:
             raise SystemExit("Critical orphan pages: "+", ".join(orphan))
           PY
+      - name: Force canonical remote HypePredict runtime after Stitch packaging
+        run: |
+          set -euxo pipefail
+          # Stitch is the visual source, but operational race/HypePredict data must
+          # come from the native cached main/docs/app/config.json consumer.
+          test -s app/src/main/assets/remote-config.js
+          test -s app/src/main/assets/predict-dashboard.js
+          test -s app/src/main/assets/predict-dashboard.css
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/predict.html")
+          s=p.read_text(encoding="utf-8",errors="ignore")
+          # Preserve the Stitch shell/navigation, but remove hard-coded demo body.
+          body_start=s.lower().find("<body")
+          if body_start < 0: raise SystemExit("predict.html body missing")
+          body_open=s.find(">",body_start)
+          body_end=s.lower().rfind("</body>")
+          if body_open < 0 or body_end < 0: raise SystemExit("predict.html body malformed")
+          shell='''<main id="ph-remote-root"></main>
+          <nav class="nav">
+            <a href="index.html">HOME</a>
+            <a href="tracks.html">TRACKS</a>
+            <a class="on" href="predict.html">PREDICT</a>
+            <a href="https://www.youtube.com/@playershype1">TV</a>
+          </nav>'''
+          s=s[:body_open+1]+shell+s[body_end:]
+          p.write_text(s,encoding="utf-8")
+          PY
+          # Prove the packaged PREDICT page contains no known Stitch demo race data.
+          ! grep -qi "Mi Hermano Luis" app/src/main/assets/predict.html
+          ! grep -qi "Clásico San Jerónimo" app/src/main/assets/predict.html
+          ! grep -qi "Algoritmo V4.2" app/src/main/assets/predict.html
+          grep -q 'id="ph-remote-root"' app/src/main/assets/predict.html
+          # MainActivity injects both runtimes on predict.html.
+          grep -q 'asset("remote-config.js")' app/src/main/java/com/playershype/app/MainActivity.java
+          grep -q 'asset("predict-dashboard.js")' app/src/main/java/com/playershype/app/MainActivity.java
+          echo "CANONICAL HYPEPREDICT RUNTIME PACKAGING VERIFIED"
+
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
