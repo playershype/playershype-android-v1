@@ -1753,8 +1753,20 @@ jobs:
                 totals["js_bound"]+=1; continue
               # Capture/delegated bridges count as bound when their visible label/icon
               # is explicitly present in the page's route scripts.
-              tokens=[t.upper() for t in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}",ident) if len(t)>=4]
-              bridge=any(t in s.upper() and ("location.href" in s or "addEventListener('click'" in s or 'addEventListener("click"' in s) for t in tokens[:8])
+              # Delegated handlers only count when this specific control has
+              # an explicit selector/label/icon token in executable route logic.
+              su=s.upper()
+              evidence=[]
+              if a.get("id"): evidence += ["#"+a["id"], "GETELEMENTBYID('"+a["id"], 'GETELEMENTBYID("'+a["id"]]
+              for cls in (a.get("class") or "").split():
+                if len(cls)>=4: evidence += ["."+cls, "CLASSLIST.CONTAINS('"+cls, 'CLASSLIST.CONTAINS("'+cls]
+              label=(a.get("aria-label") or a.get("title") or text or "").strip()
+              if label and len(label)>=3:
+                evidence += ["'"+label, '"'+label]
+              icon=" ".join(re.findall(r"(?:SEARCH|NOTIFICATIONS(?:_NONE)?|HOME|TRACKS|PREDICT|TV|PROFILE|PERSON|SHARE|FAVORITE|SHOPPING_[A-Z_]+)",ident.upper()))
+              if icon: evidence += ["'"+icon, '"'+icon]
+              has_handler=("ADDEVENTLISTENER('CLICK'" in su or 'ADDEVENTLISTENER("CLICK"' in su or "ONCLICK" in su)
+              bridge=has_handler and any(ev.upper() in su for ev in evidence)
               if bridge:
                 totals["js_bound"]+=1; continue
               # Submit/reset controls are local form actions, not navigation defects.
