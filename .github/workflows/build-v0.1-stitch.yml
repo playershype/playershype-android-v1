@@ -1109,38 +1109,6 @@ jobs:
           # persisted via localStorage as the user enters Race Day/Horse Hub.
           PY
           grep -q "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" app/src/main/assets/tracks.html
-      - name: Add temporary remote-config diagnostic badge
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path("app/src/main/assets/index.html")
-          s=p.read_text(encoding="utf-8")
-          bridge=r"""<script>
-          (function(){
-            function show(cfg){
-              let b=document.getElementById('ph-config-diagnostic');
-              if(!b){
-                b=document.createElement('div');
-                b.id='ph-config-diagnostic';
-                b.setAttribute('role','status');
-                b.style.cssText='position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2147483647;padding:8px 10px;border-radius:10px;background:#07111d;color:#fff;border:1px solid rgba(255,255,255,.35);font:700 11px/1.25 system-ui;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.35);';
-                document.body.appendChild(b);
-              }
-              const source=(window.PLAYERSHYPE_CONFIG_SOURCE||document.documentElement.dataset.phConfigSource||'UNKNOWN').toUpperCase();
-              const rev=(cfg&&cfg.revision)||document.documentElement.dataset.phRevision||'UNKNOWN';
-              b.textContent='CONFIG: '+source+' · REV: '+rev;
-            }
-            window.addEventListener('playershype:config',e=>show(e.detail));
-            if(window.PLAYERSHYPE_CONFIG)show(window.PLAYERSHYPE_CONFIG);
-            setTimeout(()=>{if(!document.getElementById('ph-config-diagnostic'))show(window.PLAYERSHYPE_CONFIG||null);},2500);
-          })();
-          </script>"""
-          if "ph-config-diagnostic" not in s:
-              s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
-          p.write_text(s,encoding="utf-8")
-          PY
-          grep -q "ph-config-diagnostic" app/src/main/assets/index.html
-
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
@@ -1195,57 +1163,33 @@ jobs:
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           PY
-      - name: Final runtime diagnostic and bottom-nav guard
+      - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
+          import json
           from pathlib import Path
+          cfg=json.loads(Path("docs/app/config.json").read_text(encoding="utf-8"))
+          ids=[t["id"] for t in cfg["tracks"]]
+          race=cfg.get("raceDays")
+          assert isinstance(race,dict) and set(race)==set(ids)
+          allowed={"unpublished","scheduled","live","official","cancelled"}
+          for tid in ids:
+            day=race[tid]
+            assert day["status"] in allowed
+            assert "date" in day and isinstance(day["races"],list)
+          hp=cfg["hypepredict"]
+          assert isinstance(hp.get("analyses"),dict)
+          sc=hp.get("scoreContract")
+          assert sc and abs(float(sc["total"])-10.0)<1e-9
+          expected={"pace":1.45,"trip":1.00,"class":2.20,"distance":1.90,"form":1.50,"consistency":1.05,"weight":0.60,"workouts":0.30}
+          actual={x["id"]:float(x["weight"]) for x in sc["components"]}
+          assert actual==expected and abs(sum(actual.values())-10.0)<1e-9
           root=Path("app/src/main/assets")
-          # This runs after Stitch and all functional bridges, so it is what ships.
-          diagnostic=r"""<script>
-          (function(){
-            function show(cfg){
-              let b=document.getElementById('ph-config-diagnostic');
-              if(!b){
-                b=document.createElement('div'); b.id='ph-config-diagnostic'; b.setAttribute('role','status');
-                b.style.cssText='position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2147483647;padding:7px 9px;border-radius:9px;background:#07111d;color:#fff;border:1px solid #9fe000;font:700 10px/1.25 system-ui;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.4);';
-                document.body.appendChild(b);
-              }
-              const source=(window.PLAYERSHYPE_CONFIG_SOURCE||document.documentElement.dataset.phConfigSource||'UNKNOWN').toUpperCase();
-              const rev=(cfg&&cfg.revision)||document.documentElement.dataset.phRevision||'UNKNOWN';
-              b.textContent='CONFIG: '+source+' · REV: '+rev;
-            }
-            window.addEventListener('playershype:config',e=>show(e.detail));
-            if(window.PLAYERSHYPE_CONFIG)show(window.PLAYERSHYPE_CONFIG);
-            setTimeout(()=>show(window.PLAYERSHYPE_CONFIG||null),2200);
-          })();
-          </script>"""
-          # Put diagnostic on every root screen that owns the remote bridge.
-          for rel in ["index.html","tracks.html","predict.html"]:
-            p=root/rel; s=p.read_text(encoding="utf-8")
-            if "ph-config-diagnostic" not in s:
-              s=s.replace("</body>",diagnostic+"\n</body>") if "</body>" in s else s+diagnostic
-            p.write_text(s,encoding="utf-8")
-          # Capture bottom-nav intent on the actual shipped HypePredict page.
-          p=root/"predict.html"; s=p.read_text(encoding="utf-8")
-          guard=r"""<script>
-          document.addEventListener('click',function(e){
-            const el=e.target.closest('a,button'); if(!el)return;
-            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
-            if(t==='HOME'||t.includes('HOME')){e.preventDefault();e.stopImmediatePropagation();location.href='index.html';return;}
-            if(t==='TRACKS'||t.includes('TRACKS')){e.preventDefault();e.stopImmediatePropagation();location.href='tracks.html';return;}
-            if(t==='PREDICT'||t.includes('PREDICT')){e.preventDefault();e.stopImmediatePropagation();location.href='predict.html';return;}
-          },true);
-          </script>"""
-          s=s.replace("</body>",guard+"\n</body>") if "</body>" in s else s+guard
-          p.write_text(s,encoding="utf-8")
-          # CI assertions against final assembled assets, not repository placeholders.
-          final=(root/"predict.html").read_text(encoding="utf-8")
-          home=(root/"index.html").read_text(encoding="utf-8")
-          assert "ph-config-diagnostic" in final
-          assert "location.href='index.html'" in final
-          assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in final
-          assert "ph-config-diagnostic" in home
-          print("FINAL APK ASSET GUARD: diagnostic + HOME + remote bridge present")
+          predict=(root/"predict.html").read_text(encoding="utf-8")
+          assert "location.href='index.html'" in predict
+          assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in predict
+          assert "ph-config-diagnostic" not in predict
+          print("SOURCE CONTRACT + FINAL HOME NAVIGATION VERIFIED")
           PY
 
       - name: Audit V0.1 User App route coverage
