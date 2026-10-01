@@ -664,6 +664,55 @@ jobs:
           s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
           p.write_text(s,encoding="utf-8")
           PY
+      - name: Persist selected track across critical User journey
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          trackhub=root/"tracks.html"
+          s=trackhub.read_text(encoding="utf-8")
+          select_bridge=r"""<script>
+          document.addEventListener('click',function(e){
+            const el=e.target.closest('[data-track-id],a,button,article,section');
+            if(!el)return;
+            let node=el;
+            while(node&&node!==document.body&&!node.dataset.trackId)node=node.parentElement;
+            if(!node||!node.dataset.trackId)return;
+            const ctx={id:node.dataset.trackId,status:node.dataset.trackStatus||'',races:Number(node.dataset.trackRaces||0)};
+            try{localStorage.setItem('playershype:selectedTrack',JSON.stringify(ctx));}catch(_){}
+            window.PLAYERSHYPE_SELECTED_TRACK=ctx;
+            window.dispatchEvent(new CustomEvent('playershype:track-selected',{detail:ctx}));
+          },true);
+          </script>"""
+          s=s.replace("</body>",select_bridge+"\n</body>") if "</body>" in s else s+select_bridge
+          trackhub.write_text(s,encoding="utf-8")
+
+          consume=r"""<script>
+          (function(){
+            function read(){
+              try{return JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){return null;}
+            }
+            function apply(ctx,cfg){
+              if(!ctx)return;
+              const full=(cfg&&Array.isArray(cfg.tracks)?cfg.tracks.find(t=>t.id===ctx.id):null)||ctx;
+              window.PLAYERSHYPE_SELECTED_TRACK=full;
+              document.documentElement.dataset.phTrack=full.id||'';
+              document.documentElement.dataset.phTrackStatus=full.status||'';
+              document.documentElement.dataset.phTrackRaces=String(full.races??0);
+              window.dispatchEvent(new CustomEvent('playershype:track-context',{detail:full}));
+            }
+            const ctx=read();
+            if(window.PLAYERSHYPE_CONFIG)apply(ctx,window.PLAYERSHYPE_CONFIG);
+            else apply(ctx,null);
+            window.addEventListener('playershype:config',e=>apply(read(),e.detail));
+          })();
+          </script>"""
+          for rel in ["predict.html","expansion/race-day.html","expansion/horse-hub.html","expansion/horse-pps.html"]:
+            p=root/rel
+            x=p.read_text(encoding="utf-8")
+            x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
+            p.write_text(x,encoding="utf-8")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
