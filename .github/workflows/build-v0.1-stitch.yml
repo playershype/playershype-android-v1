@@ -1579,6 +1579,56 @@ jobs:
           print(f"EXPERIENCE AUDIT OK: {len(runtime)} runtime screens, {refs} local refs, {media_refs} media refs, 0 missing")
           PY
 
+      - name: Restore Stitch entry points for User utilities community and shop
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          bridge=r"""<script>
+          (function(){
+            const routes=[
+              {keys:['SEARCH','BUSCAR'],url:'expansion/search.html'},
+              {keys:['NOTIFIC','ALERTA'],url:'expansion/notifications.html'},
+              {keys:['LA MANADA','MANADA','MEMBRES'],url:'expansion/manada.html'},
+              {keys:['SHOP','TIENDA'],url:'expansion/shop.html'}
+            ];
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]');
+              if(!el)return;
+              const t=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.innerText||'')).toUpperCase();
+              for(const r of routes){
+                if(r.keys.some(k=>t.includes(k))){e.preventDefault();location.href=r.url;return;}
+              }
+              // Header icons in Stitch can be icon-only. Preserve their visual design,
+              // but give the known search/bell controls deterministic destinations.
+              const icon=(el.querySelector('.material-symbols-outlined,.material-icons')?.textContent||'').trim().toLowerCase();
+              if(icon==='search'){e.preventDefault();location.href='expansion/search.html';}
+              else if(icon==='notifications'||icon==='notifications_none'){e.preventDefault();location.href='expansion/notifications.html';}
+            },true);
+          })();
+          </script>"""
+          for name in ["index.html","tracks.html","predict.html"]:
+            p=root/name; s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+
+          # The Stitch utility/community/commerce screens already contain their own
+          # internal bridges. Add only missing deterministic chain entry routes.
+          entries={
+            "expansion/search.html":{"LA MANADA":"manada.html","MANADA":"manada.html","SHOP":"shop.html","TIENDA":"shop.html"},
+            "expansion/notifications.html":{"LA MANADA":"manada.html","MANADA":"manada.html"},
+            "expansion/manada.html":{"MEMBRES":"membership.html","PERFIL":"membership.html","SHOP":"shop.html","TIENDA":"shop.html"},
+            "expansion/membership.html":{"SHOP":"shop.html","TIENDA":"shop.html"},
+            "expansion/shop.html":{"PRODUCT":"product.html","PRODUCTO":"product.html","VER DETALLE":"product.html"}
+          }
+          for rel,m in entries.items():
+            p=root/rel; s=p.read_text(encoding="utf-8")
+            pairs=",".join(repr(k)+":"+repr(v) for k,v in m.items())
+            b=f"""<script>(function(){{const r={{{pairs}}};document.addEventListener('click',e=>{{const el=e.target.closest('a,button,[role="button"]');if(!el)return;const t=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.innerText||'')).toUpperCase();for(const [k,u] of Object.entries(r))if(t.includes(k)){{e.preventDefault();location.href=u;return;}}}},true);}})();</script>"""
+            s=s.replace("</body>",b+"\n</body>") if "</body>" in s else s+b
+            p.write_text(s,encoding="utf-8")
+          PY
+
       - name: Audit User App reachability and visual assets
         run: |
           python3 - <<'PY'
