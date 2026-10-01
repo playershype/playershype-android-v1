@@ -5,7 +5,7 @@
         android:allowBackup="false"
         android:fullBackupContent="@xml/backup_rules"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:icon="@drawable/app_icon"
+        android:icon="@drawable/user_app_icon"
         android:label="PlayersHype"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
