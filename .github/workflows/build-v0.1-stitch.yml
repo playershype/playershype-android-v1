@@ -762,6 +762,59 @@ jobs:
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           PY
+      - name: Add safe race-day data model and context
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          cfgp=Path("app/src/main/assets/data/config.json")
+          cfg=json.loads(cfgp.read_text(encoding="utf-8"))
+          cfg.setdefault("raceDays", {})
+          for track in cfg.get("tracks",[]):
+            tid=track.get("id")
+            if tid and tid not in cfg["raceDays"]:
+              cfg["raceDays"][tid]={"status":"unpublished","date":None,"races":[]}
+          cfgp.write_text(json.dumps(cfg,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+
+          root=Path("app/src/main/assets")
+          bridge=r"""<script>
+          (function(){
+            function getTrack(){
+              if(window.PLAYERSHYPE_SELECTED_TRACK)return window.PLAYERSHYPE_SELECTED_TRACK;
+              try{return JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){return null;}
+            }
+            function apply(cfg){
+              const track=getTrack(); if(!cfg||!track||!track.id)return;
+              const day=(cfg.raceDays&&cfg.raceDays[track.id])||{status:'unpublished',date:null,races:[]};
+              window.PLAYERSHYPE_RACE_DAY=day;
+              document.documentElement.dataset.phRaceDayStatus=day.status||'unpublished';
+              document.documentElement.dataset.phRaceCount=String(Array.isArray(day.races)?day.races.length:0);
+              document.documentElement.dataset.phRaceDate=day.date||'';
+              window.dispatchEvent(new CustomEvent('playershype:race-day',{detail:{track:track,raceDay:day}}));
+            }
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+          })();
+          </script>"""
+          for rel in ["predict.html","expansion/race-day.html"]:
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
+          python3 - <<'PY'
+          import json
+          p="app/src/main/assets/data/config.json"
+          d=json.load(open(p,encoding="utf-8"))
+          assert isinstance(d.get("raceDays"),dict)
+          ids={x["id"] for x in d["tracks"]}
+          assert ids.issubset(d["raceDays"].keys())
+          for tid in ids:
+            rd=d["raceDays"][tid]
+            assert rd["status"] in ("unpublished","scheduled","live","official","cancelled")
+            assert isinstance(rd["races"],list)
+          print("Race-day contract valid for",len(ids),"tracks")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
