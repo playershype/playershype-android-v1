@@ -61,9 +61,9 @@
     refreshButton(root);footer(root,c)
   }
 
-  function render(){addStyle();updateBadge();const c=parseConfig();if(!c){const root=mount();root.appendChild(node('div','ph-kicker','REMOTE CONFIG'));root.appendChild(node('h2','','Sincronizando…'));root.appendChild(node('p','','Esperando una copia válida de main/docs/app/config.json.'));refreshButton(root);return}if(isHome)renderHome(c);else if(isTracks)renderTracks(c);else if(isPredict)renderPredict(c)}
+  function render(){addStyle();updateBadge();const c=parseConfig();if(!c){const root=mount();root.appendChild(node('div','ph-kicker','REMOTE CONFIG'));root.appendChild(node('h2','','Sincronizando…'));root.appendChild(node('p','','Esperando una copia válida de main/docs/app/config.json.'));refreshButton(root);return}if(isHome)renderHome(c);else if(isTracks)renderTracks(c);else if(isPredict&&typeof window.PlayersHypeDashboardRender!=='function')renderPredict(c)}
 
-  window.onPlayersHypeConfigState=function(){render()};
+  window.onPlayersHypeConfigState=function(){render();if(isPredict&&typeof window.PlayersHypeDashboardRender==='function')window.PlayersHypeDashboardRender()};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateBadge()});
-  render();
+  if(!isPredict)render();else{addStyle();updateBadge();}
 })();
