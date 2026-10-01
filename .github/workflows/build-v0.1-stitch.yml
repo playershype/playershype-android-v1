@@ -2596,9 +2596,8 @@ jobs:
           path: artifacts/
           if-no-files-found: error
       - name: Build separate Admin V0.1 APK
-        working-directory: admin-app
         run: |
-          gradle :app:assembleDebug --no-daemon
+          ./gradlew -p admin-app :app:assembleDebug --no-daemon
           mkdir -p ../admin-artifacts
           cp app/build/outputs/apk/debug/app-debug.apk ../admin-artifacts/PlayersHype-Admin-V0.1.apk
           echo "${GITHUB_SHA}" > ../admin-artifacts/BUILD_COMMIT.txt
