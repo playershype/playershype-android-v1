@@ -2598,10 +2598,10 @@ jobs:
       - name: Build separate Admin V0.1 APK
         run: |
           ./gradlew -p admin-app :app:assembleDebug --no-daemon
-          mkdir -p ../admin-artifacts
-          cp app/build/outputs/apk/debug/app-debug.apk ../admin-artifacts/PlayersHype-Admin-V0.1.apk
-          echo "${GITHUB_SHA}" > ../admin-artifacts/BUILD_COMMIT.txt
-          sha256sum ../admin-artifacts/PlayersHype-Admin-V0.1.apk > ../admin-artifacts/SHA256SUMS.txt
+          mkdir -p admin-artifacts
+          cp admin-app/app/build/outputs/apk/debug/app-debug.apk admin-artifacts/PlayersHype-Admin-V0.1.apk
+          echo "${GITHUB_SHA}" > admin-artifacts/BUILD_COMMIT.txt
+          sha256sum admin-artifacts/PlayersHype-Admin-V0.1.apk > admin-artifacts/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: PlayersHype-Admin-V0.1
