@@ -1705,6 +1705,43 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Bind PlayersHype TV to shared config
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path("app/src/main/assets")
+          cfg=json.loads((root/"data/config.json").read_text(encoding="utf-8"))
+          tv=cfg.get("tv",{})
+          channel=tv.get("channelUrl","").strip()
+          if tv.get("enabled") and not channel.startswith("https://"):
+            raise SystemExit("TV enabled without valid HTTPS channelUrl")
+          pages=[root/"index.html",root/"expansion/tv-live.html",root/"expansion/tv-multicam.html",root/"expansion/super-hype.html"]
+          bridge=r"""<script>
+          (function(){
+            const channel=(window.PLAYERSHYPE_CONFIG&&window.PLAYERSHYPE_CONFIG.tv&&window.PLAYERSHYPE_CONFIG.tv.channelUrl)||'__CHANNEL__';
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]');if(!el)return;
+              const t=((el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')+' '+(el.innerText||'')).toUpperCase();
+              if((t.includes('CANAL')||t.includes('YOUTUBE'))&&channel){
+                e.preventDefault();e.stopImmediatePropagation();location.href=channel;
+              }
+            },true);
+          })();
+          </script>""".replace("__CHANNEL__",channel)
+          for p in pages:
+            if not p.exists(): raise SystemExit("Missing TV surface: "+str(p))
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          live=(root/"expansion/tv-live.html").read_text(encoding="utf-8")
+          for target in ["tv-multicam.html","super-hype.html"]:
+            if target not in live: raise SystemExit("TV internal route missing: "+target)
+          if "tipping.html" in live:
+            raise SystemExit("Tipping unexpectedly exposed from TV Live")
+          print("TV CONTRACT OK: channel configured; Multicam/Super Hype routed; Tipping not exposed")
+          PY
+
       - name: Bind Racing Horse and HypePredict User journeys
         run: |
           python3 - <<'PY'
