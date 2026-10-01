@@ -2644,6 +2644,11 @@ jobs:
           grep -q 'asset("predict-dashboard.js")' app/src/main/java/com/playershype/app/MainActivity.java
           echo "CANONICAL HYPEPREDICT RUNTIME PACKAGING VERIFIED"
 
+      - name: Validate packaged runtime JavaScript
+        run: |
+          node --check app/src/main/assets/remote-config.js
+          node --check app/src/main/assets/predict-dashboard.js
+          echo "PACKAGED USER RUNTIME JAVASCRIPT VERIFIED"
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
