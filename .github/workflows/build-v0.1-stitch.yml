@@ -1741,6 +1741,37 @@ jobs:
           print("RACING/HORSE JOURNEYS BOUND:",len(pages),"screens")
           PY
 
+      - name: Enforce Racing Horse journey contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets/expansion")
+          contract={
+            "race-day.html":["race-live.html","horse-hub.html","../predict.html"],
+            "race-live.html":["race-tracker.html","results.html","../predict.html"],
+            "race-tracker.html":["results.html","photo-finish.html","../predict.html"],
+            "results.html":["photo-finish.html","horse-hub.html","../predict.html"],
+            "photo-finish.html":["results.html","horse-hub.html"],
+            "horse-hub.html":["horse-pps.html","../predict.html"],
+            "horse-pps.html":["horse-hub.html","../predict.html"],
+            "hype-board.html":["pace-map.html","projection.html","tale-of-tape.html"],
+            "pace-map.html":["hype-board.html","projection.html"],
+            "projection.html":["hype-board.html","tale-of-tape.html"],
+            "tale-of-tape.html":["hype-board.html"],
+          }
+          missing=[]
+          for name,targets in contract.items():
+            p=root/name
+            if not p.exists():
+              missing.append(name+" [screen missing]"); continue
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            for target in targets:
+              if target not in s: missing.append(name+" -> "+target)
+          if missing:
+            raise SystemExit("RACING/HORSE CONTRACT BROKEN: "+repr(missing))
+          print("RACING/HORSE CONTRACT OK:",sum(len(v) for v in contract.values()),"required transitions across",len(contract),"screens")
+          PY
+
       - name: Normalize global User navigation controls
         run: |
           python3 - <<'PY'
