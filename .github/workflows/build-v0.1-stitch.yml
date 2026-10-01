@@ -622,6 +622,48 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
           test -s app/src/main/assets/data/config.json
+      - name: Bind Track Hub to shared V0.1 data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/tracks.html")
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function norm(v){return (v||'').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+            function bind(cfg){
+              if(!cfg||!Array.isArray(cfg.tracks))return;
+              const nodes=[...document.querySelectorAll('a,button,article,section,div')];
+              cfg.tracks.forEach(track=>{
+                const name=norm(track.name), id=norm(track.id);
+                const candidates=nodes.filter(el=>{
+                  const t=norm(el.innerText||el.textContent);
+                  return t && (t.includes(name)||t.includes(id));
+                }).sort((a,b)=>(a.innerText||'').length-(b.innerText||'').length);
+                const card=candidates[0]; if(!card)return;
+                card.dataset.trackId=track.id||'';
+                card.dataset.trackStatus=track.status||'';
+                card.dataset.trackRaces=String(track.races??0);
+                const text=card.innerText||'';
+                const status=(track.status||'pending').toUpperCase();
+                const races=Number(track.races||0);
+                if(!norm(text).includes('CARRERAS')&&!norm(text).includes('RACES')){
+                  const meta=document.createElement('div');
+                  meta.className='ph-runtime-track-meta';
+                  meta.style.cssText='font-size:12px;opacity:.78;margin-top:6px';
+                  meta.textContent=status+' · '+races+' carreras';
+                  card.appendChild(meta);
+                }
+              });
+              document.documentElement.dataset.phTracksBound=String(cfg.tracks.length);
+            }
+            if(window.PLAYERSHYPE_CONFIG)bind(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>bind(e.detail));
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
