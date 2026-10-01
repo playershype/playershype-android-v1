@@ -72,6 +72,38 @@ for tid,day in race_days.items():
     declared=track.get("races",0)
     if not isinstance(declared,int) or declared<0: fail(f"tracks.{tid}.races must be integer >= 0")
     if declared!=len(races): fail(f"tracks.{tid}.races {declared} does not match raceDays count {len(races)}")
+# HypeScore V1 is a fixed 10.00-point contract. Do not silently normalize or
+# accept altered component weights.
+EXPECTED_SCORE_COMPONENTS={
+    "pace":1.45,
+    "trip":1.00,
+    "class":2.20,
+    "distance":1.90,
+    "form":1.50,
+    "consistency":1.05,
+    "weight":0.60,
+    "workouts":0.30,
+}
+score_contract=data["hypepredict"].get("scoreContract")
+if not isinstance(score_contract,dict): fail("hypepredict.scoreContract required")
+components=score_contract.get("components")
+if not isinstance(components,list) or len(components)!=8: fail("hypepredict.scoreContract.components must contain exactly 8 components")
+actual={}
+for i,component in enumerate(components):
+    if not isinstance(component,dict): fail(f"hypepredict.scoreContract.components[{i}] must be object")
+    cid=component.get("id"); weight=component.get("weight")
+    if cid in actual: fail(f"hypepredict.scoreContract duplicate component {cid}")
+    if cid not in EXPECTED_SCORE_COMPONENTS: fail(f"hypepredict.scoreContract unknown component {cid}")
+    if not isinstance(weight,(int,float)) or isinstance(weight,bool): fail(f"hypepredict.scoreContract.{cid}.weight must be numeric")
+    actual[cid]=float(weight)
+if set(actual)!=set(EXPECTED_SCORE_COMPONENTS): fail("hypepredict.scoreContract component ids changed")
+for cid,expected in EXPECTED_SCORE_COMPONENTS.items():
+    if abs(actual[cid]-expected)>1e-9: fail(f"hypepredict.scoreContract.{cid}.weight changed from {expected}")
+if abs(sum(actual.values())-10.0)>1e-9: fail("HypeScore weights must total 10.00")
+declared_total=score_contract.get("total",score_contract.get("scale"))
+if not isinstance(declared_total,(int,float)) or isinstance(declared_total,bool) or abs(float(declared_total)-10.0)>1e-9:
+    fail("hypepredict.scoreContract total/scale must be 10.00")
+
 # HypePredict publication integrity: analyses may only reference races and
 # entries that exist in the published Race Day contract.
 analyses=data["hypepredict"].get("analyses",{})
@@ -98,4 +130,25 @@ for key,a in analyses.items():
         if eid not in valid_entries: fail(f"hypepredict.analyses.{key}.horses[{i}] references unknown entry {eid}")
         if eid in seen: fail(f"hypepredict.analyses.{key} duplicate entry {eid}")
         seen.add(eid)
+        if a.get("status")=="published":
+            scores=h.get("scores")
+            if not isinstance(scores,dict): fail(f"hypepredict.analyses.{key}.horses[{i}].scores required when published")
+            if set(scores)!=set(EXPECTED_SCORE_COMPONENTS):
+                fail(f"hypepredict.analyses.{key}.horses[{i}].scores must contain exactly the 8 HypeScore components")
+            total=0.0
+            for cid,max_weight in EXPECTED_SCORE_COMPONENTS.items():
+                value=scores.get(cid)
+                if not isinstance(value,(int,float)) or isinstance(value,bool):
+                    fail(f"hypepredict.analyses.{key}.horses[{i}].scores.{cid} must be numeric")
+                value=float(value)
+                if value<0 or value>max_weight:
+                    fail(f"hypepredict.analyses.{key}.horses[{i}].scores.{cid} must be between 0 and {max_weight}")
+                total+=value
+            declared=h.get("hypeScore")
+            if not isinstance(declared,(int,float)) or isinstance(declared,bool):
+                fail(f"hypepredict.analyses.{key}.horses[{i}].hypeScore required when published")
+            if abs(float(declared)-total)>0.011:
+                fail(f"hypepredict.analyses.{key}.horses[{i}].hypeScore does not match component sum")
+            if total<0 or total>10.0+1e-9:
+                fail(f"hypepredict.analyses.{key}.horses[{i}].hypeScore outside 0..10")
 print(f"CONFIG VALID: {path} · schema {data['schemaVersion']} · {len(ids)} tracks · revision {data['revision']} · raceDays synchronized")
