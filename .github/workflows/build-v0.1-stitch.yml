@@ -1163,6 +1163,74 @@ jobs:
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           PY
+      - name: Enforce remote-first operational state on Race Day and HypePredict
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          remote="https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json"
+          # Expansion Race Day must consume the same validated remote contract as root screens.
+          p=root/"expansion/race-day.html"
+          s=p.read_text(encoding="utf-8")
+          bridge=f"""<script>
+          (function(){{
+            const REMOTE={remote!r}, CACHE='playershype:config-cache:v0.1';
+            function valid(c){{return !!(c&&Number(c.schemaVersion)>=2&&typeof c.revision==='string'&&Array.isArray(c.tracks)&&c.raceDays&&c.hypepredict);}}
+            function publish(c,source){{
+              if(!valid(c))return false;
+              window.PLAYERSHYPE_CONFIG=c; window.PLAYERSHYPE_CONFIG_SOURCE=source;
+              document.documentElement.dataset.phConfigSource=source;
+              document.documentElement.dataset.phRevision=c.revision||'';
+              window.dispatchEvent(new CustomEvent('playershype:config',{{detail:c}})); return true;
+            }}
+            fetch(REMOTE,{{cache:'no-store',mode:'cors'}}).then(r=>{{if(!r.ok)throw 0;return r.json();}})
+              .then(c=>{{if(!publish(c,'remote'))throw 0;try{{localStorage.setItem(CACHE,JSON.stringify(c));}}catch(_){{}}}})
+              .catch(()=>{{try{{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(publish(c,'cache'))return;}}catch(_){{}}
+                fetch('../data/config.json',{{cache:'no-store'}}).then(r=>r.json()).then(c=>publish(c,'local')).catch(()=>{{}});
+              }});
+          }})();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          # Operational veil: demo Stitch content remains packaged as design reference,
+          # but is explicitly not represented as current race data when unpublished.
+          veil=r"""<script>
+          (function(){
+            function apply(payload){
+              if(!payload||!payload.raceDay)return;
+              const day=payload.raceDay, races=Array.isArray(day.races)?day.races:[];
+              let n=document.getElementById('ph-operational-state');
+              if((day.status||'unpublished')==='unpublished' || !races.length){
+                if(!n){n=document.createElement('div');n.id='ph-operational-state';n.style.cssText='position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top,0px) + 74px);z-index:9997;padding:14px;border-radius:14px;background:#07111d;color:#fff;border:1px solid rgba(255,255,255,.18);font:700 13px/1.35 system-ui;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.35);';document.body.appendChild(n);}
+                n.textContent='Jornada todavía no publicada para esta pista.';
+                document.documentElement.dataset.phOperational='unpublished';
+              }else{
+                if(n)n.remove(); document.documentElement.dataset.phOperational='published';
+              }
+            }
+            window.addEventListener('playershype:race-day',e=>apply(e.detail));
+          })();
+          </script>"""
+          s=s.replace("</body>",veil+"\n</body>") if "</body>" in s else s+veil
+          p.write_text(s,encoding="utf-8")
+
+          # HypePredict: demo layout may remain visible, but current operational status
+          # must be unmistakable whenever no published remote analysis exists.
+          p=root/"predict.html"; s=p.read_text(encoding="utf-8")
+          hp=r"""<script>
+          window.addEventListener('playershype:analysis',function(e){
+            const p=e.detail||{}, a=p.analysis||{}, published=(a.status==='published');
+            document.documentElement.dataset.phOperationalAnalysis=published?'published':'unpublished';
+            let n=document.getElementById('ph-analysis-operational-state');
+            if(!published){
+              if(!n){n=document.createElement('div');n.id='ph-analysis-operational-state';n.style.cssText='margin:12px 16px;padding:11px 12px;border-radius:12px;background:#07111d;color:#fff;border:1px solid rgba(255,255,255,.18);font:700 12px/1.35 system-ui;text-align:center;';(document.querySelector('main')||document.body).prepend(n);}
+              n.textContent='Análisis HypePredict no publicado para la carrera seleccionada.';
+            }else if(n)n.remove();
+          });
+          </script>"""
+          s=s.replace("</body>",hp+"\n</body>") if "</body>" in s else s+hp
+          p.write_text(s,encoding="utf-8")
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
@@ -1189,6 +1257,10 @@ jobs:
           assert "location.href='index.html'" in predict
           assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in predict
           assert "ph-config-diagnostic" not in predict
+          race=(root/"expansion/race-day.html").read_text(encoding="utf-8")
+          assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in race
+          assert "Jornada todavía no publicada para esta pista." in race
+          assert "Análisis HypePredict no publicado para la carrera seleccionada." in predict
           print("SOURCE CONTRACT + FINAL HOME NAVIGATION VERIFIED")
           PY
 
