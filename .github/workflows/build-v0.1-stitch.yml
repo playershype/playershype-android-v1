@@ -1008,6 +1008,7 @@ jobs:
           PY
           python3 - <<'PY'
           import json
+          from pathlib import Path
           d=json.load(open("app/src/main/assets/data/config.json",encoding="utf-8"))
           x=d["hypepredict"]["scoreContract"]["components"]
           assert len(x)==8 and round(sum(i["weight"] for i in x),2)==10.00
