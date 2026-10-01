@@ -2084,6 +2084,49 @@ jobs:
           # remain blocking while we classify and repair real dead controls.
           PY
 
+      - name: Classify remaining User controls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import re, json
+          root=Path("app/src/main/assets")
+          counts={k:0 for k in ["admin_hidden","navigation_like","state_filter_local","future_service","external_service","other"]}
+          examples={k:[] for k in counts}
+          class P(HTMLParser):
+            def __init__(self): super().__init__(); self.stack=[]; self.controls=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs); r=None
+              if tag in ("a","button") or a.get("role")=="button":
+                r={"tag":tag,"a":a,"text":[]}; self.controls.append(r)
+              self.stack.append(r)
+            def handle_data(self,d):
+              for r in reversed(self.stack):
+                if r is not None:r["text"].append(d);break
+            def handle_endtag(self,tag):
+              if self.stack:self.stack.pop()
+          for p in root.rglob("*.html"):
+            if p.name=="code.html": continue
+            s=p.read_text(encoding="utf-8",errors="ignore"); q=P()
+            try:q.feed(s)
+            except Exception:continue
+            for x in q.controls:
+              a=x["a"]; href=(a.get("href") or "").strip(); onclick=(a.get("onclick") or "").strip()
+              if (href and href not in ("#","javascript:void(0)","javascript:void(0);")) or onclick: continue
+              t=(" ".join(x["text"])+" "+(a.get("aria-label") or "")).upper()
+              t=" ".join(t.split())
+              if "ADMIN" in t: cat="admin_hidden"
+              elif re.search(r"VOLVER|HOME|TIENDA|SHOP|SALA SECRETA|PP[S]?|HEAD.?TO.?HEAD|CALENDARIO|PISTAS|TRACKS|PERFIL|PROFILE|FAVORIT|RECIB|PEDIDO|ORDER",t): cat="navigation_like"
+              elif re.search(r"TODOS|CABALLOS|ESTABLOS|CARRERAS|PRE.?CARRERA|EN VIVO|RESULTADOS.?POST|FIJADO|CHEVRON|FILT|ORDENAR",t): cat="state_filter_local"
+              elif re.search(r"PAGAR|ATH|DESBLOQUEAR|COMPRAR|RECLAMAR|VOTAR|NOTIFICARME|PUSH|REPRODUCIR",t): cat="future_service"
+              elif re.search(r"COMPART|YOUTUBE|CANAL|DISCORD|USPS|TRACKING",t): cat="external_service"
+              else: cat="other"
+              counts[cat]+=1
+              if len(examples[cat])<12: examples[cat].append(str(p.relative_to(root))+": "+t[:90])
+          print("CONTROL_CLASSIFICATION:",json.dumps(counts,ensure_ascii=False))
+          for k in counts: print("CONTROL_"+k.upper()+"_EXAMPLES:",json.dumps(examples[k],ensure_ascii=False))
+          PY
+
       - name: Audit User App reachability and visual assets
         run: |
           python3 - <<'PY'
