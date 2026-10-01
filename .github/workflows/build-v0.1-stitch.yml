@@ -1433,6 +1433,67 @@ jobs:
           p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Bind HOME operational modules to remote publication state
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/index.html")
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function unpublished(cfg){
+              if(!cfg||!Array.isArray(cfg.tracks)||!cfg.raceDays)return true;
+              return !cfg.tracks.some(t=>{
+                const d=cfg.raceDays[t.id];
+                return d && d.status!=='unpublished' && Array.isArray(d.races) && d.races.length>0;
+              });
+            }
+            function findLeaf(texts){
+              const nodes=[...document.querySelectorAll('h1,h2,h3,h4,p,span,div,section,article')];
+              return nodes.filter(el=>{
+                if(el.children.length)return false;
+                const t=(el.textContent||'').trim().toUpperCase();
+                return texts.some(x=>t.includes(x));
+              });
+            }
+            function suppress(){
+              document.querySelectorAll('[data-ph-home-demo]').forEach(n=>n.remove());
+              const demo=['7 HOY','R5 PROX','94 HYPE INDEX','MI HERMANO LUIS','CAMARERO · R5','91.4% EXACTA'];
+              const leaves=findLeaf(demo);
+              const hidden=new Set();
+              leaves.forEach(leaf=>{
+                let n=leaf;
+                // climb to a compact card/module, never to body/main.
+                for(let i=0;i<4 && n.parentElement && !['MAIN','BODY'].includes(n.parentElement.tagName);i++){
+                  const p=n.parentElement;
+                  const txt=(p.innerText||'');
+                  if(txt.length<900)n=p; else break;
+                }
+                n.dataset.phHomeDemoHidden='true'; n.style.display='none'; hidden.add(n);
+              });
+              let card=document.createElement('section');
+              card.dataset.phHomeDemo='true';
+              card.style.cssText='margin:16px;padding:16px;border-radius:16px;background:#0b2033;color:#fff;border:1px solid rgba(255,255,255,.12);font-family:system-ui';
+              card.innerHTML='<div style="font-size:12px;font-weight:800;color:#a8e000">RACE INTELLIGENCE</div><div style="font-size:18px;font-weight:800;margin-top:5px">Sin jornada publicada</div><div style="font-size:12px;opacity:.72;margin-top:5px;line-height:1.4">HypePredict y las carreras destacadas aparecerán cuando PlayersHype publique una jornada.</div>';
+              const main=document.querySelector('main')||document.body;
+              const tv=[...document.querySelectorAll('h1,h2,h3,h4')].find(x=>(x.textContent||'').toUpperCase().includes('PLAYERSHYPE TV'));
+              if(tv&&tv.parentElement)tv.parentElement.before(card); else main.appendChild(card);
+              document.documentElement.dataset.phHomeOperational='unpublished';
+            }
+            function release(){
+              document.querySelectorAll('[data-ph-home-demo]').forEach(n=>n.remove());
+              document.querySelectorAll('[data-ph-home-demo-hidden]').forEach(n=>{n.style.display='';delete n.dataset.phHomeDemoHidden;});
+              document.documentElement.dataset.phHomeOperational='published';
+            }
+            function apply(cfg){unpublished(cfg)?suppress():release();}
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
@@ -1477,6 +1538,10 @@ jobs:
           assert "HypePredict no publicado" in predict
           assert "Selecciona una carrera" in predict
           assert "Selecciona un hipódromo y una carrera en Track Hub." in predict
+          home=(root/"index.html").read_text(encoding="utf-8")
+          assert "phHomeOperational" in home
+          assert "Sin jornada publicada" in home
+          assert "MI HERMANO LUIS" in home.upper()
           print("SOURCE CONTRACT + FINAL HOME NAVIGATION VERIFIED")
           PY
 
