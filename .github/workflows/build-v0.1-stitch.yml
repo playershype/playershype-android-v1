@@ -443,21 +443,21 @@ jobs:
           root6.mkdir()
           with zipfile.ZipFile(pkg6) as z: z.extractall(root6)
           exp6_screens={
-            "splash.html":"splash_screen_playershype_v0_1",
-            "vip-secret-room.html":"la_manada_vip_secret_room_discord",
-            "track-standby.html":"track_hub_standby_sin_jornada_activa",
-            "track-geoclima.html":"track_hub_geoclima_condiciones_de_pista",
-            "race-day-alt.html":"race_day_center_estado_de_jornada_y_pr_xima_carrera",
-            "gate-call.html":"gate_call_caballos_en_gatera_cuenta_regresiva",
-            "horse-hub-alt.html":"horse_hub_perfil_de_ejemplar_estad_sticas_y_conexiones",
-            "hype-board.html":"hypepredict_hypeboard_ranking_de_la_carrera",
-            "pace-map.html":"hypepredict_pace_map_mapa_de_velocidad",
-            "projection.html":"hypepredict_proyecci_n_de_llegada",
-            "tale-of-tape.html":"hypepredict_tale_of_the_tape_comparador",
-            "daily-tapada.html":"hypepredict_tapada_del_d_a",
-            "daily-huevazo.html":"hypepredict_huevazo_del_d_a",
-            "vulnerable-favorite.html":"hypepredict_favorito_vulnerable",
-            "journey-board.html":"hypepredict_tablero_de_jornada",
+            "splash.html":"splash_screen_oficial_playershype_mobile_app_build_142",
+            "vip-secret-room.html":"sala_secreta_vip_discord_la_manada_fundadores",
+            "track-standby.html":"track_hub_hip_dromo_fuera_de_temporada_standby",
+            "track-geoclima.html":"track_hub_geolocalizaci_n_meteorol_gica_pistas_m_ltiples",
+            "race-day-alt.html":"race_day_center_camarero_carrera_7_c7_1_700m_cl_sico",
+            "gate-call.html":"simulaci_n_en_vivo_entrada_al_partidor_camarero_c6_gate_call",
+            "horse-hub-alt.html":"horse_hub_el_sombra_dorada_perfil_estad_sticas",
+            "hype-board.html":"hypepredict_race_intelligence_saddlecloth_standard_verificado",
+            "pace-map.html":"hypepredict_pace_map_race_intelligence_color_system_v3.0_cyan_dominante",
+            "projection.html":"hypepredict_simulaci_n_3d_projected_finish_saddlecloth_verificado",
+            "tale-of-tape.html":"hypepredict_tale_of_the_tape_pro_head_to_head_completo",
+            "daily-tapada.html":"sticker_pack_caballos_reacciones_picas",
+            "daily-huevazo.html":"sticker_pack_cl_sico_camarero_2026_edici_n_limitada",
+            "vulnerable-favorite.html":"pizarra_de_resultados_oficiales_dividendos_camarero_c5",
+            "journey-board.html":"hypepredict_an_lisis_biomec_nico_postmortem_camarero_c6_1_400m",
           }
           for out,key in exp6_screens.items():
             matches=[p for p in root6.rglob("code.html") if p.parent.name==key]
