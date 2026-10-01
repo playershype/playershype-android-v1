@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.os.Build;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
@@ -143,7 +144,7 @@ public final class MainActivity extends ComponentActivity {
     @JavascriptInterface public long getLastSync(){return lastSync;}
     @JavascriptInterface public String getWeather(){return weatherJson==null?"":weatherJson;}
     @JavascriptInterface public void refresh(){syncRemote();syncWeather();}
-    @JavascriptInterface public boolean exportFile(String filename,String mime,String content){try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(java.io.OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;o.write((content==null?"":content).getBytes(StandardCharsets.UTF_8));}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
+    @JavascriptInterface public boolean exportFile(String filename,String mime,String content){if(Build.VERSION.SDK_INT<Build.VERSION_CODES.Q)return false;try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(java.io.OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;o.write((content==null?"":content).getBytes(StandardCharsets.UTF_8));}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
   }
 
   private void syncRemote(){
