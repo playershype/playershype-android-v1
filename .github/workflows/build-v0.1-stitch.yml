@@ -2634,10 +2634,12 @@ jobs:
           s=s[:body_open+1]+shell+s[body_end:]
           p.write_text(s,encoding="utf-8")
           PY
-          # Prove the packaged PREDICT page contains no known Stitch demo race data.
-          ! grep -qi "Mi Hermano Luis" app/src/main/assets/predict.html
-          ! grep -qi "Clásico San Jerónimo" app/src/main/assets/predict.html
-          ! grep -qi "Algoritmo V4.2" app/src/main/assets/predict.html
+          # Prove the operational Track Hub / HypePredict surfaces contain no known Stitch demo race data.
+          for page in app/src/main/assets/predict.html app/src/main/assets/tracks.html; do
+            ! grep -qi "Mi Hermano Luis" "$page"
+            ! grep -qi "Clásico San Jerónimo" "$page"
+            ! grep -qi "Algoritmo V4.2" "$page"
+          done
           grep -q 'id="ph-remote-root"' app/src/main/assets/predict.html
           # MainActivity injects both runtimes on predict.html.
           grep -q 'asset("remote-config.js")' app/src/main/java/com/playershype/app/MainActivity.java
