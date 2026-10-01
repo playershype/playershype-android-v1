@@ -342,6 +342,69 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Stitch User Account + Contingency states — exact screens from Expansion 05.
+          pkg5=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-05.zip")
+          if not pkg5.exists(): raise SystemExit("Missing Expansion 05 package")
+          root5=Path(".stitch-exp05")
+          if root5.exists(): shutil.rmtree(root5)
+          root5.mkdir()
+          with zipfile.ZipFile(pkg5) as z: z.extractall(root5)
+          state_screens={
+            "vip-checkout.html":"checkout_user_app_la_manada_vip_con_nuevo_price_id_sincronizado",
+            "vip-ath-confirm.html":"confirmaci_n_de_pago_ath_m_vil_upgrade_fundador_vip",
+            "vip-welcome.html":"xito_de_pago_ath_m_vil_bienvenida_fundador_vip",
+            "vip-webhook-success.html":"xito_de_pago_suscripci_n_vip_confirmada_webhook_verificado",
+            "vip-payment-failed.html":"la_manada_vip_pago_fallido_actualizaci_n_de_tarjeta",
+            "vip-cancel.html":"la_manada_vip_cancelaci_n_tica_opciones_de_retenci_n",
+            "vip-cancelled.html":"la_manada_vip_confirmaci_n_exitosa_de_cancelaci_n_programada",
+            "vip-reactivated.html":"la_manada_vip_reactivaci_n_exitosa_en_1_toque",
+            "vip-profile-active.html":"perfil_de_usuario_membres_a_vip_activa_tarifa_blindada",
+            "vip-profile-ending.html":"perfil_de_usuario_membres_a_con_baja_programada_la_manada_vip",
+            "offline.html":"modo_fuera_de_l_nea_sin_se_al_en_pista_contingencia_de_red",
+            "search-empty.html":"b_squeda_universal_estado_vac_o_sugerencias",
+            "billing-edit.html":"modal_editar_datos_fiscales_direcci_n_de_facturaci_n",
+            "terms.html":"modal_t_rminos_condiciones_cumplimiento_daco_suri_puerto_rico",
+            "return.html":"modal_cambio_de_talla_o_devoluci_n_gratuita_orden_ph_2026_8841",
+            "return-label.html":"etiqueta_usps_prepaga_c_digo_qr_de_devoluci_n_ph_2026_8841",
+            "shipping-confirm.html":"notificaci_n_push_email_de_confirmaci_n_de_env_o_usps_orden_ph_2026_8841",
+          }
+          for out,key in state_screens.items():
+            matches=[p for p in root5.rglob("code.html") if p.parent.name==key]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Expansion 05 screen for {key}, found {len(matches)}: {matches}")
+            shutil.copy2(matches[0], EXP/out)
+          state_routes={
+            "vip-checkout.html":{"ATH":"vip-ath-confirm.html","PAGAR":"vip-ath-confirm.html"},
+            "vip-ath-confirm.html":{"CONTINUAR":"vip-welcome.html","CONFIRM":"vip-welcome.html"},
+            "vip-welcome.html":{"PERFIL":"vip-profile-active.html","PROFILE":"vip-profile-active.html"},
+            "vip-webhook-success.html":{"PERFIL":"vip-profile-active.html","PROFILE":"vip-profile-active.html"},
+            "vip-payment-failed.html":{"ACTUALIZ":"vip-checkout.html","PAGAR":"vip-checkout.html"},
+            "vip-cancel.html":{"CANCEL":"vip-cancelled.html","MANTENER":"vip-profile-active.html"},
+            "vip-cancelled.html":{"REACTIV":"vip-reactivated.html","PERFIL":"vip-profile-ending.html"},
+            "vip-reactivated.html":{"PERFIL":"vip-profile-active.html","PROFILE":"vip-profile-active.html"},
+            "vip-profile-active.html":{"CANCEL":"vip-cancel.html","MEMBRES":"membership.html"},
+            "vip-profile-ending.html":{"REACTIV":"vip-reactivated.html","MEMBRES":"membership.html"},
+            "search-empty.html":{"BUSCAR":"search.html","SEARCH":"search.html"},
+            "return.html":{"ETIQUETA":"return-label.html","LABEL":"return-label.html"},
+            "return-label.html":{"PEDIDO":"orders.html","ORDER":"orders.html"},
+            "shipping-confirm.html":{"PEDIDO":"orders.html","ORDER":"orders.html"},
+          }
+          for name,mapping in state_routes.items():
+            p=EXP/name; s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('MANADA')) location.href='manada.html';
+            else if(t.includes('SHOP')||t.includes('TIENDA')) location.href='shop.html';
+            else if(t.includes('PERFIL')||t.includes('PROFILE')) location.href='profile.html';
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
@@ -418,6 +481,12 @@ jobs:
           "expansion/manada.html","expansion/membership.html","expansion/customize.html","expansion/sticker-shop.html",
           "expansion/shop.html","expansion/product.html","expansion/checkout.html","expansion/order-confirmation.html",
           "expansion/orders.html","expansion/receipts.html","expansion/receipt.html",
+          "expansion/vip-checkout.html","expansion/vip-ath-confirm.html","expansion/vip-welcome.html",
+          "expansion/vip-webhook-success.html","expansion/vip-payment-failed.html","expansion/vip-cancel.html",
+          "expansion/vip-cancelled.html","expansion/vip-reactivated.html","expansion/vip-profile-active.html",
+          "expansion/vip-profile-ending.html","expansion/offline.html","expansion/search-empty.html",
+          "expansion/billing-edit.html","expansion/terms.html","expansion/return.html",
+          "expansion/return-label.html","expansion/shipping-confirm.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
