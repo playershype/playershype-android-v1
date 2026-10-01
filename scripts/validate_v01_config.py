@@ -47,7 +47,7 @@ for tid,day in race_days.items():
         if date is not None: fail(f"raceDays.{tid}.date must be null while unpublished")
         if races: fail(f"raceDays.{tid}.races must be empty while unpublished")
     else:
-        if not isinstance(date,str) or not __import__("re").fullmatch(r"\\d{4}-\\d{2}-\\d{2}",date):
+        if not isinstance(date,str) or not __import__("re").fullmatch(r"\d{4}-\d{2}-\d{2}",date):
             fail(f"raceDays.{tid}.date must be YYYY-MM-DD when published")
     race_ids=set(); race_numbers=set()
     for i,r in enumerate(races):
