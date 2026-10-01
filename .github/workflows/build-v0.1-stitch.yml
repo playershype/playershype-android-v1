@@ -815,6 +815,72 @@ jobs:
             assert isinstance(rd["races"],list)
           print("Race-day contract valid for",len(ids),"tracks")
           PY
+      - name: Bind Race Day races and persist selected race
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          p=root/"expansion/race-day.html"
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function apply(payload){
+              if(!payload||!payload.raceDay)return;
+              const day=payload.raceDay;
+              window.PLAYERSHYPE_RACES=Array.isArray(day.races)?day.races:[];
+              document.documentElement.dataset.phRaceDayStatus=day.status||'unpublished';
+              document.documentElement.dataset.phRaceCount=String(window.PLAYERSHYPE_RACES.length);
+              document.querySelectorAll('[data-ph-runtime-races]').forEach(n=>n.remove());
+              if(!window.PLAYERSHYPE_RACES.length)return;
+              const host=document.querySelector('main')||document.body;
+              const box=document.createElement('section');
+              box.dataset.phRuntimeRaces='true';
+              box.style.cssText='margin:16px;padding:12px;border-radius:14px;background:rgba(127,127,127,.10)';
+              const title=document.createElement('div');
+              title.style.cssText='font:700 12px/1.2 system-ui;margin-bottom:8px;opacity:.8';
+              title.textContent=(day.date||'Jornada')+' · '+window.PLAYERSHYPE_RACES.length+' carreras';
+              box.appendChild(title);
+              window.PLAYERSHYPE_RACES.forEach((race,i)=>{
+                const b=document.createElement('button');
+                b.type='button';
+                b.dataset.phRaceIndex=String(i);
+                b.style.cssText='display:block;width:100%;margin:6px 0;padding:10px 12px;text-align:left;border:0;border-radius:10px;font:600 13px/1.2 system-ui;cursor:pointer';
+                b.textContent=race.label||race.name||('Carrera '+(race.number??i+1));
+                b.addEventListener('click',function(e){
+                  e.preventDefault();e.stopImmediatePropagation();
+                  const selected={...race,index:i,trackId:(payload.track&&payload.track.id)||''};
+                  try{localStorage.setItem('playershype:selectedRace',JSON.stringify(selected));}catch(_){}
+                  window.PLAYERSHYPE_SELECTED_RACE=selected;
+                  location.href='../predict.html';
+                },true);
+                box.appendChild(b);
+              });
+              host.appendChild(box);
+            }
+            window.addEventListener('playershype:race-day',e=>apply(e.detail));
+          })();
+          </script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+
+          p=root/"predict.html"
+          s=p.read_text(encoding="utf-8")
+          consume=r"""<script>
+          (function(){
+            try{
+              const race=JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');
+              if(race){
+                window.PLAYERSHYPE_SELECTED_RACE=race;
+                document.documentElement.dataset.phRace=String(race.number??race.index??'');
+                document.documentElement.dataset.phRaceTrack=race.trackId||'';
+                window.dispatchEvent(new CustomEvent('playershype:race-context',{detail:race}));
+              }
+            }catch(_){}
+          })();
+          </script>"""
+          s=s.replace("</body>",consume+"\n</body>") if "</body>" in s else s+consume
+          p.write_text(s,encoding="utf-8")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
