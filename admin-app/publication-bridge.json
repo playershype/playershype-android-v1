@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "bridge": "playershype-admin-v0.1",
+  "sourceBranch": "v0.1-stitch-clean",
+  "sourcePath": "docs/app/config.json",
+  "workflow": ".github/workflows/publish-v0.1-config.yml",
+  "workflowRef": "v0.1-stitch-clean",
+  "confirmation": "PUBLISH-V0.1",
+  "target": {
+    "branch": "main",
+    "path": "docs/app/config.json"
+  },
+  "rules": {
+    "requireCanonicalValidation": true,
+    "requireExactPreview": true,
+    "allowFullMerge": false,
+    "allowForcePush": false,
+    "allowEmbeddedGithubToken": false
+  }
+}
