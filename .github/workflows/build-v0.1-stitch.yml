@@ -1821,6 +1821,38 @@ jobs:
           print("TV CONTRACT OK: channel configured; Multicam/Super Hype routed; Tipping not exposed")
           PY
 
+      - name: Enforce User utilities and account contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets/expansion")
+          contract={
+            "search.html":["notifications.html","weather-alert.html","share.html","search-empty.html"],
+            "notifications.html":["search.html","weather-alert.html"],
+            "weather-alert.html":["notifications.html","search.html"],
+            "share.html":["search.html","notifications.html"],
+            "profile.html":["favorites.html","billing-edit.html","terms.html"],
+            "favorites.html":["profile.html"],
+          }
+          missing=[]
+          for name,targets in contract.items():
+            p=root/name
+            if not p.exists(): missing.append(name+" [screen missing]"); continue
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            for t in targets:
+              if t not in s: missing.append(name+" -> "+t)
+          if missing: raise SystemExit("USER UTILITIES CONTRACT BROKEN: "+repr(missing))
+          # Capability flags: V0.1 has UI/navigation but no connected push or
+          # authenticated cloud persistence yet.
+          for name in ["notifications.html","favorites.html","profile.html"]:
+            p=root/name; s=p.read_text(encoding="utf-8",errors="ignore")
+            cap="push" if name=="notifications.html" else "persistence"
+            tag=f"<script>document.documentElement.dataset.ph{cap.title()}='not-connected';</script>"
+            s=s.replace("</body>",tag+"\n</body>") if "</body>" in s else s+tag
+            p.write_text(s,encoding="utf-8")
+          print("USER UTILITIES CONTRACT OK: routes protected; push/cloud persistence explicitly not connected")
+          PY
+
       - name: Bind Racing Horse and HypePredict User journeys
         run: |
           python3 - <<'PY'
