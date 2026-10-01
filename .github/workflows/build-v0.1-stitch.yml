@@ -1579,6 +1579,95 @@ jobs:
           print(f"EXPERIENCE AUDIT OK: {len(runtime)} runtime screens, {refs} local refs, {media_refs} media refs, 0 missing")
           PY
 
+      - name: Audit User App reachability and visual assets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlparse
+          import re, json
+          root=Path("app/src/main/assets").resolve()
+          pages=sorted(p for p in root.rglob("*.html") if p.name!="code.html")
+          rel={p:str(p.relative_to(root)).replace("\\","/") for p in pages}
+          by_rel={v:k for k,v in rel.items()}
+          inbound={v:set() for v in by_rel}
+          visuals={"local":0,"remote":0,"data":0}
+          missing_visual=[]
+          external_visual_hosts=set()
+
+          class P(HTMLParser):
+            def __init__(self): super().__init__(); self.links=[]; self.visual=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs)
+              if a.get("href"): self.links.append(a["href"])
+              for k in ("src","poster"):
+                if a.get(k): self.visual.append(a[k])
+              if a.get("srcset"):
+                self.visual += [x.strip().split(" ")[0] for x in a["srcset"].split(",") if x.strip()]
+              style=a.get("style","")
+              self.visual += re.findall(r"url\((?:['\"])?([^)'\"]+)",style,re.I)
+
+          for p in pages:
+            txt=p.read_text(encoding="utf-8",errors="ignore")
+            q=P()
+            try:q.feed(txt)
+            except Exception:pass
+            links=q.links + re.findall(r"(?:location(?:\.href)?\s*=\s*|location\.assign\(|location\.replace\()[\"']([^\"']+\.html(?:[?#][^\"']*)?)[\"']",txt,re.I)
+            for u in links:
+              pr=urlparse(u.strip())
+              if pr.scheme or not pr.path.lower().endswith(".html"): continue
+              target=(p.parent/pr.path).resolve()
+              try:r=str(target.relative_to(root)).replace("\\","/")
+              except ValueError:continue
+              if r in inbound: inbound[r].add(rel[p])
+            visual=q.visual + re.findall(r"url\((?:['\"])?([^)'\"]+)",txt,re.I)
+            for u in visual:
+              u=u.strip()
+              if not u:continue
+              if u.startswith("data:"): visuals["data"]+=1; continue
+              pr=urlparse(u)
+              if pr.scheme in ("http","https"):
+                visuals["remote"]+=1
+                if pr.netloc:external_visual_hosts.add(pr.netloc)
+                continue
+              # ignore CSS utility fragments and anchors; audit actual media-looking local refs
+              if not re.search(r"\.(png|jpe?g|webp|svg|gif|avif|mp4|webm)(?:$|[?#])",u,re.I):continue
+              visuals["local"]+=1
+              target=(p.parent/pr.path).resolve()
+              if not target.exists(): missing_visual.append((rel[p],u))
+
+          if missing_visual:
+            raise SystemExit("Missing visual assets: "+repr(missing_visual[:40]))
+
+          roots={"index.html","tracks.html","predict.html"}
+          reachable=set(roots); changed=True
+          while changed:
+            changed=False
+            for dst,srcs in inbound.items():
+              if dst in reachable:continue
+              if any(src in reachable for src in srcs):
+                reachable.add(dst);changed=True
+          orphan=sorted(set(by_rel)-reachable)
+
+          # State/contingency pages may intentionally be event-only. Report them,
+          # but fail only if core experience screens are unreachable.
+          core=[
+            "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",
+            "expansion/results.html","expansion/photo-finish.html","expansion/horse-hub.html",
+            "expansion/horse-pps.html","expansion/tv-live.html","expansion/search.html",
+            "expansion/notifications.html","expansion/manada.html","expansion/membership.html",
+            "expansion/shop.html","expansion/product.html","expansion/profile.html",
+            "expansion/hype-board.html","expansion/pace-map.html","expansion/projection.html",
+            "expansion/tale-of-tape.html"
+          ]
+          core_orphan=[x for x in core if x not in reachable]
+          print("REACHABILITY:",len(reachable),"/",len(pages),"reachable")
+          print("ORPHAN_REPORT:",json.dumps(orphan,ensure_ascii=False))
+          print("VISUALS:",json.dumps(visuals),"REMOTE_HOSTS:",json.dumps(sorted(external_visual_hosts)))
+          if core_orphan:
+            raise SystemExit("Core experience unreachable: "+", ".join(core_orphan))
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
