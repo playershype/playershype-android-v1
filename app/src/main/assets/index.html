@@ -137,8 +137,8 @@ box-shadow:var(--shadow)}
 <div class="toast" id="toast"></div>
 
 <script>
-const DEFAULT_CORE_URL = ""; // set only when production Core exists
-const CORE_KEY = "playershype.public.core.v1";
+const DEFAULT_CONFIG_URL = "https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json";
+const CORE_KEY = "playershype.public.config.v2";
 const FALLBACK_CHANNELS = {
   com:"https://playershype.com",
   net:"https://playershype.net",
@@ -160,20 +160,35 @@ function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),2200)}
 function safeHttpsUrl(v){try{const u=new URL(String(v||"").trim());if(u.protocol!=="https:"||!u.hostname||u.username||u.password)return "";return u.toString().replace(/\/+$/,"/").replace(/\/$/,"")}catch{return ""}}
 function normalizeUrl(v){return safeHttpsUrl(v)}
-function resolveCoreUrl(){
+function resolveConfigUrl(){
   const params=new URLSearchParams(location.search);
-  if(params.has("core")){
-    const val=params.get("core");
-    if(val==="clear"){localStorage.removeItem(CORE_KEY);return ""}
+  if(params.has("config")){
+    const val=params.get("config");
+    if(val==="clear"){localStorage.removeItem(CORE_KEY);return DEFAULT_CONFIG_URL}
     const n=normalizeUrl(val);if(n)localStorage.setItem(CORE_KEY,n);return n
   }
-  return normalizeUrl(localStorage.getItem(CORE_KEY)||DEFAULT_CORE_URL)
+  return normalizeUrl(localStorage.getItem(CORE_KEY)||DEFAULT_CONFIG_URL)
 }
-async function fetchManifest(coreUrl){
-  if(!coreUrl)throw new Error("NO_CORE");
-  const r=await fetch(coreUrl+"/api/public/manifest",{cache:"no-store"});
-  if(!r.ok)throw new Error("CORE_HTTP_"+r.status);
-  return r.json()
+async function fetchManifest(configUrl){
+  if(!configUrl)throw new Error("NO_CONFIG");
+  const r=await fetch(configUrl+(configUrl.includes("?")?"&":"?")+"ts="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("CONFIG_HTTP_"+r.status);
+  const cfg=await r.json();
+  if(Number(cfg?.schemaVersion)!==2)throw new Error("CONFIG_SCHEMA");
+  return {
+    revision:cfg.revision,
+    app:{
+      status:"published",
+      hero:cfg.home?.hero||FALLBACK_APP.hero,
+      tracks:Array.isArray(cfg.tracks)?cfg.tracks:[],
+      trackHubUrl:cfg.hypepredict?.trackHubUrl||"https://playershype.net/hypepredict-track-hub-1",
+      tv:{title:cfg.tv?.title,description:cfg.tv?.description,url:cfg.tv?.channelUrl},
+      latest:Array.isArray(cfg.latest)?cfg.latest:[]
+    },
+    live:cfg.live||null,
+    channels:cfg.channels||FALLBACK_CHANNELS,
+    hypepredict:{active:{version:cfg.hypepredict?.version||"V1",revision:cfg.revision}}
+  }
 }
 function channel(c,key,fallback=""){return (c&&c[key])||fallback}
 function setHref(id,url,disabled=false){
@@ -237,19 +252,19 @@ function render(data,mode){
   renderLatest(app.latest||[],channels)
 }
 async function boot(){
-  const core=resolveCoreUrl();
+  const configUrl=resolveConfigUrl();
   try{
-    const data=await fetchManifest(core);
+    const data=await fetchManifest(configUrl);
     render(data,"core")
   }catch(e){
     render({app:FALLBACK_APP,live:null,channels:FALLBACK_CHANNELS,hypepredict:{active:null}},"preview");
-    if(e.message!=="NO_CORE")toast("Core no disponible · usando preview local")
+    if(e.message!=="NO_CONFIG")toast("Config remoto no disponible · usando preview local")
   }
 }
 document.querySelectorAll(".navbtn").forEach(btn=>btn.addEventListener("click",()=>{
   document.querySelectorAll(".navbtn").forEach(x=>x.classList.remove("active"));btn.classList.add("active")
 }));
-$("coreStatusBtn").addEventListener("click",()=>toast(resolveCoreUrl()?"PlayersHype Core conectado":"Preview local · Core aún no configurado"));
+$("coreStatusBtn").addEventListener("click",()=>toast(resolveConfigUrl()?"Config remoto: "+resolveConfigUrl():"Preview local"));
 boot();
 </script>
 </body>
