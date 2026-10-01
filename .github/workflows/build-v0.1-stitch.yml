@@ -1538,6 +1538,10 @@ jobs:
               if pr.scheme in ("http","https"): continue
               clean=pr.path
               if not clean: continue
+              # Literal JS navigation detection can encounter non-route strings in
+              # Stitch scripts. Only audit JS literals that are actual local HTML routes.
+              if key=="route" and not clean.lower().endswith(".html"):
+                continue
               refs+=1
               target=(page.parent/clean).resolve()
               try: target.relative_to(root)
