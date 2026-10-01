@@ -61,6 +61,31 @@ jobs:
           cmdline-tools-version: '13114758'
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
+      - name: Audit Admin publication bridge contract
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          b=json.loads(Path("admin-app/publication-bridge.json").read_text(encoding="utf-8"))
+          assert b["bridge"]=="playershype-admin-v0.1"
+          assert b["sourceBranch"]=="v0.1-stitch-clean"
+          assert b["sourcePath"]=="docs/app/config.json"
+          assert b["workflow"]==".github/workflows/publish-v0.1-config.yml"
+          assert b["workflowRef"]=="v0.1-stitch-clean"
+          assert b["confirmation"]=="PUBLISH-V0.1"
+          assert b["target"]=={"branch":"main","path":"docs/app/config.json"}
+          rules=b["rules"]
+          assert rules["requireCanonicalValidation"] is True
+          assert rules["requireExactPreview"] is True
+          assert rules["allowFullMerge"] is False
+          assert rules["allowForcePush"] is False
+          assert rules["allowEmbeddedGithubToken"] is False
+          publisher=Path(b["workflow"]).read_text(encoding="utf-8")
+          for required in ["workflow_dispatch:","PUBLISH-V0.1","ref: v0.1-stitch-clean","git checkout main","git checkout v0.1-stitch-clean -- docs/app/config.json","git push origin HEAD:main"]:
+              assert required in publisher, required
+          print("ADMIN PUBLICATION BRIDGE CONTRACT VERIFIED")
+          PY
+
       - name: Audit guarded production publisher
         run: |
           python3 - <<'PY'
