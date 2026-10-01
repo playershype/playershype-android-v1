@@ -713,6 +713,55 @@ jobs:
             x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
             p.write_text(x,encoding="utf-8")
           PY
+      - name: Render selected track context in Race Day and HypePredict
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          bridge=r"""<script>
+          (function(){
+            function norm(v){return (v||'').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
+            function render(track){
+              if(!track||!track.id)return;
+              const known=['HIPÓDROMO CAMARERO','HIPODROMO CAMARERO','CAMARERO','GULFSTREAM PARK','GULFSTREAM','BELMONT PARK','BELMONT','CHURCHILL DOWNS','CHURCHILL'];
+              const nodes=[...document.querySelectorAll('h1,h2,h3,h4,p,span,div,button,a')];
+              let replaced=0;
+              for(const el of nodes){
+                if(el.children.length)continue;
+                const raw=(el.textContent||'').trim();
+                const n=norm(raw);
+                const hit=known.find(k=>n===norm(k));
+                if(hit){
+                  el.textContent=track.name||track.id;
+                  el.dataset.phRuntimeTrack='true';
+                  replaced++;
+                }
+              }
+              let badge=document.querySelector('[data-ph-track-context]');
+              if(!badge){
+                badge=document.createElement('div');
+                badge.dataset.phTrackContext='true';
+                badge.style.cssText='position:fixed;top:max(10px,env(safe-area-inset-top));right:12px;z-index:9998;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.72);color:white;font:600 11px/1.2 system-ui;max-width:48vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none';
+                document.body.appendChild(badge);
+              }
+              badge.textContent=(track.name||track.id)+' · '+String(track.status||'pending').toUpperCase();
+              document.documentElement.dataset.phTrackRendered=track.id;
+              document.documentElement.dataset.phTrackTextReplacements=String(replaced);
+            }
+            function current(){
+              if(window.PLAYERSHYPE_SELECTED_TRACK)return window.PLAYERSHYPE_SELECTED_TRACK;
+              try{return JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){return null;}
+            }
+            render(current());
+            window.addEventListener('playershype:track-context',e=>render(e.detail));
+          })();
+          </script>"""
+          for rel in ["predict.html","expansion/race-day.html"]:
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
