@@ -49,7 +49,7 @@
   function renderHome(c){Array.from(document.body.children).forEach(el=>{if(el.id===ROOT_ID||el.id===BADGE_ID||el.tagName==='SCRIPT'||el.tagName==='NAV')return;el.style.display='none'});const root=mount(),active=activeTracks(c),home=c.home||{},settings=c.appSettings||{},hero=home.hero||{};root.style.display='block';root.appendChild(node('div','ph-kicker',hero.eyebrow||'PLAYERSHYPE NETWORK'));root.appendChild(node('h2','',hero.title||'No seguimos el hype. Lo creamos.'));root.appendChild(node('p','',hero.subtitle||'Todo PlayersHype en una sola experiencia.'));const meta=node('div','ph-meta');metric(meta,active.length,'JORNADAS ACTIVAS');metric(meta,c.hypepredict&&c.hypepredict.version||'—','HYPEPREDICT');metric(meta,state()==='ok'?'OK':state().toUpperCase(),'SYNC');root.appendChild(meta);
     const modules={},add=(key,title,desc,href)=>{modules[key]=()=>{const a=node(href?'a':'div','ph-track');if(href)a.href=href;a.appendChild(node('strong','',title));if(desc)a.appendChild(node('small','',desc));root.appendChild(a)}};
     if(settings.live!==false&&c.live&&c.live.enabled!==false)add('live',(c.live.status==='live'?'EN VIVO · ':'')+(c.live.title||'PlayersHype Live'),c.live.message||c.live.status,c.live.url||null);
-    if(active.length){add('tracks','Track Hub',active.map(t=>t.name).join(' · '),'tracks.html');add('hypepredict','HypePredict',c.hypepredict&&c.hypepredict.description||'Race Intelligence de PlayersHype.','predict.html?track='+encodeURIComponent(active[0].id))}
+    if(active.length){add('tracks','Track Hub',active.map(t=>t.name).join(' · ')+' · entra al hipódromo para ver HypePredict','tracks.html')}
     if(settings.tv!==false){const u=c.tv&&(c.tv.featuredUrl||c.tv.channelUrl||c.tv.url)||c.channels&&c.channels.youtube;if(u)add('tv',c.tv&&c.tv.title||'PlayersHype TV',c.tv&&c.tv.description||'Programas, análisis y contenido.',u)}
     const latest=Array.isArray(c.latest)?c.latest.filter(x=>x&&x.enabled!==false)[0]:c.latest;if(settings.latest!==false&&latest&&latest.enabled!==false&&latest.title)add('latest',latest.title,latest.text||latest.description||'',latest.url||null);
     if(settings.membership!==false&&c.membership&&c.membership.name)add('membership',c.membership.name,[c.membership.price,c.membership.benefits].filter(Boolean).join(' · '),c.membership.url||null);
@@ -64,7 +64,7 @@
       if(el.id===ROOT_ID||el.id===BADGE_ID||el.tagName==='SCRIPT'||el.tagName==='NAV')return;
       el.style.display='none';
     });
-    const root=mount();root.style.display='block';
+    const root=mount();root.style.display='block';document.querySelectorAll('body > *').forEach(el=>{if(el!==root&&el.id!==BADGE_ID&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE')el.style.display='none'});
     root.appendChild(node('div','ph-kicker','TRACK HUB · SINCRONIZADO'));
     root.appendChild(node('h2','','Track Hub'));
     root.appendChild(node('p','','Jornadas publicadas por PlayersHype Admin.'));
