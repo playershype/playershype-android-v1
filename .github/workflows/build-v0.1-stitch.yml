@@ -1109,6 +1109,38 @@ jobs:
           # persisted via localStorage as the user enters Race Day/Horse Hub.
           PY
           grep -q "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" app/src/main/assets/tracks.html
+      - name: Add temporary remote-config diagnostic badge
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/index.html")
+          s=p.read_text(encoding="utf-8")
+          bridge=r"""<script>
+          (function(){
+            function show(cfg){
+              let b=document.getElementById('ph-config-diagnostic');
+              if(!b){
+                b=document.createElement('div');
+                b.id='ph-config-diagnostic';
+                b.setAttribute('role','status');
+                b.style.cssText='position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:2147483647;padding:8px 10px;border-radius:10px;background:#07111d;color:#fff;border:1px solid rgba(255,255,255,.35);font:700 11px/1.25 system-ui;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.35);';
+                document.body.appendChild(b);
+              }
+              const source=(window.PLAYERSHYPE_CONFIG_SOURCE||document.documentElement.dataset.phConfigSource||'UNKNOWN').toUpperCase();
+              const rev=(cfg&&cfg.revision)||document.documentElement.dataset.phRevision||'UNKNOWN';
+              b.textContent='CONFIG: '+source+' · REV: '+rev;
+            }
+            window.addEventListener('playershype:config',e=>show(e.detail));
+            if(window.PLAYERSHYPE_CONFIG)show(window.PLAYERSHYPE_CONFIG);
+            setTimeout(()=>{if(!document.getElementById('ph-config-diagnostic'))show(window.PLAYERSHYPE_CONFIG||null);},2500);
+          })();
+          </script>"""
+          if "ph-config-diagnostic" not in s:
+              s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
+          PY
+          grep -q "ph-config-diagnostic" app/src/main/assets/index.html
+
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
