@@ -43,6 +43,7 @@ jobs:
           test -f .v133/settings.gradle
           test -f .v133/app-user/build.gradle
           test -f .v133/app-admin/build.gradle
+          test -f .v133/shared/src/main/java/com/playershype/shared/PublishController.java
 
       - name: Overlay patched User App remote-config loader
         shell: bash
@@ -50,13 +51,12 @@ jobs:
           set -euo pipefail
           SRC="app/src/main/assets/index.html"
           DST=".v133/app-user/src/main/assets/index.html"
-          test -f "$SRC" || { echo "Patched User App index missing: $SRC" >&2; exit 1; }
-          test -f "$DST" || { echo "V1.3.3 User App index missing: $DST" >&2; exit 1; }
+          test -f "$SRC"
+          test -f "$DST"
           cp "$SRC" "$DST"
           grep -Fq 'DEFAULT_CONFIG_URL = "https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json"' "$DST"
           grep -Fq 'SOURCE: LOCAL' "$DST"
-          echo "Patched User App loader overlaid into V1.3.3 source."
-          test -f .v133/shared/src/main/java/com/playershype/shared/PublishController.java
+          echo "PASS - patched User App remote-config loader overlaid."
 
       - name: Diagnose publisher wiring
         shell: bash
@@ -208,147 +208,6 @@ jobs:
           grep -Fq "publishContent(getGenerated().html,message||'Update HypePredict Live','live','text/html')" .v133/shared/src/main/assets/native/live-publish.js
           ! grep -F "fetch(LIVE_PUBLISH_ENDPOINT" .v133/shared/src/main/assets/native/live-publish.js
           echo "Native LIVE publisher enabled; User selection logic captured above."
-
-      - name: Install native Cloudflare Live publisher
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          p=Path('.v133/shared/src/main/java/com/playershype/shared/PublishController.java')
-          s=p.read_text()
-
-          old='''        case "publisherConfigure":
-          configure(m);
-          SecureActivity.respond(reply, id, true, status().toString());
-          break;'''
-          new='''        case "publisherConfigure":
-          configure(m);
-          SecureActivity.respond(reply, id, true, status().toString());
-          break;
-          case "publisherConfigureLive":
-          configureLive(m);
-          SecureActivity.respond(reply, id, true, status().toString());
-          break;'''
-          if 'case "publisherConfigureLive":' not in s:
-            anchor_case='''        case "publisherClearToken":'''
-            if anchor_case not in s:
-              raise SystemExit('publisherClearToken anchor not found')
-            live_case='''        case "publisherConfigureLive":
-          configureLive(m);
-          SecureActivity.respond(reply, id, true, status().toString());
-          break;
-'''
-            s=s.replace(anchor_case,live_case+anchor_case,1)
-
-          anchor='''  private JSONObject status() throws Exception {'''
-          livecfg='''  private void configureLive(JSONObject m) throws Exception {
-          String token = normalizeToken(m.optString("token", ""));
-          if (token.length() < 20 || token.length() > 500) throw new IllegalArgumentException("Invalid LIVE token");
-          prefs.edit().putString("liveToken", encrypt(token)).apply();
-          }
-
-          '''
-          if anchor not in s: raise SystemExit('status anchor not found')
-          s=s.replace(anchor,livecfg+anchor,1)
-
-          old='''    boolean hasToken = false;
-          try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
-          return new JSONObject()
-          .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)'''
-          new='''    boolean hasToken = false, hasLiveToken = false;
-          try { hasToken = !decryptToken().isEmpty(); } catch (Exception ignored) {}
-          try { hasLiveToken = !decryptLiveToken().isEmpty(); } catch (Exception ignored) {}
-          return new JSONObject()
-          .put("configured", !owner.isEmpty() && !repo.isEmpty() && hasToken)
-          .put("liveConfigured", hasLiveToken)'''
-          if old not in s: raise SystemExit('status token block not found')
-          s=s.replace(old,new,1)
-
-          old='''    JSONObject s = status();
-          if (!s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
-          publishTarget = cleanTarget(m.optString("target", "live"));'''
-          new='''    JSONObject s = status();
-          publishTarget = cleanTarget(m.optString("target", "live"));
-          if ("app".equals(publishTarget) && !s.getBoolean("configured")) throw new IllegalStateException("Configure GitHub publisher first");
-          if ("live".equals(publishTarget) && !s.getBoolean("liveConfigured")) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");'''
-          if old not in s: raise SystemExit('begin configuration block not found')
-          s=s.replace(old,new,1)
-
-          old='''  private JSONObject publish(File source, String message, String target) throws Exception {
-          String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
-          String path = "app".equals(target) ? prefs.getString("appPath", "docs/app/config.json") : prefs.getString("livePath", prefs.getString("path", "docs/index.html"));'''
-          new='''  private JSONObject publish(File source, String message, String target) throws Exception {
-          if ("live".equals(target)) return publishCloudflare(source, message);
-          String owner = prefs.getString("owner", ""), repo = prefs.getString("repo", ""), branch = prefs.getString("branch", "main"), liveUrl = prefs.getString("liveUrl", "");
-          String path = prefs.getString("appPath", "docs/app/config.json");'''
-          if old not in s: raise SystemExit('publish dispatcher block not found')
-          s=s.replace(old,new,1)
-
-          anchor='''  private String currentSha(String endpoint, String branch, String token) throws Exception {'''
-          cloud='''  private JSONObject publishCloudflare(File source, String message) throws Exception {
-          String token = decryptLiveToken();
-          if (token.isEmpty()) throw new IllegalStateException("LIVE_PUBLISH_TOKEN required");
-          byte[] bytes = readAll(source, MAX);
-          URL url = new URL("https://hypepredict-live.players-hype1.workers.dev/api/publish");
-          HttpsURLConnection c = (HttpsURLConnection) url.openConnection();
-          c.setRequestMethod("POST"); c.setConnectTimeout(20000); c.setReadTimeout(45000); c.setUseCaches(false);
-          c.setDoOutput(true);
-          c.setRequestProperty("Authorization", "Bearer " + token);
-          c.setRequestProperty("Content-Type", "text/html; charset=utf-8");
-          c.setRequestProperty("Accept", "application/json");
-          c.setRequestProperty("X-PlayersHype-Message", message);
-          c.setFixedLengthStreamingMode(bytes.length);
-          try (OutputStream o = c.getOutputStream()) { o.write(bytes); }
-          int code = c.getResponseCode();
-          String response = readResponse(c, code);
-          if (code < 200 || code >= 300) throw new IOException("Cloudflare " + code + ": " + apiMessage(response));
-          JSONObject remote;
-          try { remote = response.isEmpty() ? new JSONObject() : new JSONObject(response); } catch (Exception ignored) { remote = new JSONObject(); }
-          if (remote.optBoolean("ok", true) == false) throw new IOException(remote.optString("error", "Cloudflare rejected publication"));
-          return new JSONObject().put("ok", true).put("target", "live")
-          .put("liveUrl", "https://hypepredict-live.players-hype1.workers.dev/")
-          .put("publishedAt", new Date().toInstant().toString());
-          }
-
-          '''
-          if anchor not in s: raise SystemExit('currentSha anchor not found')
-          s=s.replace(anchor,cloud+anchor,1)
-
-          old='''  private String decryptToken() throws Exception {
-          String stored = prefs.getString("token", ""); if (stored.isEmpty()) return "";
-          byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
-          byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
-          Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
-          return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
-          }'''
-          new='''  private String decryptToken() throws Exception { return decryptStored("token"); }
-          private String decryptLiveToken() throws Exception { return decryptStored("liveToken"); }
-          private String decryptStored(String prefKey) throws Exception {
-          String stored = prefs.getString(prefKey, ""); if (stored.isEmpty()) return "";
-          byte[] all = Base64.decode(stored, Base64.DEFAULT); if (all.length < 29) return "";
-          byte[] iv = Arrays.copyOfRange(all, 0, 12), encrypted = Arrays.copyOfRange(all, 12, all.length);
-          Cipher c = Cipher.getInstance("AES/GCM/NoPadding"); c.init(Cipher.DECRYPT_MODE, key(), new GCMParameterSpec(128, iv));
-          return new String(c.doFinal(encrypted), StandardCharsets.UTF_8);
-          }'''
-          if old not in s: raise SystemExit('decryptToken block not found')
-          s=s.replace(old,new,1)
-          p.write_text(s)
-
-          lp=Path('.v133/shared/src/main/assets/native/live-publish.js')
-          j=lp.read_text()
-          old="async function updateLive(cards,tracks,message){await generate(cards,tracks);if(!window.HypeAndroid)throw new Error('La publicación LIVE requiere el Admin APK.');return publishContent(getGenerated().html,message||'Update HypePredict Live','live','text/html');}"
-          new="async function updateLive(cards,tracks,message){await generate(cards,tracks);if(!window.HypeAndroid)throw new Error('La publicación LIVE requiere el Admin APK.');let st=await status();if(!st.liveConfigured){const token=(prompt('Pega tu LIVE_PUBLISH_TOKEN de Cloudflare. Se guardará cifrado en este dispositivo.','')||'').trim();if(!token)throw new Error('LIVE_PUBLISH_TOKEN requerido.');await HypeAndroid.request('publisherConfigureLive',{token});st=await status();if(!st.liveConfigured)throw new Error('No se pudo guardar LIVE_PUBLISH_TOKEN.');}return publishContent(getGenerated().html,message||'Update HypePredict Live','live','text/html');}"
-          if old not in j: raise SystemExit('patched updateLive function not found')
-          lp.write_text(j.replace(old,new,1))
-          PY
-
-          grep -Fq 'publisherConfigureLive' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          grep -Fq 'publishCloudflare' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          grep -Fq 'hypepredict-live.players-hype1.workers.dev/api/publish' .v133/shared/src/main/java/com/playershype/shared/PublishController.java
-          grep -Fq 'liveConfigured' .v133/shared/src/main/assets/native/live-publish.js
-          echo "PASS - APP remains GitHub; LIVE now uses native HTTPS Cloudflare transport with encrypted device token."
 
       - name: Capture publisher target rules and User config application
         shell: bash
@@ -541,5 +400,3 @@ jobs:
             output/BUILD_COMMIT.txt
           if-no-files-found: error
           retention-days: 14
-
-# rebuild-trigger: user-app-remote-config-validation
