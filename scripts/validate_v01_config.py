@@ -151,4 +151,32 @@ for key,a in analyses.items():
                 fail(f"hypepredict.analyses.{key}.horses[{i}].hypeScore does not match component sum")
             if total<0 or total>10.0+1e-9:
                 fail(f"hypepredict.analyses.{key}.horses[{i}].hypeScore outside 0..10")
+# Canonical Horse Hub / PPs publication integrity.
+horse_data=data.get("horseData",{})
+if not isinstance(horse_data,dict): fail("horseData must be object")
+all_entries={}
+for tid,day in race_days.items():
+    for race in day.get("races",[]):
+        for entry in race.get("entries",[]):
+            all_entries.setdefault(entry["id"],[]).append((tid,race["id"],entry))
+for key,record in horse_data.items():
+    if not isinstance(key,str) or not key.strip(): fail("horseData keys must be non-empty entry ids")
+    if not isinstance(record,dict): fail(f"horseData.{key} must be object")
+    status=record.get("status","unpublished")
+    if status not in {"unpublished","published"}: fail(f"horseData.{key}.status invalid")
+    entry_id=record.get("entryId",key)
+    if not isinstance(entry_id,str) or not entry_id.strip(): fail(f"horseData.{key}.entryId required")
+    if entry_id!=key: fail(f"horseData.{key}.entryId must match its key")
+    if status=="published":
+        matches=all_entries.get(entry_id,[])
+        if not matches: fail(f"horseData.{key} references unknown Race Day entry")
+        profile=record.get("profile")
+        if not isinstance(profile,dict): fail(f"horseData.{key}.profile required when published")
+        name=profile.get("name")
+        if not isinstance(name,str) or not name.strip(): fail(f"horseData.{key}.profile.name required when published")
+        pps=record.get("pps")
+        if not isinstance(pps,list): fail(f"horseData.{key}.pps must be array when published")
+        for i,pp in enumerate(pps):
+            if not isinstance(pp,dict): fail(f"horseData.{key}.pps[{i}] must be object")
+
 print(f"CONFIG VALID: {path} · schema {data['schemaVersion']} · {len(ids)} tracks · revision {data['revision']} · raceDays synchronized")
