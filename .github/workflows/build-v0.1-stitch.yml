@@ -1895,6 +1895,65 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Expose Shop tab and La Manada Home entry
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          shop=r"""<script>
+          (function(){
+            if(document.querySelector('[data-ph-shop-tab]'))return;
+            const nav=[...document.querySelectorAll('nav')].find(n=>/HOME|TRACKS|PREDICT|TV/i.test(n.innerText||''));
+            if(!nav)return;
+            const a=document.createElement('button');
+            a.type='button';a.dataset.phShopTab='true';a.setAttribute('aria-label','Shop');
+            a.style.cssText='background:none;border:0;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;flex:1;padding:6px 2px;cursor:pointer';
+            a.innerHTML='<span class="material-symbols-outlined" style="font-size:22px">shopping_bag</span><span style="font-size:10px;font-weight:700">SHOP</span>';
+            a.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/shop.html';},true);
+            nav.appendChild(a);
+          })();
+          </script>"""
+          for name in ["index.html","tracks.html","predict.html"]:
+            p=root/name;s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",shop+"\n</body>") if "</body>" in s else s+shop
+            p.write_text(s,encoding="utf-8")
+          p=root/"expansion/tv-live.html";s=p.read_text(encoding="utf-8")
+          tvshop=shop.replace("location.href='expansion/shop.html'","location.href='shop.html'")
+          s=s.replace("</body>",tvshop+"\n</body>") if "</body>" in s else s+tvshop
+          p.write_text(s,encoding="utf-8")
+
+          home=root/"index.html";s=home.read_text(encoding="utf-8")
+          manada=r"""<script>
+          (function(){
+            if(document.querySelector('[data-ph-manada-home]'))return;
+            const host=document.querySelector('main')||document.body;
+            const card=document.createElement('button');
+            card.type='button';card.dataset.phManadaHome='true';card.setAttribute('aria-label','La Manada');
+            card.style.cssText='display:block;width:calc(100% - 32px);margin:18px 16px;padding:18px;border:1px solid rgba(127,127,127,.24);border-radius:18px;background:rgba(127,127,127,.08);color:inherit;text-align:left;cursor:pointer';
+            card.innerHTML='<div style="font:800 12px/1.2 system-ui;letter-spacing:.12em;opacity:.65">COMUNIDAD</div><div style="font:800 22px/1.2 system-ui;margin-top:6px">LA MANADA</div><div style="font:500 13px/1.4 system-ui;margin-top:6px;opacity:.72">Entra a la comunidad de PlayersHype.</div>';
+            card.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/manada.html';},true);
+            host.appendChild(card);
+          })();
+          </script>"""
+          s=s.replace("</body>",manada+"\n</body>") if "</body>" in s else s+manada
+          home.write_text(s,encoding="utf-8")
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          for name in ["index.html","tracks.html","predict.html"]:
+            s=(root/name).read_text(encoding="utf-8")
+            if "data-ph-shop-tab" not in s or "expansion/shop.html" not in s:
+              raise SystemExit(f"{name}: visible Shop tab missing")
+          tv=(root/"expansion/tv-live.html").read_text(encoding="utf-8")
+          if "data-ph-shop-tab" not in tv or "location.href='shop.html'" not in tv:
+            raise SystemExit("TV: visible Shop tab missing")
+          home=(root/"index.html").read_text(encoding="utf-8")
+          if "data-ph-manada-home" not in home or "expansion/manada.html" not in home:
+            raise SystemExit("HOME: visible La Manada entry missing")
+          print("USER DISCOVERY OK: SHOP tab + HOME La Manada entry")
+          PY
+
       - name: Enforce La Manada membership safety contract
         run: |
           python3 - <<'PY'
