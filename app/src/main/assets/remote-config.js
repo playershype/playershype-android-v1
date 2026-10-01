@@ -41,12 +41,12 @@
   function updateBadge(){const b=ensureBadge(),s=state(),r=revision();b.className='';if(s==='ok'){b.classList.add('ok');b.textContent='SYNC OK · '+shortRev(r)}else if(s==='cached'){b.classList.add('cached');b.textContent='SYNC CACHE · '+shortRev(r)}else if(s==='offline'){b.classList.add('bad');b.textContent='SYNC OFFLINE'}else{b.textContent='SYNC · '+s.toUpperCase()}}
   function mount(){let root=document.getElementById(ROOT_ID);if(!root){root=node('section');root.id=ROOT_ID;const nav=document.querySelector('nav');if(nav&&nav.parentNode)nav.parentNode.insertBefore(root,nav);else document.body.appendChild(root)}root.textContent='';return root}
   function metric(root,value,label){const m=node('div','ph-metric');m.appendChild(node('b','',value));m.appendChild(node('span','',label));root.appendChild(m)}
-  function activeTracks(c){return (c.tracks||[]).filter(t=>{const d=c.raceDays&&c.raceDays[t.id];return d&&Array.isArray(d.races)&&d.races.length>0&&d.status!=='unpublished'})}
+  function activeTracks(c){return (c.tracks||[]).filter(t=>{if(t.enabled===false)return false;const d=c.raceDays&&c.raceDays[t.id];return d&&Array.isArray(d.races)&&d.races.length>0&&d.status!=='unpublished'})}
   function currentTrackId(c){const q=new URLSearchParams(location.search).get('track');if(q&&c.raceDays&&c.raceDays[q])return q;const lr=c.hypepredict&&c.hypepredict.latestReport;if(lr&&lr.trackId&&c.raceDays&&c.raceDays[lr.trackId])return lr.trackId;const a=activeTracks(c);return a.length?a[0].id:((c.tracks&&c.tracks[0]&&c.tracks[0].id)||'camarero')}
   function refreshButton(root){const a=node('div','ph-actions');const b=node('button','ph-primary','ACTUALIZAR AHORA');b.addEventListener('click',()=>{try{B.refresh()}catch(e){};updateBadge();b.textContent='ACTUALIZANDO…';setTimeout(()=>{b.textContent='ACTUALIZAR AHORA'},1800)});a.appendChild(b);root.appendChild(a)}
   function footer(root,c){const ls=lastSync();root.appendChild(node('div','ph-rev','revision: '+(c.revision||'No disponible')+(ls?' · sync: '+new Date(ls).toLocaleString():'')))}
 
-  function renderHome(c){const root=mount(),active=activeTracks(c);root.appendChild(node('div','ph-kicker','REMOTE CONFIG'));root.appendChild(node('h2','',active.length?'PlayersHype actualizado':'PlayersHype conectado'));root.appendChild(node('p','',active.length?'La app está leyendo la publicación remota del Admin.':'Conectado al config remoto; no hay jornadas activas publicadas.'));const meta=node('div','ph-meta');metric(meta,active.length,'JORNADAS ACTIVAS');metric(meta,c.hypepredict&&c.hypepredict.version||'—','HYPEPREDICT');metric(meta,state()==='ok'?'OK':state().toUpperCase(),'SYNC');root.appendChild(meta);active.forEach(t=>{const d=c.raceDays[t.id];const a=node('a','ph-track');a.href='predict.html?track='+encodeURIComponent(t.id);a.appendChild(node('strong','',t.name));a.appendChild(node('small','',(d.date||'Sin fecha')+' · '+d.races.length+' carreras'));root.appendChild(a)});refreshButton(root);footer(root,c)}
+  function renderHome(c){Array.from(document.body.children).forEach(el=>{if(el.id===ROOT_ID||el.id===BADGE_ID||el.tagName==='SCRIPT'||el.tagName==='NAV')return;el.style.display='none'});const root=mount(),active=activeTracks(c);root.style.display='block';root.appendChild(node('div','ph-kicker','PLAYERSHYPE NETWORK · LIVE CONFIG'));root.appendChild(node('h2','',active.length?'PlayersHype actualizado':'PlayersHype conectado'));root.appendChild(node('p','',active.length?'La app está leyendo la publicación remota del Admin.':'Conectado al config remoto; no hay jornadas activas publicadas.'));const meta=node('div','ph-meta');metric(meta,active.length,'JORNADAS ACTIVAS');metric(meta,c.hypepredict&&c.hypepredict.version||'—','HYPEPREDICT');metric(meta,state()==='ok'?'OK':state().toUpperCase(),'SYNC');root.appendChild(meta);active.forEach(t=>{const d=c.raceDays[t.id];const a=node('a','ph-track');a.href='predict.html?track='+encodeURIComponent(t.id);a.appendChild(node('strong','',t.name));a.appendChild(node('small','',(d.date||'Sin fecha')+' · '+d.races.length+' carreras'));root.appendChild(a)});refreshButton(root);footer(root,c)}
 
   function renderTracks(c){
     // Track Hub is operational data, not a Stitch demo. Suppress every packaged
@@ -59,7 +59,7 @@
     root.appendChild(node('div','ph-kicker','TRACK HUB · SINCRONIZADO'));
     root.appendChild(node('h2','','Track Hub'));
     root.appendChild(node('p','','Jornadas publicadas por PlayersHype Admin.'));
-    const tracks=c.tracks||[];
+    const tracks=(c.tracks||[]).filter(t=>t.enabled!==false);
     tracks.forEach(t=>{
       const d=(c.raceDays&&c.raceDays[t.id])||{status:'unpublished',date:null,races:[]};
       const races=Array.isArray(d.races)?d.races:[];
