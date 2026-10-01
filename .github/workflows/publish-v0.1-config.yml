@@ -1,0 +1,65 @@
+name: Publish PlayersHype V0.1 Config
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type PUBLISH-V0.1 to publish docs/app/config.json to main'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: playershype-v01-config-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: ${{ inputs.confirm == 'PUBLISH-V0.1' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout validated V0.1 source
+        uses: actions/checkout@v4
+        with:
+          ref: v0.1-stitch-clean
+          fetch-depth: 0
+
+      - name: Validate candidate
+        run: |
+          python3 scripts/validate_v01_config.py docs/app/config.json
+          python3 scripts/publish_v01_config.py docs/app/config.json --output /tmp/v01-publication.json
+
+      - name: Verify publication target
+        run: |
+          python3 - <<'PY'
+          import json
+          p=json.load(open("/tmp/v01-publication.json",encoding="utf-8"))
+          assert p["target"]=={"branch":"main","path":"docs/app/config.json"}
+          assert p["mode"]=="dry-run"
+          assert p["config"]["revision"]==p["revision"]
+          print("Publication target verified: main/docs/app/config.json")
+          PY
+
+      - name: Publish config only to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "playershype-v01-publisher"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git checkout v0.1-stitch-clean -- docs/app/config.json
+          python3 scripts/validate_v01_config.py docs/app/config.json || {
+            git show v0.1-stitch-clean:scripts/validate_v01_config.py > /tmp/validate_v01_config.py
+            python3 /tmp/validate_v01_config.py docs/app/config.json
+          }
+          if git diff --quiet -- docs/app/config.json; then
+            echo "No config changes to publish."
+            exit 0
+          fi
+          git add docs/app/config.json
+          git commit -m "config: publish PlayersHype V0.1"
+          git push origin HEAD:main
