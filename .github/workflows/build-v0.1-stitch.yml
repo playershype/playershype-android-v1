@@ -996,6 +996,46 @@ jobs:
             x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
             q.write_text(x,encoding="utf-8")
           PY
+      - name: Add validated remote config with local fallback
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          remote="https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json"
+          bridge=f"""<script>
+          (function(){{
+            const REMOTE={remote!r};
+            const LOCAL='data/config.json';
+            function valid(c){{return !!(c&&Number(c.schemaVersion)>=2&&Array.isArray(c.tracks)&&c.hypepredict&&typeof c.hypepredict==='object');}}
+            function publish(c,source){{
+              if(!valid(c))return false;
+              window.PLAYERSHYPE_CONFIG=c;
+              window.PLAYERSHYPE_CONFIG_SOURCE=source;
+              document.documentElement.dataset.phConfig='ready';
+              document.documentElement.dataset.phConfigSource=source;
+              document.documentElement.dataset.phRevision=c.revision||'';
+              window.dispatchEvent(new CustomEvent('playershype:config',{{detail:c}}));
+              return true;
+            }}
+            fetch(REMOTE,{{cache:'no-store',mode:'cors'}})
+              .then(r=>{{if(!r.ok)throw new Error('remote '+r.status);return r.json();}})
+              .then(c=>{{if(!publish(c,'remote'))throw new Error('invalid remote config');}})
+              .catch(()=>fetch(LOCAL,{{cache:'no-store'}})
+                .then(r=>{{if(!r.ok)throw new Error('local '+r.status);return r.json();}})
+                .then(c=>{{if(!publish(c,'local'))throw new Error('invalid local config');}})
+                .catch(()=>{{document.documentElement.dataset.phConfig='unavailable';window.dispatchEvent(new CustomEvent('playershype:config-error'));}}));
+          }})();
+          </script>"""
+          for rel in ["index.html","tracks.html","predict.html"]:
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # Expansion pages use ../data for their older local loader, while the
+          # remote-first bridge above lives on root entry screens. Context is
+          # persisted via localStorage as the user enters Race Day/Horse Hub.
+          PY
+          grep -q "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" app/src/main/assets/tracks.html
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
