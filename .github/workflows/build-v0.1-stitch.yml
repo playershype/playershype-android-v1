@@ -22,6 +22,28 @@ jobs:
           cmdline-tools-version: '13114758'
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
+      - name: Audit guarded production publisher
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path(".github/workflows/publish-v0.1-config.yml").read_text(encoding="utf-8")
+          required=[
+            "workflow_dispatch:",
+            "PUBLISH-V0.1",
+            "contents: write",
+            "ref: v0.1-stitch-clean",
+            "git checkout main",
+            "git checkout v0.1-stitch-clean -- docs/app/config.json",
+            "git push origin HEAD:main",
+          ]
+          missing=[x for x in required if x not in s]
+          if missing: raise SystemExit("Publisher guard missing: "+", ".join(missing))
+          forbidden=["git checkout v0.1-stitch-clean -- .","git merge","git push --force"]
+          bad=[x for x in forbidden if x in s]
+          if bad: raise SystemExit("Unsafe publisher operation: "+", ".join(bad))
+          print("Guarded production publisher audit passed")
+          PY
+
       - name: Verify staging publisher smoke target
         run: |
           python3 scripts/validate_v01_config.py docs/app/config.staging.json
