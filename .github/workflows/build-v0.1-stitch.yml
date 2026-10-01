@@ -2595,6 +2595,43 @@ jobs:
           name: PlayersHype-App-V0.1-STITCH
           path: artifacts/
           if-no-files-found: error
+      - name: Audit Admin canonical publication preview contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+          admin=Path("admin-app/app/src/main/assets/admin.html").read_text(encoding="utf-8")
+          source=json.loads(Path("docs/app/config.json").read_text(encoding="utf-8"))
+          m=re.search(r"const BASE_CONFIG=(\{.*?\});\nconst TRACKS=",admin,re.S)
+          if not m:
+              raise SystemExit("Admin BASE_CONFIG canonical snapshot missing")
+          embedded=json.loads(m.group(1))
+          protected=["home","live","channels","tv","latest"]
+          for key in protected:
+              if embedded.get(key)!=source.get(key):
+                  raise SystemExit(f"Admin candidate does not preserve canonical {key}")
+          required=[
+              "function buildCandidate()",
+              "JSON.parse(JSON.stringify(BASE_CONFIG))",
+              "candidate.raceDays=raceDays",
+              "candidate.tracks=TRACKS.map",
+              "candidate.hypepredict=Object.assign",
+              "candidate.horseData=draft.horseData||{}",
+              "function previewPublication()",
+              "PREVISUALIZACIÓN LISTA",
+              "PUBLICAR permanece bloqueado",
+          ]
+          missing=[x for x in required if x not in admin]
+          if missing:
+              raise SystemExit("Admin publication preview contract missing: "+", ".join(missing))
+          sc=embedded["hypepredict"]["scoreContract"]
+          expected={"hypePerformance":2.0,"raceStrength":1.2,"formTrend":1.0,"distanceSurfaceFit":1.6,"readinessFitness":0.75,"weight":0.45,"earlyPaceAbility":1.0,"raceShapePaceMatchup":1.0,"projectedTripPost":1.0}
+          actual={x["id"]:float(x["weight"]) for x in sc["components"]}
+          if actual!=expected or abs(sum(actual.values())-10.0)>1e-9:
+              raise SystemExit("Admin embedded HypePredict contract changed")
+          print("ADMIN CANONICAL PUBLICATION PREVIEW CONTRACT VERIFIED")
+          PY
+
       - name: Build separate Admin V0.1 APK
         run: |
           ./gradlew -p admin-app :app:assembleDebug --no-daemon
