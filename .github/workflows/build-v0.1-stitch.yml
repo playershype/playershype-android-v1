@@ -1905,12 +1905,21 @@ jobs:
             if(document.querySelector('[data-ph-shop-tab]'))return;
             const nav=[...document.querySelectorAll('nav')].find(n=>/HOME|TRACKS|PREDICT|TV/i.test(n.innerText||''));
             if(!nav)return;
+            const items=[...nav.querySelectorAll(':scope > *')];
+            const row=items.length===1 && items[0].children.length>=4 ? items[0] : nav;
+            [...row.children].forEach(el=>{
+              const t=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')).trim().toUpperCase();
+              if(t==='SHOP'||t.includes('SHOP SHOP')) el.remove();
+            });
+            row.style.display='grid';
+            row.style.gridTemplateColumns='repeat(5,minmax(0,1fr))';
+            row.style.width='100%';
             const a=document.createElement('button');
             a.type='button';a.dataset.phShopTab='true';a.setAttribute('aria-label','Shop');
-            a.style.cssText='background:none;border:0;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;flex:1;padding:6px 2px;cursor:pointer';
+            a.style.cssText='background:none;border:0;color:inherit;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;width:100%;padding:6px 2px;cursor:pointer';
             a.innerHTML='<span class="material-symbols-outlined" style="font-size:22px">shopping_bag</span><span style="font-size:10px;font-weight:700">SHOP</span>';
             a.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/shop.html';},true);
-            nav.appendChild(a);
+            row.appendChild(a);
           })();
           </script>"""
           for name in ["index.html","tracks.html","predict.html"]:
