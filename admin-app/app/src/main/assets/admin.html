@@ -48,12 +48,8 @@ select,input,textarea{width:100%;border:1px solid #28445f;background:#06182a;col
 <script>
 const KEY='playershype:admin:v01:draft';
 const SCORE={hypePerformance:2,raceStrength:1.2,formTrend:1,distanceSurfaceFit:1.6,readinessFitness:.75,weight:.45,earlyPaceAbility:1,raceShapePaceMatchup:1,projectedTripPost:1};
-const TRACKS=[
- {id:'camarero',name:'Hipódromo Camarero',image:'/assets/media/track-camarero.jpg',featured:true,status:'pending',races:0},
- {id:'gulfstream',name:'Gulfstream Park',image:'/assets/media/track-gulfstream.jpg',status:'pending',races:0,featured:false},
- {id:'belmont',name:'Belmont Park',image:'/assets/media/track-belmont.jpg',status:'pending',races:0,featured:false},
- {id:'churchill',name:'Churchill Downs',image:'/assets/media/track-churchill.jpg',status:'pending',races:0,featured:false}
-];
+const BASE_CONFIG={"schemaVersion":2,"revision":"v0.1-data-contract-2026-10-01","home":{"hero":{"eyebrow":"PLAYERSHYPE NETWORK","title":"No seguimos el hype. Lo creamos.","subtitle":"HypePredict, Player Live, PlayersHype TV y el contenido más reciente de PlayersHype en una sola experiencia.","image":"/assets/media/hero-racing.jpg","primary":{"label":"VER HYPEPREDICT","target":"predict"},"secondary":{"label":"PLAYERSHYPE TV","target":"tv"}},"moduleOrder":["live","tracks","hypepredict","tv","latest"],"enabled":{"live":true,"tracks":true,"hypepredict":true,"tv":true,"latest":true}},"live":{"enabled":true,"status":"offline","title":"Player Live","message":"Cuando haya transmisión, aparecerá aquí automáticamente.","url":"","image":"/assets/media/live-racing.jpg"},"channels":{"com":"https://playershype.com/","net":"https://playershype.net/","youtube":"https://youtube.com/@playershype1","facebook":"","instagram":"","x":""},"tracks":[{"id":"camarero","name":"Hipódromo Camarero","image":"/assets/media/track-camarero.jpg","featured":true,"status":"pending","races":0},{"id":"gulfstream","name":"Gulfstream Park","image":"/assets/media/track-gulfstream.jpg","status":"pending","races":0,"featured":false},{"id":"belmont","name":"Belmont Park","image":"/assets/media/track-belmont.jpg","status":"pending","races":0,"featured":false},{"id":"churchill","name":"Churchill Downs","image":"/assets/media/track-churchill.jpg","status":"pending","races":0,"featured":false}],"hypepredict":{"title":"HypePredict","description":"Race Intelligence de PlayersHype: HypeBoard, Pace Map, Tale of the Tape y análisis por hipódromo.","image":"/assets/media/hypepredict.jpg","version":"V1","scoreContract":{"total":10,"engine":"PERFORMANCE-FIT-DYNAMICS","components":[{"id":"hypePerformance","label":"HypePerformance / Speed","weight":2},{"id":"raceStrength","label":"Race Strength","weight":1.2},{"id":"formTrend","label":"Form Trend","weight":1},{"id":"distanceSurfaceFit","label":"Distance / Surface Fit","weight":1.6},{"id":"readinessFitness","label":"Readiness / Fitness","weight":0.75},{"id":"weight","label":"Weight","weight":0.45},{"id":"earlyPaceAbility","label":"Early Pace Ability","weight":1},{"id":"raceShapePaceMatchup","label":"Race Shape / Pace Matchup","weight":1},{"id":"projectedTripPost","label":"Projected Trip / Post","weight":1}]},"analyses":{}},"tv":{"enabled":true,"title":"PlayersHype TV","description":"La señal de La Manada vive principalmente en YouTube.","channelUrl":"https://youtube.com/@playershype1","programs":[{"id":"cafe-hipico","title":"Café Hípico","description":"Programación de la mañana.","status":"coming-soon","url":"","image":"/assets/media/tv-cafe.jpg"},{"id":"aftertrack","title":"AfterTrack","description":"Después de la jornada.","status":"coming-soon","url":"","image":"/assets/media/tv-aftertrack.jpg"},{"id":"hype-rewind","title":"Hype Rewind","description":"Carreras completas y momentos destacados.","status":"coming-soon","url":"","image":"/assets/media/tv-rewind.jpg"}]},"latest":[],"raceDays":{"camarero":{"status":"unpublished","date":null,"races":[]},"gulfstream":{"status":"unpublished","date":null,"races":[]},"belmont":{"status":"unpublished","date":null,"races":[]},"churchill":{"status":"unpublished","date":null,"races":[]}},"horseData":{}};
+const TRACKS=BASE_CONFIG.tracks.map(t=>Object.assign({},t));
 let draft={journeys:{},analyses:{},horseData:{}};
 try{draft=Object.assign(draft,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 window.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('track');const j=draft.journeys&&draft.journeys[t.value];if(j&&j.sourceText)document.getElementById('journeyText').value=j.sourceText||'';if(draft.hypeSourceText)document.getElementById('hypeText').value=draft.hypeSourceText||'';t.addEventListener('change',()=>{const d=draft.journeys&&draft.journeys[t.value];document.getElementById('journeyText').value=(d&&d.sourceText)||''})});
@@ -65,14 +61,13 @@ function saveJourney(){try{const t=track.value,st=dayStatus.value,r=parse('races
 function saveHype(){try{const a=parse('analyses'),raw=(document.getElementById('hypeText').value||'').trim();if(!a||Array.isArray(a)||typeof a!=='object')throw new Error('Análisis debe ser un objeto');draft.analyses=a;draft.hypeSourceText=raw;persist();status('HypePredict guardado localmente.','ok');openPanel('horse')}catch(e){status(e.message,'bad')}}
 function saveHorse(){try{const h=parse('horseData');if(!h||Array.isArray(h)||typeof h!=='object')throw new Error('Horse Data debe ser un objeto');draft.horseData=h;persist();status('Horse Hub / PPs guardado localmente.','ok')}catch(e){status(e.message,'bad')}}
 function buildCandidate(){
+ const candidate=JSON.parse(JSON.stringify(BASE_CONFIG));
  const raceDays={};
- TRACKS.forEach(t=>{const d=(draft.journeys||{})[t.id]||{status:'unpublished',date:null,races:[]};raceDays[t.id]={status:d.status||'unpublished',date:(d.status||'unpublished')==='unpublished'?null:(d.date||null),races:Array.isArray(d.races)?d.races:[]}});
- const tracks=TRACKS.map(t=>Object.assign({},t,{races:raceDays[t.id].races.length}));
- return {
-  schemaVersion:2,
-  revision:'v0.1-admin-candidate-'+new Date().toISOString().replace(/[:.]/g,'-'),
-  tracks,
-  hypepredict:{
+ TRACKS.forEach(t=>{const existing=(candidate.raceDays||{})[t.id]||{status:'unpublished',date:null,races:[]};const d=(draft.journeys||{})[t.id]||existing;raceDays[t.id]={status:d.status||'unpublished',date:(d.status||'unpublished')==='unpublished'?null:(d.date||null),races:Array.isArray(d.races)?d.races:[]}});
+ candidate.revision='v0.1-admin-candidate-'+new Date().toISOString().replace(/[:.]/g,'-');
+ candidate.raceDays=raceDays;
+ candidate.tracks=TRACKS.map(t=>Object.assign({},t,{races:raceDays[t.id].races.length}));
+ candidate.hypepredict=Object.assign({},candidate.hypepredict,{
    title:'HypePredict',
    description:'Race Intelligence de PlayersHype: HypeBoard, Pace Map, Tale of the Tape y análisis por hipódromo.',
    image:'/assets/media/hypepredict.jpg',
@@ -89,10 +84,9 @@ function buildCandidate(){
     {id:'projectedTripPost',label:'Projected Trip / Post',weight:1}
    ]},
    analyses:draft.analyses||{}
-  },
-  raceDays,
-  horseData:draft.horseData||{}
- };
+  });
+ candidate.horseData=draft.horseData||{};
+ return candidate;
 }
 function previewPublication(){try{validateDraft(true);const candidate=buildCandidate();document.getElementById('publicationJson').value=JSON.stringify(candidate,null,2);document.getElementById('publicationPreview').classList.add('active');status('PREVISUALIZACIÓN LISTA · no se ha publicado nada.','ok')}catch(e){status('PREVISUALIZACIÓN BLOQUEADA · '+e.message,'bad')}}
 function validateDraft(silent){try{
