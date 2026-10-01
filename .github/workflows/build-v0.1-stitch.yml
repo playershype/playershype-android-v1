@@ -1705,6 +1705,52 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Enforce La Manada membership safety contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets/expansion")
+          contract={
+            "manada.html":["membership.html","customize.html","sticker-shop.html"],
+            "membership.html":["customize.html","sticker-shop.html","vip-secret-room.html"],
+            "customize.html":["sticker-shop.html","membership.html"],
+            "vip-secret-room.html":["vip-profile-active.html","manada.html"],
+          }
+          missing=[]
+          for name,targets in contract.items():
+            p=root/name
+            if not p.exists(): missing.append(name+" [screen missing]"); continue
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            for t in targets:
+              if t not in s: missing.append(name+" -> "+t)
+          if missing: raise SystemExit("LA MANADA CONTRACT BROKEN: "+repr(missing))
+
+          # V0.1 has no live membership payment backend. Prevent prototype CTA
+          # routing from fabricating a successful ATH/payment state.
+          for name in ["vip-checkout.html","checkout.html"]:
+            p=root/name
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            guard=r"""<script>
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]');if(!el)return;
+              const t=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')).toUpperCase();
+              if(t.includes('PAGAR')||t.includes('ATH')||t.includes('CONFIRM')){
+                e.preventDefault();e.stopImmediatePropagation();
+                document.documentElement.dataset.phPayment='not-connected';
+                const msg=document.getElementById('ph-payment-status')||document.createElement('div');
+                msg.id='ph-payment-status';
+                msg.textContent='Pago no conectado en esta versión de prueba.';
+                msg.setAttribute('role','status');
+                msg.style.cssText='position:fixed;left:16px;right:16px;bottom:92px;z-index:9999;padding:12px 14px;border-radius:14px;background:#111827;color:white;text-align:center;font:600 14px system-ui';
+                document.body.appendChild(msg);
+              }
+            },true);
+            </script>"""
+            s=s.replace("</body>",guard+"\n</body>") if "</body>" in s else s+guard
+            p.write_text(s,encoding="utf-8")
+          print("LA MANADA CONTRACT OK; prototype payment success blocked until backend exists")
+          PY
+
       - name: Bind PlayersHype TV to shared config
         run: |
           python3 - <<'PY'
