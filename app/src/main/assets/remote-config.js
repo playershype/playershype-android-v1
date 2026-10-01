@@ -54,7 +54,7 @@
     const latest=Array.isArray(c.latest)?c.latest.filter(x=>x&&x.enabled!==false)[0]:c.latest;if(settings.latest!==false&&latest&&latest.enabled!==false&&latest.title)add('latest',latest.title,latest.text||latest.description||'',latest.url||null);
     if(settings.membership!==false&&c.membership&&c.membership.name)add('membership',c.membership.name,[c.membership.price,c.membership.benefits].filter(Boolean).join(' · '),c.membership.url||null);
     if(settings.store!==false&&c.store&&c.store.enabled!==false){const products=Array.isArray(c.store.products)?c.store.products.filter(p=>p.available!==false):[];add('store',c.store.title||'Tienda PlayersHype',products.length?products.length+' productos disponibles':'Catálogo disponible',c.store.url||null)}
-    const order=Array.isArray(home.moduleOrder)?home.moduleOrder:['live','tracks','hypepredict','tv','latest','membership','store'];const used=new Set();for(const k of order){if(modules[k]&&!used.has(k)){modules[k]();used.add(k)}}for(const k of Object.keys(modules)){if(!used.has(k))modules[k]()}
+    const order=(Array.isArray(home.moduleOrder)?home.moduleOrder:['live','tracks','tv','latest','membership','store']).filter(k=>k!=='hypepredict');const used=new Set();for(const k of order){if(modules[k]&&!used.has(k)){modules[k]();used.add(k)}}for(const k of Object.keys(modules)){if(!used.has(k))modules[k]()}
     const links=node('div','ph-actions');[['PlayersHype.com',c.channels&&c.channels.com],['PlayersHype.net',c.channels&&c.channels.net]].forEach(x=>{if(x[1]){const a=node('a','ph-btn',x[0]);a.href=x[1];links.appendChild(a)}});if(links.children.length)root.appendChild(links);refreshButton(root);footer(root,c)}
 
   function renderTracks(c){
