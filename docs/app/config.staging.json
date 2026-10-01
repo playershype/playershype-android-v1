@@ -85,7 +85,53 @@
     "title": "HypePredict",
     "description": "Race Intelligence de PlayersHype: HypeBoard, Pace Map, Tale of the Tape y análisis por hipódromo.",
     "image": "/assets/media/hypepredict.jpg",
-    "version": "V1"
+    "version": "V1",
+    "scoreContract": {
+      "total": 10,
+      "components": [
+        {
+          "id": "pace",
+          "label": "Pace",
+          "weight": 1.45
+        },
+        {
+          "id": "trip",
+          "label": "Viaje",
+          "weight": 1
+        },
+        {
+          "id": "class",
+          "label": "Clase",
+          "weight": 2.2
+        },
+        {
+          "id": "distance",
+          "label": "Distancia",
+          "weight": 1.9
+        },
+        {
+          "id": "form",
+          "label": "Forma",
+          "weight": 1.5
+        },
+        {
+          "id": "consistency",
+          "label": "Consistencia",
+          "weight": 1.05
+        },
+        {
+          "id": "weight",
+          "label": "Peso",
+          "weight": 0.6
+        },
+        {
+          "id": "workouts",
+          "label": "Briseos",
+          "weight": 0.3
+        }
+      ]
+    },
+    "analyses": {}
   },
   "tv": {
     "enabled": true,
