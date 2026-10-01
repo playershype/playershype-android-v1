@@ -72,4 +72,30 @@ for tid,day in race_days.items():
     declared=track.get("races",0)
     if not isinstance(declared,int) or declared<0: fail(f"tracks.{tid}.races must be integer >= 0")
     if declared!=len(races): fail(f"tracks.{tid}.races {declared} does not match raceDays count {len(races)}")
+# HypePredict publication integrity: analyses may only reference races and
+# entries that exist in the published Race Day contract.
+analyses=data["hypepredict"].get("analyses",{})
+if not isinstance(analyses,dict): fail("hypepredict.analyses must be object")
+race_index={}
+for tid,day in race_days.items():
+    for r in day.get("races",[]):
+        race_index[(tid,r["id"])]=r
+for key,a in analyses.items():
+    if not isinstance(a,dict): fail(f"hypepredict.analyses.{key} must be object")
+    tid=a.get("trackId"); rid=a.get("raceId")
+    if not isinstance(tid,str) or not tid.strip(): fail(f"hypepredict.analyses.{key}.trackId required")
+    if not isinstance(rid,str) or not rid.strip(): fail(f"hypepredict.analyses.{key}.raceId required")
+    race=race_index.get((tid,rid))
+    if race is None: fail(f"hypepredict.analyses.{key} references unknown Race Day {tid}/{rid}")
+    horses=a.get("horses",[])
+    if not isinstance(horses,list): fail(f"hypepredict.analyses.{key}.horses must be array")
+    valid_entries={e["id"] for e in race.get("entries",[])}
+    seen=set()
+    for i,h in enumerate(horses):
+        if not isinstance(h,dict): fail(f"hypepredict.analyses.{key}.horses[{i}] must be object")
+        eid=h.get("entryId")
+        if not isinstance(eid,str) or not eid.strip(): fail(f"hypepredict.analyses.{key}.horses[{i}].entryId required")
+        if eid not in valid_entries: fail(f"hypepredict.analyses.{key}.horses[{i}] references unknown entry {eid}")
+        if eid in seen: fail(f"hypepredict.analyses.{key} duplicate entry {eid}")
+        seen.add(eid)
 print(f"CONFIG VALID: {path} · schema {data['schemaVersion']} · {len(ids)} tracks · revision {data['revision']} · raceDays synchronized")
