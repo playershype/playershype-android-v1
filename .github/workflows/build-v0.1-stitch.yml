@@ -22,6 +22,20 @@ jobs:
           cmdline-tools-version: '13114758'
           packages: 'platform-tools'
           log-accepted-android-sdk-licenses: false
+      - name: Verify staging publisher smoke target
+        run: |
+          python3 scripts/validate_v01_config.py docs/app/config.staging.json
+          python3 scripts/publish_v01_config.py docs/app/config.staging.json --output artifacts/v01-staging-publication.json
+          python3 - <<'PY'
+          import json
+          source=json.load(open("docs/app/config.staging.json",encoding="utf-8"))
+          payload=json.load(open("artifacts/v01-staging-publication.json",encoding="utf-8"))
+          assert source==payload["config"]
+          assert source["revision"]=="staging-publisher-smoke-v0.1"
+          assert source["publisherSmoke"]=={"mode":"staging","production":False}
+          print("STAGING PUBLISHER SMOKE VERIFIED: exact config payload")
+          PY
+
       - name: Dry-run V0.1 config publication contract
         run: |
           python3 scripts/publish_v01_config.py docs/app/config.json
