@@ -1960,6 +1960,38 @@ jobs:
           print("GLOBAL USER NAV NORMALIZED:",len(pages),"screens")
           PY
 
+      - name: Close remaining internal User CTA routes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          pages=[p for p in root.rglob("*.html") if p.name!="code.html"]
+          bridge=r"""<script>
+          (function(){
+            const exp=location.pathname.includes('/assets/expansion/');
+            const go=u=>location.href=(exp?'':'expansion/')+u;
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]');if(!el)return;
+              const t=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')).trim().toUpperCase();
+              let u=null;
+              if(t.includes('VOLVER A LA TIENDA')||t==='TIENDA'||t.includes('IR A LA TIENDA'))u='shop.html';
+              else if(t.includes('STICKER SHOP'))u='sticker-shop.html';
+              else if(t.includes('SALA SECRETA'))u='vip-secret-room.html';
+              else if(t.includes('VER FICHA')||t.includes('PPs')||t.includes('PPS &'))u='horse-pps.html';
+              else if(t.includes('HEAD-TO-HEAD')||t.includes('HEAD TO HEAD'))u='tale-of-tape.html';
+              else if(t.includes('CALENDARIO')||t.includes('PRÓXIMAS PISTAS')||t.includes('PROXIMAS PISTAS')){location.href=exp?'../tracks.html':'tracks.html';e.preventDefault();e.stopImmediatePropagation();return;}
+              else if(t==='VOLVER'||t.startsWith('ARROW_BACK VOLVER')||t.includes('DESCARTAR CAMBIOS Y VOLVER')){history.back();e.preventDefault();e.stopImmediatePropagation();return;}
+              if(u){e.preventDefault();e.stopImmediatePropagation();go(u);}
+            },true);
+          })();
+          </script>"""
+          for p in pages:
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          print("REMAINING INTERNAL CTA ROUTES CLOSED:",len(pages),"screens")
+          PY
+
       - name: Audit visible interactive controls
         run: |
           python3 - <<'PY'
