@@ -29,10 +29,12 @@ for i,t in enumerate(data["tracks"]):
 if len(ids)!=len(set(ids)): fail("duplicate track ids")
 if not isinstance(data["hypepredict"],dict): fail("hypepredict must be object")
 if not isinstance(data["tv"],dict): fail("tv must be object")
+has_race_days="raceDays" in data
 race_days=data.get("raceDays",{})
 if not isinstance(race_days,dict): fail("raceDays must be object")
-for tid in ids:
-    if tid not in race_days: fail(f"raceDays missing track {tid}")
+if has_race_days:
+    for tid in ids:
+        if tid not in race_days: fail(f"raceDays missing track {tid}")
 for tid,day in race_days.items():
     if tid not in ids: fail(f"raceDays contains unknown track {tid}")
     if not isinstance(day,dict): fail(f"raceDays.{tid} must be object")
