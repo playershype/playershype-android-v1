@@ -509,6 +509,17 @@ jobs:
             bridge=f"""<script>document.addEventListener('click',function(e){{const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();{cases}}});</script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Expansion 06 structural entry points.
+          # Root Home references Splash as the official startup state; MainActivity may promote it to first load later.
+          p=Path("app/src/main/assets/index.html"); s=p.read_text(encoding="utf-8")
+          splash_ref="""<script>window.PLAYERSHYPE_SPLASH='expansion/splash.html';</script>"""
+          s=s.replace("</body>",splash_ref+"\n</body>") if "</body>" in s else s+splash_ref
+          p.write_text(s,encoding="utf-8")
+          # Primary Race Day links to the additional C7/classic state.
+          p=EXP/"race-day.html"; s=p.read_text(encoding="utf-8")
+          race_alt="""<script>document.addEventListener('click',function(e){const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();if(t.includes('C7')||t.includes('CLÁSICO')||t.includes('CLASICO'))location.href='race-day-alt.html';});</script>"""
+          s=s.replace("</body>",race_alt+"\n</body>") if "</body>" in s else s+race_alt
+          p.write_text(s,encoding="utf-8")
           # HypePredict root is the entry point to the advanced Stitch analysis views.
           p=Path("app/src/main/assets/predict.html"); s=p.read_text(encoding="utf-8")
           bridge="""<script>document.addEventListener('click',function(e){const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();if(t.includes('HYPEBOARD')||t.includes('RANKING'))location.href='expansion/hype-board.html';else if(t.includes('PACE'))location.href='expansion/pace-map.html';else if(t.includes('PROYE'))location.href='expansion/projection.html';else if(t.includes('TALE'))location.href='expansion/tale-of-tape.html';else if(t.includes('JORNADA')||t.includes('TABLERO'))location.href='expansion/journey-board.html';});</script>"""
