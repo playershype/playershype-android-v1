@@ -1791,6 +1791,21 @@ jobs:
                 totals["native_routes"]+=1; continue
               if onclick:
                 totals["js_bound"]+=1; continue
+              # These controls are bound by the injected global User navigation
+              # capture handler. Mirror its runtime matching here so the audit does
+              # not report working global navigation as dead.
+              up=ident.upper()
+              global_bound=(
+                re.search(r"(^|\\s)HOME(\\s|$)",up) or
+                re.search(r"(^|\\s)(TRACKS|PISTAS)(\\s|$)",up) or
+                re.search(r"(^|\\s)PREDICT(\\s|$)",up) or
+                "HYPEPREDICT" in up or
+                re.search(r"(^|\\s)TV(\\s|$)",up) or
+                "PLAYERSHYPE TV" in up or
+                any(k in up for k in [" SEARCH"," NOTIFIC"," PERSON"," PROFILE"," PERFIL"," SPORTS_SCORE"," FLAG_CIRCLE"," LIVE_TV"])
+              )
+              if global_bound:
+                totals["js_bound"]+=1; continue
               # Capture/delegated bridges count as bound when their visible label/icon
               # is explicitly present in the page's route scripts.
               # Delegated handlers only count when this specific control has
