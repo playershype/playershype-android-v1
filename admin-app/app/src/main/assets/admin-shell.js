@@ -29,6 +29,6 @@ const home=card('inicio','Admin Control Center','Mapa completo del ecosistema. N
 home.querySelector('.status').outerHTML='<div class="ph-roadmap">'+defs.slice(1).map(x=>'<div><b>'+x[1]+'</b><span>'+x[2]+'</span></div>').join('')+'</div>';
 for(const d of defs){if(d[0]!=='inicio'&&d[0]!=='hypepredict')card(...d)}
 defs.forEach(d=>{const b=document.createElement('button');b.textContent=d[1];b.dataset.mod=d[0];b.onclick=()=>{document.querySelectorAll('.ph-module').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.ph-shell button').forEach(x=>x.classList.remove('on'));const t=document.querySelector('#mod-'+d[0]);if(t)t.classList.add('on');b.classList.add('on');window.scrollTo(0,0)};nav.appendChild(b)});
-body.insertBefore(nav,hp);nav.querySelector('[data-mod="hypepredict"]').classList.add('on');
+body.insertBefore(nav,hp);nav.querySelector('[data-mod="hypepredict"]').classList.add('on');if(window.phTrackHubMount)window.phTrackHubMount();
 window.phAdminModules=defs.map(x=>x[0]);
 })();
