@@ -48,7 +48,36 @@
 
   function renderHome(c){const root=mount(),active=activeTracks(c);root.appendChild(node('div','ph-kicker','REMOTE CONFIG'));root.appendChild(node('h2','',active.length?'PlayersHype actualizado':'PlayersHype conectado'));root.appendChild(node('p','',active.length?'La app está leyendo la publicación remota del Admin.':'Conectado al config remoto; no hay jornadas activas publicadas.'));const meta=node('div','ph-meta');metric(meta,active.length,'JORNADAS ACTIVAS');metric(meta,c.hypepredict&&c.hypepredict.version||'—','HYPEPREDICT');metric(meta,state()==='ok'?'OK':state().toUpperCase(),'SYNC');root.appendChild(meta);active.forEach(t=>{const d=c.raceDays[t.id];const a=node('a','ph-track');a.href='predict.html?track='+encodeURIComponent(t.id);a.appendChild(node('strong','',t.name));a.appendChild(node('small','',(d.date||'Sin fecha')+' · '+d.races.length+' carreras'));root.appendChild(a)});refreshButton(root);footer(root,c)}
 
-  function renderTracks(c){const root=mount();root.appendChild(node('div','ph-kicker','TRACK HUB · REMOTE'));root.appendChild(node('h2','','Jornadas publicadas'));root.appendChild(node('p','','Estos datos vienen de main/docs/app/config.json, no del APK estático.'));const tracks=c.tracks||[];tracks.forEach(t=>{const d=(c.raceDays&&c.raceDays[t.id])||{status:'unpublished',date:null,races:[]};const active=Array.isArray(d.races)&&d.races.length>0&&d.status!=='unpublished';const card=node(active?'a':'div','ph-track');if(active)card.href='predict.html?track='+encodeURIComponent(t.id);card.appendChild(node('strong','',t.name));card.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+d.races.length+' carreras · '+d.status):'Sin jornada publicada'));root.appendChild(card)});refreshButton(root);footer(root,c)}
+  function renderTracks(c){
+    // Track Hub is operational data, not a Stitch demo. Suppress every packaged
+    // demo block and render only the canonical Admin publication.
+    Array.from(document.body.children).forEach(el=>{
+      if(el.id===ROOT_ID||el.id===BADGE_ID||el.tagName==='SCRIPT'||el.tagName==='NAV')return;
+      el.style.display='none';
+    });
+    const root=mount();root.style.display='block';
+    root.appendChild(node('div','ph-kicker','TRACK HUB · SINCRONIZADO'));
+    root.appendChild(node('h2','','Track Hub'));
+    root.appendChild(node('p','','Jornadas publicadas por PlayersHype Admin.'));
+    const tracks=c.tracks||[];
+    tracks.forEach(t=>{
+      const d=(c.raceDays&&c.raceDays[t.id])||{status:'unpublished',date:null,races:[]};
+      const races=Array.isArray(d.races)?d.races:[];
+      const active=races.length>0&&d.status!=='unpublished';
+      const card=node(active?'a':'div','ph-track');
+      if(active)card.href='predict.html?track='+encodeURIComponent(t.id);
+      card.appendChild(node('strong','',t.name));
+      card.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras · '+d.status):'Jornada no publicada'));
+      if(active){
+        const a=(c.hypepredict&&c.hypepredict.analyses)||{};
+        const published=races.map(r=>{let x=a[r.id];if(!x){for(const k of Object.keys(a)){if(a[k]&&a[k].raceId===r.id){x=a[k];break}}}return x}).filter(Boolean);
+        const selectCount=published.filter(x=>x.quickHits&&x.quickHits.select).length;
+        card.appendChild(node('small','',selectCount+' análisis HypePredict disponibles'));
+      }
+      root.appendChild(card);
+    });
+    refreshButton(root);footer(root,c)
+  }
 
   function findAnalysis(c,race){const a=(c.hypepredict&&c.hypepredict.analyses)||{};if(a[race.id])return a[race.id];for(const k of Object.keys(a)){if(a[k]&&a[k].raceId===race.id)return a[k]}return null}
   function quickValue(q,key){const x=q&&q[key];if(!x)return 'No disponible';const n=x.programNumber!==undefined?'#'+x.programNumber+' ':'';return n+(x.name||'')}
