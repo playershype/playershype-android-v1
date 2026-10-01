@@ -435,6 +435,85 @@ jobs:
           </script>"""
           s=s.replace("</body>",offline_bridge+"\n</body>") if "</body>" in s else s+offline_bridge
           p.write_text(s,encoding="utf-8")
+          # Stitch User Expansion 06 — final unique User flow screens.
+          pkg6=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-06.zip")
+          if not pkg6.exists(): raise SystemExit("Missing Expansion 06 package")
+          root6=Path(".stitch-exp06")
+          if root6.exists(): shutil.rmtree(root6)
+          root6.mkdir()
+          with zipfile.ZipFile(pkg6) as z: z.extractall(root6)
+          exp6_screens={
+            "splash.html":"splash_screen_playershype_v0_1",
+            "vip-secret-room.html":"la_manada_vip_secret_room_discord",
+            "track-standby.html":"track_hub_standby_sin_jornada_activa",
+            "track-geoclima.html":"track_hub_geoclima_condiciones_de_pista",
+            "race-day-alt.html":"race_day_center_estado_de_jornada_y_pr_xima_carrera",
+            "gate-call.html":"gate_call_caballos_en_gatera_cuenta_regresiva",
+            "horse-hub-alt.html":"horse_hub_perfil_de_ejemplar_estad_sticas_y_conexiones",
+            "hype-board.html":"hypepredict_hypeboard_ranking_de_la_carrera",
+            "pace-map.html":"hypepredict_pace_map_mapa_de_velocidad",
+            "projection.html":"hypepredict_proyecci_n_de_llegada",
+            "tale-of-tape.html":"hypepredict_tale_of_the_tape_comparador",
+            "daily-tapada.html":"hypepredict_tapada_del_d_a",
+            "daily-huevazo.html":"hypepredict_huevazo_del_d_a",
+            "vulnerable-favorite.html":"hypepredict_favorito_vulnerable",
+            "journey-board.html":"hypepredict_tablero_de_jornada",
+          }
+          for out,key in exp6_screens.items():
+            matches=[p for p in root6.rglob("code.html") if p.parent.name==key]
+            if len(matches)!=1:
+              raise SystemExit(f"Expected exactly one Expansion 06 screen for {key}, found {len(matches)}: {matches}; available={[p.parent.name for p in root6.rglob('code.html')]}")
+            shutil.copy2(matches[0], EXP/out)
+          exp6_routes={
+            "splash.html":{"ENTRAR":"../index.html","CONTINUAR":"../index.html"},
+            "vip-secret-room.html":{"PERFIL":"vip-profile-active.html","MANADA":"manada.html"},
+            "track-standby.html":{"TRACK":"../tracks.html","PISTA":"../tracks.html"},
+            "track-geoclima.html":{"TRACK":"../tracks.html","PISTA":"../tracks.html"},
+            "race-day-alt.html":{"GATERA":"gate-call.html","GATE":"gate-call.html","LIVE":"race-live.html"},
+            "gate-call.html":{"LIVE":"race-live.html","CARRERA":"race-live.html"},
+            "horse-hub-alt.html":{"PP":"horse-pps.html","PERFORMANCE":"horse-pps.html"},
+            "hype-board.html":{"PACE":"pace-map.html","PROYE":"projection.html","TALE":"tale-of-tape.html"},
+            "pace-map.html":{"HYPEBOARD":"hype-board.html","PROYE":"projection.html"},
+            "projection.html":{"HYPEBOARD":"hype-board.html","TALE":"tale-of-tape.html"},
+            "tale-of-tape.html":{"HYPEBOARD":"hype-board.html","SELECT":"hype-board.html"},
+            "daily-tapada.html":{"HYPEBOARD":"hype-board.html"},
+            "daily-huevazo.html":{"HYPEBOARD":"hype-board.html"},
+            "vulnerable-favorite.html":{"HYPEBOARD":"hype-board.html"},
+            "journey-board.html":{"HYPEBOARD":"hype-board.html","TAPADA":"daily-tapada.html","HUEVAZO":"daily-huevazo.html","VULNERABLE":"vulnerable-favorite.html"},
+          }
+          for name,mapping in exp6_routes.items():
+            p=EXP/name; s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+            if(t==='HOME'||t.includes('INICIO')) location.href='../index.html';
+            else if(t.includes('PREDICT')||t.includes('HYPEPREDICT')) location.href='../predict.html';
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # Entry points from existing validated User screens.
+          entry6={
+            "membership.html":{"SECRET":"vip-secret-room.html"},
+            "tracks.html":{"STANDBY":"expansion/track-standby.html","GEOCLIMA":"expansion/track-geoclima.html"},
+            "race-day.html":{"GATERA":"gate-call.html","GATE":"gate-call.html"},
+            "horse-hub.html":{"ESTAD":"horse-hub-alt.html"},
+          }
+          for name,mapping in entry6.items():
+            p=Path("app/src/main/assets")/name if name=="tracks.html" else EXP/name
+            s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>document.addEventListener('click',function(e){{const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();{cases}}});</script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # HypePredict root is the entry point to the advanced Stitch analysis views.
+          p=Path("app/src/main/assets/predict.html"); s=p.read_text(encoding="utf-8")
+          bridge="""<script>document.addEventListener('click',function(e){const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();if(t.includes('HYPEBOARD')||t.includes('RANKING'))location.href='expansion/hype-board.html';else if(t.includes('PACE'))location.href='expansion/pace-map.html';else if(t.includes('PROYE'))location.href='expansion/projection.html';else if(t.includes('TALE'))location.href='expansion/tale-of-tape.html';else if(t.includes('JORNADA')||t.includes('TABLERO'))location.href='expansion/journey-board.html';});</script>"""
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+          p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
@@ -517,6 +596,11 @@ jobs:
           "expansion/vip-profile-ending.html","expansion/offline.html","expansion/search-empty.html",
           "expansion/billing-edit.html","expansion/terms.html","expansion/return.html",
           "expansion/return-label.html","expansion/shipping-confirm.html",
+          "expansion/splash.html","expansion/vip-secret-room.html","expansion/track-standby.html",
+          "expansion/track-geoclima.html","expansion/race-day-alt.html","expansion/gate-call.html",
+          "expansion/horse-hub-alt.html","expansion/hype-board.html","expansion/pace-map.html",
+          "expansion/projection.html","expansion/tale-of-tape.html","expansion/daily-tapada.html",
+          "expansion/daily-huevazo.html","expansion/vulnerable-favorite.html","expansion/journey-board.html",
           ]
           missing=[p for p in required if p not in pages]
           if missing: raise SystemExit("Missing packaged pages: "+", ".join(missing))
