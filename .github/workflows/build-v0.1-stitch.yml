@@ -405,6 +405,36 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Expansion 05 entry-point wiring: every packaged user state must be reachable.
+          entry_routes={
+            "membership.html":{"VIP":"vip-checkout.html","FUNDADOR":"vip-checkout.html","TÉRMIN":"terms.html","TERMIN":"terms.html"},
+            "vip-checkout.html":{"FALL":"vip-payment-failed.html","ERROR":"vip-payment-failed.html","WEBHOOK":"vip-webhook-success.html"},
+            "profile.html":{"FACTUR":"billing-edit.html","TÉRMIN":"terms.html","TERMIN":"terms.html"},
+            "search.html":{"SIN RESULT":"search-empty.html","NO RESULT":"search-empty.html"},
+            "orders.html":{"DEVOLU":"return.html","RETURN":"return.html","ENVÍO":"shipping-confirm.html","ENVIO":"shipping-confirm.html","SHIPPING":"shipping-confirm.html"},
+            "offline.html":{"REINTENT":"../index.html","RETRY":"../index.html"},
+          }
+          for name,mapping in entry_routes.items():
+            p=EXP/name
+            s=p.read_text(encoding="utf-8")
+            cases="\n".join([f"if(t.includes({k!r})){{location.href={v!r};return;}}" for k,v in mapping.items()])
+            bridge=f"""<script>
+          document.addEventListener('click',function(e){{
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            {cases}
+          }});
+          </script>"""
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          # Offline is a contingency state, so root Home is its explicit app-level entry point.
+          p=Path("app/src/main/assets/index.html")
+          s=p.read_text(encoding="utf-8")
+          offline_bridge="""<script>
+          window.addEventListener('offline',function(){ location.href='expansion/offline.html'; });
+          </script>"""
+          s=s.replace("</body>",offline_bridge+"\n</body>") if "</body>" in s else s+offline_bridge
+          p.write_text(s,encoding="utf-8")
           # Home state controller. Default stays on the validated Stitch Home.
           # Admin/config can later set localStorage.playershypeHomeState to:
           # non-race, pre-race, live, post-race.
