@@ -581,6 +581,47 @@ jobs:
           test -s app/src/main/assets/expansion/tv-live.html
           test -s app/src/main/assets/expansion/profile.html
           test -s app/src/main/assets/expansion/favorites.html
+      - name: Install shared V0.1 app data contract
+        run: |
+          set -euxo pipefail
+          test -s docs/app/config.json
+          mkdir -p app/src/main/assets/data
+          cp docs/app/config.json app/src/main/assets/data/config.json
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          cfg=Path("app/src/main/assets/data/config.json")
+          data=json.loads(cfg.read_text(encoding="utf-8"))
+          required=["schemaVersion","revision","tracks","hypepredict","tv"]
+          missing=[k for k in required if k not in data]
+          if missing: raise SystemExit("Invalid V0.1 config; missing: "+", ".join(missing))
+          ids=[x.get("id") for x in data["tracks"]]
+          if len(ids)!=len(set(ids)): raise SystemExit("Duplicate track ids in V0.1 config")
+          root=Path("app/src/main/assets")
+          targets=["tracks.html","predict.html","expansion/race-day.html","expansion/horse-hub.html"]
+          bridge="""<script>
+          window.PLAYERSHYPE_DATA_URL='data/config.json';
+          (function(){
+            const inExpansion=location.pathname.includes('/expansion/');
+            const url=inExpansion?'../data/config.json':'data/config.json';
+            fetch(url,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('config '+r.status);return r.json();}).then(cfg=>{
+              window.PLAYERSHYPE_CONFIG=cfg;
+              document.documentElement.dataset.phConfig='ready';
+              document.documentElement.dataset.phRevision=cfg.revision||'';
+              window.dispatchEvent(new CustomEvent('playershype:config',{detail:cfg}));
+            }).catch(()=>{
+              document.documentElement.dataset.phConfig='fallback';
+              window.dispatchEvent(new CustomEvent('playershype:config-error'));
+            });
+          })();
+          </script>"""
+          for rel in targets:
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
+          test -s app/src/main/assets/data/config.json
       - name: Normalize critical User journey navigation
         run: |
           python3 - <<'PY'
