@@ -1629,6 +1629,69 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Separate Admin access from User App navigation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root=Path("app/src/main/assets")
+          pages=[p for p in root.rglob("*.html") if p.name!="code.html"]
+          guard=r"""<script>
+          (function(){
+            function stripAdmin(){
+              const nodes=[...document.querySelectorAll('a,button,[role="button"]')];
+              nodes.forEach(el=>{
+                const text=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim().toUpperCase();
+                if(text==='ADMIN'||text.startsWith('ADMIN ')||text.endsWith(' ADMIN')){
+                  // Hide only the User-facing Admin navigation control. Do not
+                  // remove parent navigation containers or unrelated User routes.
+                  el.style.display='none';
+                  el.setAttribute('aria-hidden','true');
+                  el.setAttribute('tabindex','-1');
+                  el.dataset.phAdminRemoved='true';
+                }
+              });
+            }
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stripAdmin);
+            else stripAdmin();
+            new MutationObserver(stripAdmin).observe(document.documentElement,{childList:true,subtree:true});
+            document.addEventListener('click',function(e){
+              const el=e.target.closest('a,button,[role="button"]');
+              if(!el)return;
+              const text=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim().toUpperCase();
+              if(text==='ADMIN'||text.startsWith('ADMIN ')||text.endsWith(' ADMIN')){
+                e.preventDefault();e.stopImmediatePropagation();
+              }
+            },true);
+          })();
+          </script>"""
+          for p in pages:
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            s=s.replace("</body>",guard+"\n</body>") if "</body>" in s else s+guard
+            p.write_text(s,encoding="utf-8")
+          print("ADMIN USER NAV GUARD APPLIED:",len(pages),"screens")
+          PY
+
+      - name: Audit Admin separation from User App
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          pages=[p for p in root.rglob("*.html") if p.name!="code.html"]
+          bad=[]
+          guarded=0
+          for p in pages:
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            if "phAdminRemoved" in s: guarded+=1
+            # No deterministic User bridge may navigate to an Admin HTML target.
+            low=s.lower()
+            for token in ["location.href='admin", 'location.href="admin', "location.href='expansion/admin", 'location.href="expansion/admin']:
+              if token in low: bad.append(str(p.relative_to(root)))
+          if bad: raise SystemExit("User routes still navigate to Admin: "+repr(sorted(set(bad))))
+          if guarded!=len(pages): raise SystemExit(f"Admin guard coverage regression: {guarded}/{len(pages)}")
+          print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
+          PY
+
       - name: Audit User App reachability and visual assets
         run: |
           python3 - <<'PY'
