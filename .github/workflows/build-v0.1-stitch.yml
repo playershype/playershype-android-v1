@@ -1195,6 +1195,59 @@ jobs:
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           PY
+      - name: Final runtime diagnostic and bottom-nav guard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          # This runs after Stitch and all functional bridges, so it is what ships.
+          diagnostic=r"""<script>
+          (function(){
+            function show(cfg){
+              let b=document.getElementById('ph-config-diagnostic');
+              if(!b){
+                b=document.createElement('div'); b.id='ph-config-diagnostic'; b.setAttribute('role','status');
+                b.style.cssText='position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2147483647;padding:7px 9px;border-radius:9px;background:#07111d;color:#fff;border:1px solid #9fe000;font:700 10px/1.25 system-ui;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.4);';
+                document.body.appendChild(b);
+              }
+              const source=(window.PLAYERSHYPE_CONFIG_SOURCE||document.documentElement.dataset.phConfigSource||'UNKNOWN').toUpperCase();
+              const rev=(cfg&&cfg.revision)||document.documentElement.dataset.phRevision||'UNKNOWN';
+              b.textContent='CONFIG: '+source+' · REV: '+rev;
+            }
+            window.addEventListener('playershype:config',e=>show(e.detail));
+            if(window.PLAYERSHYPE_CONFIG)show(window.PLAYERSHYPE_CONFIG);
+            setTimeout(()=>show(window.PLAYERSHYPE_CONFIG||null),2200);
+          })();
+          </script>"""
+          # Put diagnostic on every root screen that owns the remote bridge.
+          for rel in ["index.html","tracks.html","predict.html"]:
+            p=root/rel; s=p.read_text(encoding="utf-8")
+            if "ph-config-diagnostic" not in s:
+              s=s.replace("</body>",diagnostic+"\n</body>") if "</body>" in s else s+diagnostic
+            p.write_text(s,encoding="utf-8")
+          # Capture bottom-nav intent on the actual shipped HypePredict page.
+          p=root/"predict.html"; s=p.read_text(encoding="utf-8")
+          guard=r"""<script>
+          document.addEventListener('click',function(e){
+            const el=e.target.closest('a,button'); if(!el)return;
+            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
+            if(t==='HOME'||t.includes('HOME')){e.preventDefault();e.stopImmediatePropagation();location.href='index.html';return;}
+            if(t==='TRACKS'||t.includes('TRACKS')){e.preventDefault();e.stopImmediatePropagation();location.href='tracks.html';return;}
+            if(t==='PREDICT'||t.includes('PREDICT')){e.preventDefault();e.stopImmediatePropagation();location.href='predict.html';return;}
+          },true);
+          </script>"""
+          s=s.replace("</body>",guard+"\n</body>") if "</body>" in s else s+guard
+          p.write_text(s,encoding="utf-8")
+          # CI assertions against final assembled assets, not repository placeholders.
+          final=(root/"predict.html").read_text(encoding="utf-8")
+          home=(root/"index.html").read_text(encoding="utf-8")
+          assert "ph-config-diagnostic" in final
+          assert "location.href='index.html'" in final
+          assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in final
+          assert "ph-config-diagnostic" in home
+          print("FINAL APK ASSET GUARD: diagnostic + HOME + remote bridge present")
+          PY
+
       - name: Audit V0.1 User App route coverage
         run: |
           python3 - <<'PY'
