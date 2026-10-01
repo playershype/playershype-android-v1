@@ -1705,6 +1705,71 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Audit visible interactive controls
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          import re, json
+          root=Path("app/src/main/assets")
+          pages=sorted(p for p in root.rglob("*.html") if p.name!="code.html")
+          report=[]
+          totals={"controls":0,"native_routes":0,"js_bound":0,"dead_candidates":0}
+          class A(HTMLParser):
+            def __init__(self):
+              super().__init__(); self.stack=[]; self.controls=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs); rec=None
+              interactive=tag in ("a","button") or a.get("role")=="button" or "onclick" in a
+              if interactive:
+                rec={"tag":tag,"attrs":a,"text":[]}
+                self.controls.append(rec)
+              self.stack.append(rec)
+            def handle_startendtag(self,tag,attrs):
+              a=dict(attrs)
+              if tag in ("a","button") or a.get("role")=="button" or "onclick" in a:
+                self.controls.append({"tag":tag,"attrs":a,"text":[]})
+            def handle_data(self,data):
+              for rec in reversed(self.stack):
+                if rec is not None:
+                  rec["text"].append(data); break
+            def handle_endtag(self,tag):
+              if self.stack:self.stack.pop()
+          for p in pages:
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            q=A()
+            try:q.feed(s)
+            except Exception:pass
+            dead=[]
+            for x in q.controls:
+              totals["controls"]+=1
+              a=x["attrs"]; text=" ".join(" ".join(x["text"]).split())[:90]
+              href=(a.get("href") or "").strip()
+              onclick=(a.get("onclick") or "").strip()
+              ident=" ".join(filter(None,[a.get("id",""),a.get("class",""),a.get("aria-label",""),a.get("title",""),text]))
+              if href and href not in ("#","javascript:void(0)","javascript:void(0);"):
+                totals["native_routes"]+=1; continue
+              if onclick:
+                totals["js_bound"]+=1; continue
+              # Capture/delegated bridges count as bound when their visible label/icon
+              # is explicitly present in the page's route scripts.
+              tokens=[t.upper() for t in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}",ident) if len(t)>=4]
+              bridge=any(t in s.upper() and ("location.href" in s or "addEventListener('click'" in s or 'addEventListener("click"' in s) for t in tokens[:8])
+              if bridge:
+                totals["js_bound"]+=1; continue
+              # Submit/reset controls are local form actions, not navigation defects.
+              if x["tag"]=="button" and a.get("type","").lower() in ("submit","reset"):
+                totals["js_bound"]+=1; continue
+              totals["dead_candidates"]+=1
+              dead.append({"tag":x["tag"],"text":text,"id":a.get("id"),"class":(a.get("class") or "")[:100],"href":href or None,"aria":a.get("aria-label")})
+            if dead:
+              report.append({"screen":str(p.relative_to(root)).replace("\\","/"),"dead":dead[:25],"count":len(dead)})
+          print("CONTROL_AUDIT_TOTALS:",json.dumps(totals,ensure_ascii=False))
+          print("CONTROL_AUDIT_DEAD:",json.dumps(report,ensure_ascii=False))
+          # This pass is intentionally diagnostic. Structural route/asset audits below
+          # remain blocking while we classify and repair real dead controls.
+          PY
+
       - name: Audit User App reachability and visual assets
         run: |
           python3 - <<'PY'
