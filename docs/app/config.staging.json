@@ -123,5 +123,27 @@
   "publisherSmoke": {
     "mode": "staging",
     "production": false
+  },
+  "raceDays": {
+    "camarero": {
+      "status": "unpublished",
+      "date": null,
+      "races": []
+    },
+    "gulfstream": {
+      "status": "unpublished",
+      "date": null,
+      "races": []
+    },
+    "belmont": {
+      "status": "unpublished",
+      "date": null,
+      "races": []
+    },
+    "churchill": {
+      "status": "unpublished",
+      "date": null,
+      "races": []
+    }
   }
 }
