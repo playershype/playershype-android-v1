@@ -13,6 +13,45 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate V0.1 publication source config
         run: python3 scripts/validate_v01_config.py docs/app/config.json
+      - name: Test complete Race Day publication package contract
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          src=Path("docs/app/config.json")
+          d=json.loads(src.read_text(encoding="utf-8"))
+          tid="camarero"; rid="ci-race-1"; eid="ci-entry-1"
+          for t in d["tracks"]:
+              if t["id"]==tid:
+                  t["races"]=1
+                  t["status"]="scheduled"
+          d["raceDays"][tid]={
+              "status":"scheduled","date":"2099-01-01",
+              "races":[{"id":rid,"number":1,"entries":[{"id":eid,"name":"CI CONTRACT HORSE"}]}]
+          }
+          d["hypepredict"]["analyses"]={
+              "ci-analysis":{
+                  "trackId":tid,"raceId":rid,"status":"published",
+                  "horses":[{
+                      "entryId":eid,
+                      "scores":{"pace":1.45,"trip":1.0,"class":2.2,"distance":1.9,"form":1.5,"consistency":1.05,"weight":0.6,"workouts":0.3},
+                      "hypeScore":10.0
+                  }]
+              }
+          }
+          d["horseData"]={
+              eid:{
+                  "entryId":eid,"status":"published",
+                  "profile":{"name":"CI CONTRACT HORSE"},
+                  "pps":[{"source":"ci-contract"}]
+              }
+          }
+          p=Path("/tmp/playershype-v01-publication-contract.json")
+          p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+          print(p)
+          PY
+          python3 scripts/validate_v01_config.py /tmp/playershype-v01-publication-contract.json
+          rm -f /tmp/playershype-v01-publication-contract.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
