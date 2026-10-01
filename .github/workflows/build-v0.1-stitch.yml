@@ -278,7 +278,7 @@ jobs:
             }}
           }});
           </script>"""
-            s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
           # Stitch Race Day journey — exact screens from Expansion 02.
           import zipfile, shutil
@@ -680,12 +680,23 @@ jobs:
             // Tipping intentionally disabled by default in V0.1.
           });
           </script>"""
-          s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
+          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
           p.write_text(s,encoding="utf-8")
           PY
           test -s app/src/main/assets/expansion/tv-live.html
           test -s app/src/main/assets/expansion/profile.html
           test -s app/src/main/assets/expansion/favorites.html
+      - name: Reject visible escaped newline artifacts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          bad=[]
+          for p in Path("app/src/main/assets").rglob("*.html"):
+              if "\\n</body>" in p.read_text(encoding="utf-8"):
+                  bad.append(str(p))
+          if bad: raise SystemExit("Visible escaped newline artifact: "+", ".join(bad))
+          print("HTML ESCAPE AUDIT OK")
+          PY
       - name: Install shared V0.1 app data contract
         run: |
           set -euxo pipefail
