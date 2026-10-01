@@ -72,22 +72,23 @@ for tid,day in race_days.items():
     declared=track.get("races",0)
     if not isinstance(declared,int) or declared<0: fail(f"tracks.{tid}.races must be integer >= 0")
     if declared!=len(races): fail(f"tracks.{tid}.races {declared} does not match raceDays count {len(races)}")
-# HypeScore V1 is a fixed 10.00-point contract. Do not silently normalize or
-# accept altered component weights.
+# HypePredict V1 Performance-Fit-Dynamics is a fixed 10.00-point INTERNAL
+# analytical contract. Dashboard public output remains backward-compatible.
 EXPECTED_SCORE_COMPONENTS={
-    "pace":1.45,
-    "trip":1.00,
-    "class":2.20,
-    "distance":1.90,
-    "form":1.50,
-    "consistency":1.05,
-    "weight":0.60,
-    "workouts":0.30,
+    "hypePerformance":2.00,
+    "raceStrength":1.20,
+    "formTrend":1.00,
+    "distanceSurfaceFit":1.60,
+    "readinessFitness":0.75,
+    "weight":0.45,
+    "earlyPaceAbility":1.00,
+    "raceShapePaceMatchup":1.00,
+    "projectedTripPost":1.00,
 }
 score_contract=data["hypepredict"].get("scoreContract")
 if not isinstance(score_contract,dict): fail("hypepredict.scoreContract required")
 components=score_contract.get("components")
-if not isinstance(components,list) or len(components)!=8: fail("hypepredict.scoreContract.components must contain exactly 8 components")
+if not isinstance(components,list) or len(components)!=9: fail("hypepredict.scoreContract.components must contain exactly 9 components")
 actual={}
 for i,component in enumerate(components):
     if not isinstance(component,dict): fail(f"hypepredict.scoreContract.components[{i}] must be object")
@@ -134,7 +135,7 @@ for key,a in analyses.items():
             scores=h.get("scores")
             if not isinstance(scores,dict): fail(f"hypepredict.analyses.{key}.horses[{i}].scores required when published")
             if set(scores)!=set(EXPECTED_SCORE_COMPONENTS):
-                fail(f"hypepredict.analyses.{key}.horses[{i}].scores must contain exactly the 8 HypeScore components")
+                fail(f"hypepredict.analyses.{key}.horses[{i}].scores must contain exactly the 9 internal HypeScore components")
             total=0.0
             for cid,max_weight in EXPECTED_SCORE_COMPONENTS.items():
                 value=scores.get(cid)
