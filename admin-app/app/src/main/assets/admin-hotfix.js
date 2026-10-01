@@ -5,6 +5,7 @@ if(typeof validateCandidate!=='function')return;
 const _applyParsed=applyParsed;
 const _baseValidate=validateCandidate;
 function clean(v){return String(v==null?'':v).replace(/\r/g,'').trim()}
+function normalizeReportText(v){return String(v==null?'':v).replace(/\uFEFF|\u200B|\u200C|\u200D/g,'').replace(/\u00A0/g,' ').replace(/\r\n?/g,'\n').replace(/^\s*Worked for\s+\d+(?:m\s*)?\d*\s*s\s*$/gim,'').replace(/[ \t]+\n/g,'\n').replace(/\n{4,}/g,'\n\n\n').trim()}
 function erx(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
 function field(block,label,next){
   const stop=(next||['HypeScore','Confiabilidad','Peso','Jinete','Entrenador','Establo/propietario','Uniforme','Últimas cinco','Días sin correr','Briseos disponibles','Perfil','Power/Rating','Distancia','Value','LECTURA','USO']).filter(x=>x!==label).map(erx).join('|');
@@ -127,6 +128,7 @@ function globalSemantic(text){
 }
 
 parseTextReport=function(text){
+  text=normalizeReportText(text);
   const track=trackFromText(text),date=dateFromText(text),starts=raceStarts(text);
   if(!starts.length){if(/PROMPT MAESTRO|Lead Product Designer|Data Parser Architect|QA OBLIGATORIO/i.test(text))throw new Error('Ese texto es el contrato del Dashboard, no una jornada. Pega el análisis HypePredict sellado con carreras R#; el Admin usa estas reglas internamente.');throw new Error('No pude identificar carreras R# en el análisis. Pega el reporte HypePredict sellado, no instrucciones ni texto de chat.');}
   const declared=/Carreras\s+analizadas\s*:\s*R(\d{1,2})\s*[–—-]\s*R(\d{1,2})/i.exec(text),expected=declared?(+declared[2]-+declared[1]+1):starts.length;
