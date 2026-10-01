@@ -1776,6 +1776,49 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Add Shop as fifth primary User tab
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          script=r"""<script>
+          (function(){
+            if(document.querySelector('[data-ph-primary-shop]'))return;
+            const candidates=[...document.querySelectorAll('nav,footer,[class*="bottom"],[class*="fixed"]')];
+            const nav=candidates.find(n=>{
+              const t=(n.innerText||'').toUpperCase();
+              return t.includes('HOME')&&t.includes('TRACK')&&t.includes('PREDICT')&&t.includes('TV');
+            });
+            if(!nav)return;
+            const template=[...nav.querySelectorAll('a,button,[role="button"]')].find(x=>(x.innerText||'').trim().length);
+            const shop=template?template.cloneNode(true):document.createElement('button');
+            shop.dataset.phPrimaryShop='1';
+            shop.removeAttribute('href');
+            shop.setAttribute('aria-label','Shop');
+            shop.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));
+            const icon=shop.querySelector('.material-symbols-outlined,.material-icons');
+            if(icon)icon.textContent='shopping_bag';
+            const labels=[...shop.querySelectorAll('span,p,div')].filter(x=>x.children.length===0&&(x.textContent||'').trim());
+            if(labels.length)labels[labels.length-1].textContent='SHOP';
+            else shop.textContent='SHOP';
+            shop.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();location.href='expansion/shop.html';},true);
+            nav.appendChild(shop);
+            nav.style.gridTemplateColumns='repeat(5,minmax(0,1fr))';
+          })();
+          </script>"""
+          for name in ["index.html","tracks.html","predict.html"]:
+            p=root/name; s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",script+"\n</body>") if "</body>" in s else s+script
+            p.write_text(s,encoding="utf-8")
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ["index.html","tracks.html","predict.html"]:
+            s=(Path("app/src/main/assets")/name).read_text(encoding="utf-8")
+            for token in ["data-ph-primary-shop","shopping_bag","expansion/shop.html","repeat(5,minmax(0,1fr))"]:
+              if token not in s: raise SystemExit(f"{name} missing Shop primary tab contract: {token}")
+          print("PRIMARY NAV OK: HOME TRACKS PREDICT TV + SHOP")
+          PY
       - name: Separate Admin access from User App navigation
         run: |
           python3 - <<'PY'
