@@ -10,7 +10,7 @@
 .hero,.card{margin-top:18px;padding:20px;border:1px solid #1b344d;border-radius:20px;background:#0b1d30}h1{font-size:27px;margin:8px 0}h2{margin:0 0 6px;font-size:19px}h3{margin:18px 0 8px;font-size:15px}p{color:#aeb9c7;margin:7px 0 0}
 .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:16px}.step{padding:9px 4px;border-radius:10px;background:#12273b;color:#93a0af;text-align:center;font-size:10px;font-weight:900}.step.on{background:#19324a;color:#59d8f5}
 .grid{display:grid;gap:12px;margin-top:16px}.state{font-size:11px;font-weight:900}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-button{padding:14px;border:0;border-radius:14px;font-weight:900}button.primary{background:#b7e600;color:#07111d}button.secondary{background:#17314a;color:#59d8f5}button.locked{background:#1a2939;color:#7f8c9d}.note{font-size:12px;color:#7f8c9d;margin-top:10px}.ok{color:#b7e600}.bad{color:#ff8585}
+button{padding:14px;border:0;border-radius:14px;font-weight:900}.preview{margin-top:14px;display:none}.preview.active{display:block}.preview textarea{min-height:320px}button.primary{background:#b7e600;color:#07111d}button.secondary{background:#17314a;color:#59d8f5}button.locked{background:#1a2939;color:#7f8c9d}.note{font-size:12px;color:#7f8c9d;margin-top:10px}.ok{color:#b7e600}.bad{color:#ff8585}
 .panel{display:none}.panel.active{display:block}.field{margin-top:12px}label{display:block;font-size:11px;font-weight:900;color:#8fa0b2;margin-bottom:6px}
 select,input,textarea{width:100%;border:1px solid #28445f;background:#06182a;color:#f4f7fb;border-radius:12px;padding:12px;font:inherit}textarea{min-height:190px;font-family:monospace;font-size:12px;resize:vertical}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{font-size:12px;color:#8fa0b2}.lockedbox{padding:12px;border:1px solid #294157;border-radius:12px;background:#071727;color:#aeb9c7;font-size:12px;line-height:1.5}
@@ -21,8 +21,10 @@ select,input,textarea{width:100%;border:1px solid #28445f;background:#06182a;col
 <section class="hero">
 <h1>Publicación segura.</h1><p>Prepara un borrador local y valida el mismo contrato que consume el User App.</p>
 <div class="steps"><div class="step on" id="s1">1 JORNADA</div><div class="step" id="s2">2 HYPE</div><div class="step" id="s3">3 HORSE</div><div class="step" id="s4">4 VALIDAR</div></div>
-<div class="actions"><button class="primary" onclick="validateDraft()">VALIDAR</button><button class="locked" onclick="status('Publicación real permanece bloqueada en V0.1.','bad')">PUBLICAR</button></div>
+<div class="actions"><button class="primary" onclick="validateDraft()">VALIDAR</button><button class="secondary" onclick="previewPublication()">PREVISUALIZAR</button></div>
+<div class="actions"><button class="locked" onclick="status('PUBLICAR permanece bloqueado hasta probar el candidato canónico en CI.','bad')">PUBLICAR</button></div>
 <div id="msg" class="note">Borrador local. No modifica main ni Live.</div>
+<div id="publicationPreview" class="preview"><div class="field"><label>CANDIDATO CANÓNICO · SOLO LECTURA</label><textarea id="publicationJson" readonly spellcheck="false"></textarea></div><div class="note">Esta vista muestra exactamente el candidato que Admin prepararía. Previsualizar no modifica main ni Live.</div></div>
 </section>
 <main class="grid">
 <section class="card"><span class="state">DATA CONTRACT</span><h2>Jornadas</h2><p>Track Hub · Race Day · entradas reales.</p><button class="secondary" onclick="openPanel('journey')">PREPARAR JORNADA</button>
@@ -46,6 +48,12 @@ select,input,textarea{width:100%;border:1px solid #28445f;background:#06182a;col
 <script>
 const KEY='playershype:admin:v01:draft';
 const SCORE={hypePerformance:2,raceStrength:1.2,formTrend:1,distanceSurfaceFit:1.6,readinessFitness:.75,weight:.45,earlyPaceAbility:1,raceShapePaceMatchup:1,projectedTripPost:1};
+const TRACKS=[
+ {id:'camarero',name:'Hipódromo Camarero',image:'/assets/media/track-camarero.jpg',featured:true,status:'pending',races:0},
+ {id:'gulfstream',name:'Gulfstream Park',image:'/assets/media/track-gulfstream.jpg',status:'pending',races:0,featured:false},
+ {id:'belmont',name:'Belmont Park',image:'/assets/media/track-belmont.jpg',status:'pending',races:0,featured:false},
+ {id:'churchill',name:'Churchill Downs',image:'/assets/media/track-churchill.jpg',status:'pending',races:0,featured:false}
+];
 let draft={journeys:{},analyses:{},horseData:{}};
 try{draft=Object.assign(draft,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
 window.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('track');const j=draft.journeys&&draft.journeys[t.value];if(j&&j.sourceText)document.getElementById('journeyText').value=j.sourceText||'';if(draft.hypeSourceText)document.getElementById('hypeText').value=draft.hypeSourceText||'';t.addEventListener('change',()=>{const d=draft.journeys&&draft.journeys[t.value];document.getElementById('journeyText').value=(d&&d.sourceText)||''})});
@@ -56,10 +64,41 @@ function persist(){localStorage.setItem(KEY,JSON.stringify(draft))}
 function saveJourney(){try{const t=track.value,st=dayStatus.value,r=parse('races'),raw=(document.getElementById('journeyText').value||'').trim();if(!Array.isArray(r))throw new Error('Race Day debe ser un arreglo');if(st==='unpublished'&&r.length)throw new Error('Una jornada no publicada no puede contener carreras');if(st!=='unpublished'&&!date.value)throw new Error('La fecha es obligatoria cuando la jornada se publica');draft.journeys[t]={status:st,date:st==='unpublished'?null:date.value,races:r,sourceText:raw};persist();status('Jornada guardada localmente.','ok');openPanel('hype')}catch(e){status(e.message,'bad')}}
 function saveHype(){try{const a=parse('analyses'),raw=(document.getElementById('hypeText').value||'').trim();if(!a||Array.isArray(a)||typeof a!=='object')throw new Error('Análisis debe ser un objeto');draft.analyses=a;draft.hypeSourceText=raw;persist();status('HypePredict guardado localmente.','ok');openPanel('horse')}catch(e){status(e.message,'bad')}}
 function saveHorse(){try{const h=parse('horseData');if(!h||Array.isArray(h)||typeof h!=='object')throw new Error('Horse Data debe ser un objeto');draft.horseData=h;persist();status('Horse Hub / PPs guardado localmente.','ok')}catch(e){status(e.message,'bad')}}
-function validateDraft(){try{
+function buildCandidate(){
+ const raceDays={};
+ TRACKS.forEach(t=>{const d=(draft.journeys||{})[t.id]||{status:'unpublished',date:null,races:[]};raceDays[t.id]={status:d.status||'unpublished',date:(d.status||'unpublished')==='unpublished'?null:(d.date||null),races:Array.isArray(d.races)?d.races:[]}});
+ const tracks=TRACKS.map(t=>Object.assign({},t,{races:raceDays[t.id].races.length}));
+ return {
+  schemaVersion:2,
+  revision:'v0.1-admin-candidate-'+new Date().toISOString().replace(/[:.]/g,'-'),
+  tracks,
+  hypepredict:{
+   title:'HypePredict',
+   description:'Race Intelligence de PlayersHype: HypeBoard, Pace Map, Tale of the Tape y análisis por hipódromo.',
+   image:'/assets/media/hypepredict.jpg',
+   version:'V1',
+   scoreContract:{total:10,engine:'PERFORMANCE-FIT-DYNAMICS',components:[
+    {id:'hypePerformance',label:'HypePerformance / Speed',weight:2},
+    {id:'raceStrength',label:'Race Strength',weight:1.2},
+    {id:'formTrend',label:'Form Trend',weight:1},
+    {id:'distanceSurfaceFit',label:'Distance / Surface Fit',weight:1.6},
+    {id:'readinessFitness',label:'Readiness / Fitness',weight:.75},
+    {id:'weight',label:'Weight',weight:.45},
+    {id:'earlyPaceAbility',label:'Early Pace Ability',weight:1},
+    {id:'raceShapePaceMatchup',label:'Race Shape / Pace Matchup',weight:1},
+    {id:'projectedTripPost',label:'Projected Trip / Post',weight:1}
+   ]},
+   analyses:draft.analyses||{}
+  },
+  raceDays,
+  horseData:draft.horseData||{}
+ };
+}
+function previewPublication(){try{validateDraft(true);const candidate=buildCandidate();document.getElementById('publicationJson').value=JSON.stringify(candidate,null,2);document.getElementById('publicationPreview').classList.add('active');status('PREVISUALIZACIÓN LISTA · no se ha publicado nada.','ok')}catch(e){status('PREVISUALIZACIÓN BLOQUEADA · '+e.message,'bad')}}
+function validateDraft(silent){try{
  const ids=new Set();Object.entries(draft.journeys||{}).forEach(([tid,d])=>{if(!d||!Array.isArray(d.races))throw new Error('Jornada '+tid+' inválida');if(d.status==='unpublished'&&(d.date!==null||d.races.length))throw new Error(tid+': no publicada debe tener fecha null y cero carreras');d.races.forEach(r=>{if(!r.id||!Number.isInteger(r.number)||!Array.isArray(r.entries))throw new Error(tid+': carrera inválida');r.entries.forEach(e=>{if(!e.id||!e.name)throw new Error(tid+': entrada sin id/nombre');ids.add(e.id)})})});
  Object.entries(draft.analyses||{}).forEach(([k,a])=>{if(!a.trackId||!a.raceId||!Array.isArray(a.horses))throw new Error('HypePredict '+k+' incompleto');if(a.status==='published')a.horses.forEach(h=>{if(!ids.has(h.entryId))throw new Error('HypePredict referencia entrada inexistente: '+h.entryId);if(!h.scores||Object.keys(h.scores).length!==9)throw new Error('HypeScore publicado requiere 9 factores');let total=0;for(const [n,max] of Object.entries(SCORE)){const v=h.scores[n];if(typeof v!=='number'||v<0||v>max)throw new Error('Factor HypeScore inválido: '+n);total+=v}if(typeof h.hypeScore!=='number'||Math.abs(h.hypeScore-total)>.011)throw new Error('HypeScore no coincide con suma interna')})});
  Object.entries(draft.horseData||{}).forEach(([id,h])=>{if(h.status==='published'){if(!ids.has(id))throw new Error('Horse Hub referencia entrada inexistente: '+id);if(!h.profile||!h.profile.name||!Array.isArray(h.pps))throw new Error('Horse Hub publicado incompleto: '+id)}});
- document.querySelectorAll('.step').forEach(x=>x.classList.add('on'));status('VALIDACIÓN LOCAL OK · contrato listo para la futura capa de publicación.','ok')
- }catch(e){status('VALIDACIÓN FALLÓ · '+e.message,'bad')}}
+ document.querySelectorAll('.step').forEach(x=>x.classList.add('on'));if(!silent)status('VALIDACIÓN LOCAL OK · candidato listo para previsualizar.','ok');return true
+ }catch(e){if(silent)throw e;status('VALIDACIÓN FALLÓ · '+e.message,'bad');return false}}
 </script></body></html>
