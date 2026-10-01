@@ -1494,6 +1494,87 @@ jobs:
           p.write_text(s,encoding="utf-8")
           PY
 
+      - name: Audit complete User App routes media and experience
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          from urllib.parse import urlparse
+          import re
+          root=Path("app/src/main/assets").resolve()
+          pages=sorted(root.rglob("*.html"))
+          expected=67
+          # code.html is never a runtime screen; all assembled runtime pages must be distinct.
+          runtime=[p for p in pages if p.name!="code.html"]
+          if len(runtime)<expected:
+            raise SystemExit(f"Runtime screen regression: {len(runtime)} < {expected}")
+
+          missing=[]
+          bad_escape=[]
+          refs=0
+          media_refs=0
+          class P(HTMLParser):
+            def __init__(self): super().__init__(); self.items=[]
+            def handle_starttag(self,tag,attrs):
+              a=dict(attrs)
+              for key in ("href","src","poster"):
+                if a.get(key): self.items.append((tag,key,a[key]))
+              if a.get("srcset"):
+                for part in a["srcset"].split(","):
+                  u=part.strip().split(" ")[0]
+                  if u:self.items.append((tag,"srcset",u))
+
+          for page in runtime:
+            txt=page.read_text(encoding="utf-8",errors="ignore")
+            parser=P()
+            try: parser.feed(txt)
+            except Exception: pass
+            # Also audit literal JS navigations introduced by functional bridges.
+            js=[("script","route",m.group(1)) for m in re.finditer(r"(?:location(?:\.href)?\s*=\s*|location\.assign\(|location\.replace\()[\"']([^\"']+)[\"']",txt)]
+            for tag,key,url in parser.items+js:
+              u=url.strip()
+              if not u or u.startswith(("#","javascript:","mailto:","tel:","data:","blob:")): continue
+              pr=urlparse(u)
+              if pr.scheme in ("http","https"): continue
+              clean=pr.path
+              if not clean: continue
+              refs+=1
+              target=(page.parent/clean).resolve()
+              try: target.relative_to(root)
+              except ValueError:
+                bad_escape.append((str(page.relative_to(root)),u)); continue
+              if not target.exists():
+                missing.append((str(page.relative_to(root)),u))
+              if re.search(r"\.(png|jpe?g|webp|svg|gif|mp4|webm)$",clean,re.I):
+                media_refs+=1
+
+          if bad_escape:
+            raise SystemExit("Routes escaping assets root: "+repr(bad_escape[:20]))
+          if missing:
+            raise SystemExit("Missing local routes/assets: "+repr(missing[:40]))
+
+          # Critical User journey and experience surfaces must remain packaged.
+          required=[
+            "index.html","tracks.html","predict.html",
+            "expansion/race-day.html","expansion/race-live.html","expansion/race-tracker.html",
+            "expansion/results.html","expansion/photo-finish.html",
+            "expansion/horse-hub.html","expansion/horse-pps.html",
+            "expansion/tv-live.html","expansion/tv-multicam.html","expansion/super-hype.html",
+            "expansion/search.html","expansion/notifications.html","expansion/share.html",
+            "expansion/manada.html","expansion/membership.html","expansion/shop.html",
+            "expansion/product.html","expansion/checkout.html","expansion/orders.html",
+            "expansion/profile.html","expansion/favorites.html","expansion/offline.html",
+            "expansion/hype-board.html","expansion/pace-map.html","expansion/projection.html",
+            "expansion/tale-of-tape.html","expansion/track-geoclima.html","expansion/track-standby.html"
+          ]
+          absent=[x for x in required if not (root/x).exists()]
+          if absent: raise SystemExit("Critical screens missing: "+repr(absent))
+
+          # User App keeps Stitch visuals/assets; admin functionality must not be
+          # removed here until the dedicated navigation cleanup is separately audited.
+          print(f"EXPERIENCE AUDIT OK: {len(runtime)} runtime screens, {refs} local refs, {media_refs} media refs, 0 missing")
+          PY
+
       - name: Guard source data contract and final HOME navigation
         run: |
           python3 - <<'PY'
