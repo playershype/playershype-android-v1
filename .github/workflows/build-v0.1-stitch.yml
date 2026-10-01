@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Validate V0.1 publication source config
+        run: python3 scripts/validate_v01_config.py docs/app/config.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
