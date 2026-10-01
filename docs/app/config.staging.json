@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 2,
+  "revision": "staging-publisher-smoke-v0.1",
+  "home": {
+    "hero": {
+      "eyebrow": "PLAYERSHYPE NETWORK",
+      "title": "No seguimos el hype. Lo creamos.",
+      "subtitle": "HypePredict, Player Live, PlayersHype TV y el contenido más reciente de PlayersHype en una sola experiencia.",
+      "image": "/assets/media/hero-racing.jpg",
+      "primary": {
+        "label": "VER HYPEPREDICT",
+        "target": "predict"
+      },
+      "secondary": {
+        "label": "PLAYERSHYPE TV",
+        "target": "tv"
+      }
+    },
+    "moduleOrder": [
+      "live",
+      "tracks",
+      "hypepredict",
+      "tv",
+      "latest"
+    ],
+    "enabled": {
+      "live": true,
+      "tracks": true,
+      "hypepredict": true,
+      "tv": true,
+      "latest": true
+    }
+  },
+  "live": {
+    "enabled": true,
+    "status": "offline",
+    "title": "Player Live",
+    "message": "Cuando haya transmisión, aparecerá aquí automáticamente.",
+    "url": "",
+    "image": "/assets/media/live-racing.jpg"
+  },
+  "channels": {
+    "com": "https://playershype.com/",
+    "net": "https://playershype.net/",
+    "youtube": "https://youtube.com/@playershype1",
+    "facebook": "",
+    "instagram": "",
+    "x": ""
+  },
+  "tracks": [
+    {
+      "id": "camarero",
+      "name": "Hipódromo Camarero",
+      "image": "/assets/media/track-camarero.jpg",
+      "featured": true,
+      "status": "pending",
+      "races": 0
+    },
+    {
+      "id": "gulfstream",
+      "name": "Gulfstream Park",
+      "image": "/assets/media/track-gulfstream.jpg",
+      "status": "pending",
+      "races": 0,
+      "featured": false
+    },
+    {
+      "id": "belmont",
+      "name": "Belmont Park",
+      "image": "/assets/media/track-belmont.jpg",
+      "status": "pending",
+      "races": 0,
+      "featured": false
+    },
+    {
+      "id": "churchill",
+      "name": "Churchill Downs",
+      "image": "/assets/media/track-churchill.jpg",
+      "status": "pending",
+      "races": 0,
+      "featured": false
+    }
+  ],
+  "hypepredict": {
+    "title": "HypePredict",
+    "description": "Race Intelligence de PlayersHype: HypeBoard, Pace Map, Tale of the Tape y análisis por hipódromo.",
+    "image": "/assets/media/hypepredict.jpg",
+    "version": "V1"
+  },
+  "tv": {
+    "enabled": true,
+    "title": "PlayersHype TV",
+    "description": "La señal de La Manada vive principalmente en YouTube.",
+    "channelUrl": "https://youtube.com/@playershype1",
+    "programs": [
+      {
+        "id": "cafe-hipico",
+        "title": "Café Hípico",
+        "description": "Programación de la mañana.",
+        "status": "coming-soon",
+        "url": "",
+        "image": "/assets/media/tv-cafe.jpg"
+      },
+      {
+        "id": "aftertrack",
+        "title": "AfterTrack",
+        "description": "Después de la jornada.",
+        "status": "coming-soon",
+        "url": "",
+        "image": "/assets/media/tv-aftertrack.jpg"
+      },
+      {
+        "id": "hype-rewind",
+        "title": "Hype Rewind",
+        "description": "Carreras completas y momentos destacados.",
+        "status": "coming-soon",
+        "url": "",
+        "image": "/assets/media/tv-rewind.jpg"
+      }
+    ]
+  },
+  "latest": [],
+  "publisherSmoke": {
+    "mode": "staging",
+    "production": false
+  }
+}
