@@ -1092,6 +1092,52 @@ jobs:
             x=x.replace("</body>",consume+"\n</body>") if "</body>" in x else x+consume
             q.write_text(x,encoding="utf-8")
           PY
+      - name: Bind Horse Hub and PPs to published canonical horse data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets")
+          bridge=r"""<script>
+          (function(){
+            function apply(cfg){
+              let selected=null;
+              try{selected=JSON.parse(localStorage.getItem('playershype:selectedHorse')||'null');}catch(_){}
+              const entry=selected&&selected.entry;
+              const entryId=entry&&String(entry.entryId||entry.id||'');
+              const store=(cfg&&cfg.horseData&&typeof cfg.horseData==='object')?cfg.horseData:{};
+              const record=entryId?store[entryId]:null;
+              const published=!!(record&&record.status==='published');
+              window.PLAYERSHYPE_HORSE_DATA=published?record:null;
+              document.documentElement.dataset.phHorseData=published?'published':'unpublished';
+              document.querySelectorAll('[data-ph-horse-publication]').forEach(n=>n.remove());
+              if(!published){
+                const cover=document.createElement('div');
+                cover.dataset.phHorsePublication='unpublished';
+                cover.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#0b0d10;color:#fff;display:flex;align-items:center;justify-content:center;padding:28px;text-align:center;font:600 16px/1.45 system-ui';
+                cover.innerHTML='<div><div style="font-size:12px;letter-spacing:.14em;opacity:.65;margin-bottom:10px">PLAYERSHYPE</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">Información no publicada</div><div style="opacity:.72;font-weight:500">El perfil y los PPs de este ejemplar todavía no están disponibles.</div></div>';
+                document.body.appendChild(cover);
+              }else{
+                window.dispatchEvent(new CustomEvent('playershype:horse-data',{detail:{entryId:entryId,data:record}}));
+              }
+            }
+            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
+            window.addEventListener('playershype:config',e=>apply(e.detail));
+          })();
+          </script>"""
+          for rel in ["expansion/horse-hub.html","expansion/horse-pps.html"]:
+            p=root/rel
+            s=p.read_text(encoding="utf-8")
+            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
+            p.write_text(s,encoding="utf-8")
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          for rel in ["horse-hub.html","horse-pps.html"]:
+            s=(Path("app/src/main/assets/expansion")/rel).read_text(encoding="utf-8")
+            for token in ["cfg.horseData","record.status==='published'","Información no publicada","playershype:horse-data"]:
+              if token not in s: raise SystemExit(f"{rel} missing canonical horse data guard: {token}")
+          print("HORSE DATA RUNTIME CONTRACT OK: unpublished demo content is gated")
+          PY
       - name: Verify Track Race HypePredict Horse context contract
         run: |
           python3 - <<'PY'
