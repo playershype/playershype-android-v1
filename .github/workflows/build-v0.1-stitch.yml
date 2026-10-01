@@ -1639,27 +1639,40 @@ jobs:
           guard=r"""<script>
           (function(){
             function stripAdmin(){
-              const nodes=[...document.querySelectorAll('a,button,[role="button"]')];
-              nodes.forEach(el=>{
-                const text=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim().toUpperCase();
-                if(text==='ADMIN'||text.startsWith('ADMIN ')||text.endsWith(' ADMIN')){
-                  // Hide only the User-facing Admin navigation control. Do not
-                  // remove parent navigation containers or unrelated User routes.
-                  el.style.display='none';
-                  el.setAttribute('aria-hidden','true');
-                  el.setAttribute('tabindex','-1');
-                  el.dataset.phAdminRemoved='true';
+              // Stitch bottom-nav items are not consistently anchors/buttons:
+              // some are plain wrapper DIVs containing icon + label. Start at the
+              // exact visible ADMIN text leaf, then hide only its compact nav item.
+              const leaves=[...document.querySelectorAll('a,button,[role="button"],span,p,div')].filter(el=>{
+                const own=[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent).join(' ').trim().toUpperCase();
+                return own==='ADMIN';
+              });
+              leaves.forEach(leaf=>{
+                let el=leaf.closest('a,button,[role="button"]')||leaf;
+                if(el===leaf){
+                  let n=leaf;
+                  for(let i=0;i<3 && n.parentElement;i++){
+                    const p=n.parentElement;
+                    const t=(p.innerText||'').trim().toUpperCase();
+                    if(t==='ADMIN'||t.length<80)n=p; else break;
+                  }
+                  el=n;
                 }
+                // Never hide the whole footer/nav container.
+                if(['NAV','FOOTER','BODY','MAIN'].includes(el.tagName))el=leaf;
+                el.style.display='none';
+                el.setAttribute('aria-hidden','true');
+                el.setAttribute('tabindex','-1');
+                el.dataset.phAdminRemoved='true';
               });
             }
             if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stripAdmin);
             else stripAdmin();
             new MutationObserver(stripAdmin).observe(document.documentElement,{childList:true,subtree:true});
             document.addEventListener('click',function(e){
-              const el=e.target.closest('a,button,[role="button"]');
+              const el=e.target.closest('a,button,[role="button"],div,span');
               if(!el)return;
               const text=((el.innerText||'')+' '+(el.getAttribute('aria-label')||'')+' '+(el.getAttribute('title')||'')).trim().toUpperCase();
-              if(text==='ADMIN'||text.startsWith('ADMIN ')||text.endsWith(' ADMIN')){
+              if(text==='ADMIN'){
                 e.preventDefault();e.stopImmediatePropagation();
               }
             },true);
@@ -1682,7 +1695,7 @@ jobs:
           guarded=0
           for p in pages:
             s=p.read_text(encoding="utf-8",errors="ignore")
-            if "phAdminRemoved" in s: guarded+=1
+            if "phAdminRemoved" in s and "own==='ADMIN'" in s: guarded+=1
             # No deterministic User bridge may navigate to an Admin HTML target.
             low=s.lower()
             for token in ["location.href='admin", 'location.href="admin', "location.href='expansion/admin", 'location.href="expansion/admin']:
