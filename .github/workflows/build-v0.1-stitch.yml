@@ -1705,6 +1705,39 @@ jobs:
           print("ADMIN SEPARATION OK:",guarded,"User screens guarded; Admin assets preserved")
           PY
 
+      - name: Enforce Shop catalog and transaction safety contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("app/src/main/assets/expansion")
+          contract={
+            "shop.html":["product.html"],
+            "product.html":["checkout.html"],
+            "order-confirmation.html":["orders.html","receipt.html"],
+            "orders.html":["receipts.html","order-confirmation.html"],
+            "receipts.html":["receipt.html"],
+            "receipt.html":["orders.html","receipts.html"],
+          }
+          missing=[]
+          for name,targets in contract.items():
+            p=root/name
+            if not p.exists(): missing.append(name+" [screen missing]"); continue
+            s=p.read_text(encoding="utf-8",errors="ignore")
+            for t in targets:
+              if t not in s: missing.append(name+" -> "+t)
+          if missing: raise SystemExit("SHOP CONTRACT BROKEN: "+repr(missing))
+          checkout=(root/"checkout.html").read_text(encoding="utf-8",errors="ignore")
+          if "phPayment='not-connected'" not in checkout:
+            raise SystemExit("Shop checkout lacks V0.1 transaction safety guard")
+          # The prototype route may remain packaged for design/reference, but the
+          # capture-phase safety guard must execute later in the document and block it.
+          guardpos=checkout.rfind("phPayment='not-connected'")
+          prototype=checkout.find("order-confirmation.html")
+          if prototype<0 or guardpos<prototype:
+            raise SystemExit("Shop safety guard does not override prototype success route")
+          print("SHOP CONTRACT OK: catalog/product/checkout navigable; payment success cannot be fabricated")
+          PY
+
       - name: Enforce La Manada membership safety contract
         run: |
           python3 - <<'PY'
