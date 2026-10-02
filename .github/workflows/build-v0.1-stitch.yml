@@ -2522,6 +2522,32 @@ jobs:
           node --check app/src/main/assets/remote-config.js
           node --check app/src/main/assets/predict-dashboard.js
 
+      - name: Harden HypePredict against native bridge startup race
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/predict-dashboard.js")
+          s=p.read_text(encoding="utf-8")
+          old="if(!location.pathname.toLowerCase().endsWith('/predict.html')||!window.PlayersHypeConfig)return;"
+          new="""if(!location.pathname.toLowerCase().endsWith('/predict.html'))return;
+if(!window.PlayersHypeConfig){
+  const root=document.getElementById('ph-remote-root');
+  if(root) root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">Inicializando HypePredict…</div>';
+  let tries=0;
+  const wait=setInterval(function(){
+    tries++;
+    if(window.PlayersHypeConfig){clearInterval(wait);location.reload();return;}
+    if(tries>=40){clearInterval(wait);if(root)root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">No se pudo iniciar HypePredict. Regresa a Track Hub e intenta nuevamente.</div>';}
+  },250);
+  return;
+}"""
+          if old not in s:
+              raise SystemExit("HypePredict startup guard marker missing")
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding="utf-8")
+          PY
+          node --check app/src/main/assets/predict-dashboard.js
+
       - name: Guard final HypePredict against Stitch demo leakage
         run: |
           python3 - <<'PY'
@@ -2544,6 +2570,8 @@ jobs:
           if 'predict-dashboard.js' not in p: raise SystemExit("canonical HypePredict renderer is not loaded by predict.html")
           if p.index('src="remote-config.js"') > p.index('src="predict-dashboard.js"'): raise SystemExit("remote runtime must load before HypePredict renderer")
           if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
+          if "if(!window.PlayersHypeConfig)return;" in d: raise SystemExit("HypePredict can still black-screen if native bridge is late")
+          if "Inicializando HypePredict" not in d: raise SystemExit("HypePredict startup fallback missing")
           required_runtime=["CHECKLIST","Full Field Checklist","a.poolIntelligence||{}","HYPEMATCH","PROYECCIÓN DE LLEGADA","PACE PROJECTION","HYPEBOARD","CONTROL DE RIESGO","HYPEBET"]
           missing=[x for x in required_runtime if x not in d]
           if missing: raise SystemExit("HUB FUNCTIONAL CONTRACT MISSING: "+", ".join(missing))
@@ -2591,6 +2619,10 @@ jobs:
               raise SystemExit("APK remote runtime loads after HypePredict renderer")
           if "window.PlayersHypeDashboardRender" not in dash:
               raise SystemExit("APK HypePredict renderer missing")
+          if "if(!window.PlayersHypeConfig)return;" in dash:
+              raise SystemExit("APK HypePredict can still black-screen if native bridge is late")
+          if "Inicializando HypePredict" not in dash:
+              raise SystemExit("APK HypePredict startup fallback missing")
           print("ACTUAL APK OPERATIONAL HYPEPREDICT ROUTE VERIFIED")
           PY
       - uses: actions/upload-artifact@v4
