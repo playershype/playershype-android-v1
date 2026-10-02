@@ -64,7 +64,7 @@
       if(el.id===ROOT_ID||el.id===BADGE_ID||el.tagName==='SCRIPT'||el.tagName==='NAV')return;
       el.style.display='none';
     });
-    const root=mount();root.style.display='block';document.querySelectorAll('body > *').forEach(el=>{if(el!==root&&el.id!==BADGE_ID&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE')el.style.display='none'});
+    const root=mount();root.style.display='block';document.querySelectorAll('body > *').forEach(el=>{if(el!==root&&el.id!==BADGE_ID&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE'&&el.tagName!=='NAV')el.style.display='none'});
     root.appendChild(node('div','ph-kicker','TRACK HUB · SINCRONIZADO'));
     root.appendChild(node('h2','','Track Hub'));
     root.appendChild(node('p','','Jornadas publicadas por PlayersHype Admin.'));
