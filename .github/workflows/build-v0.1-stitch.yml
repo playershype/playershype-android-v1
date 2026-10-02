@@ -2525,6 +2525,7 @@ jobs:
           leaked=[x for x in bad if x in p.upper() or x in d.upper()]
           if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO FINAL APK: "+", ".join(leaked))
           if 'ph-remote-root' not in p: raise SystemExit("canonical HypePredict root missing")
+          if 'predict-dashboard.js' not in p: raise SystemExit("canonical HypePredict renderer is not loaded by predict.html")
           if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
           required_runtime=["CHECKLIST","Full Field Checklist","a.poolIntelligence||{}","HYPEMATCH","PROYECCIÓN DE LLEGADA","PACE PROJECTION","HYPEBOARD","CONTROL DE RIESGO","HYPEBET"]
           missing=[x for x in required_runtime if x not in d]
