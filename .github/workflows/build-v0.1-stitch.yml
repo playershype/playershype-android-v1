@@ -2555,7 +2555,7 @@ if(!window.PlayersHypeConfig){
           p=Path("app/src/main/java/com/playershype/app/MainActivity.java")
           s=p.read_text(encoding="utf-8")
           old='remoteRuntime=asset("remote-config.js")+"\\n"+asset("predict-dashboard.js");'
-          new='remoteRuntime=""; // runtime is loaded once by packaged HTML; do not evaluate the same IIFEs again in onPageFinished'
+          new='remoteRuntime="";'
           if old not in s:
               raise SystemExit("native duplicate-runtime marker missing")
           s=s.replace(old,new,1)
