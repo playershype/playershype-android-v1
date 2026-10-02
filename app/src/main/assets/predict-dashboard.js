@@ -1,6 +1,9 @@
 (function(){
 'use strict';
-if(!location.pathname.toLowerCase().endsWith('/predict.html')||!window.PlayersHypeConfig)return;
+if(!location.pathname.toLowerCase().endsWith('/predict.html'))return;
+const __root=document.getElementById('ph-remote-root');
+if(__root&&!__root.innerHTML.trim())__root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">Cargando HypePredict...</div>';
+if(!window.PlayersHypeConfig){if(__root)__root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">HypePredict no pudo conectar con la configuración. Regresa a Track Hub e intenta nuevamente.</div>';return;}
 const B=window.PlayersHypeConfig,ROOT='ph-remote-root',STYLE='ph-dashboard-v2-style';let view='jornada',compareRace=null,compareA=null,compareB=null;
 const E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const C=s=>String(s==null?'':s).replace(/\r/g,'').trim();
