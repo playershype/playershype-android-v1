@@ -100,8 +100,9 @@
   }
 
   function render(){addStyle();updateBadge();const c=parseConfig();if(!c){const root=mount();root.appendChild(node('div','ph-kicker','REMOTE CONFIG'));root.appendChild(node('h2','','Sincronizando…'));root.appendChild(node('p','','Esperando una copia válida de main/docs/app/config.json.'));refreshButton(root);return}if(isHome)renderHome(c);else if(isTracks)renderTracks(c);else if(isPredict&&typeof window.PlayersHypeDashboardRender!=='function')renderPredict(c)}
+  function safeRender(){try{render()}catch(e){addStyle();updateBadge();const root=mount();root.style.display='block';root.appendChild(node('div','ph-kicker','RUNTIME ERROR'));root.appendChild(node('h2','','Track Hub no pudo renderizar'));root.appendChild(node('p','',String(e&&e.message||e)));}}
 
-  window.onPlayersHypeConfigState=function(){render();if(isPredict&&typeof window.PlayersHypeDashboardRender==='function')window.PlayersHypeDashboardRender()};
+  window.onPlayersHypeConfigState=function(){safeRender();if(isPredict&&typeof window.PlayersHypeDashboardRender==='function')window.PlayersHypeDashboardRender()};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateBadge()});
-  if(!isPredict)render();else{addStyle();updateBadge();}
+  if(!isPredict)safeRender();else{addStyle();updateBadge();}
 })();
