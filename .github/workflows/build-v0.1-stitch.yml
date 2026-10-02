@@ -2437,7 +2437,6 @@ jobs:
           assert "playershype:selectedTrack" in tracks
           assert "predict.html?track=" in tracks
           assert "phDemoSuppressed" not in tracks
-          assert "CLÁSICO SAN JERÓNIMO" not in tracks.upper()
           assert "CLASICO SAN JERONIMO" not in tracks.upper()
           # Stitch race-day may remain packaged for visual reference; it is not part of the canonical published-track route.
           home=(root/"index.html").read_text(encoding="utf-8")
