@@ -88,7 +88,6 @@ public final class MainActivity extends ComponentActivity {
     setContentView(web);
     if(state==null)web.loadUrl(START);else web.restoreState(state);
     syncRemote();
-    syncWeather();
   }
 
   private void harden(WebView v){
@@ -143,7 +142,7 @@ public final class MainActivity extends ComponentActivity {
     @JavascriptInterface public String getSyncStatus(){return syncState==null?"idle":syncState;}
     @JavascriptInterface public long getLastSync(){return lastSync;}
     @JavascriptInterface public String getWeather(){return weatherJson==null?"":weatherJson;}
-    @JavascriptInterface public void refresh(){syncRemote();syncWeather();}
+    @JavascriptInterface public void refresh(){syncRemote();}
     @JavascriptInterface public boolean exportFile(String filename,String mime,String content){if(Build.VERSION.SDK_INT<Build.VERSION_CODES.Q)return false;try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(java.io.OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;String payload=content==null?"":content;int marker=payload.indexOf(";base64,");if(payload.startsWith("data:")&&marker>5){String encoded=payload.substring(marker+8);o.write(android.util.Base64.decode(encoded,android.util.Base64.DEFAULT));}else{o.write(payload.getBytes(StandardCharsets.UTF_8));}}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
 
   }
@@ -168,21 +167,6 @@ public final class MainActivity extends ComponentActivity {
     });
   }
 
-  private void syncWeather(){
-    io.execute(()->{
-      HttpURLConnection c=null;
-      try{
-        // Hipódromo Camarero / Canóvanas, PR. Weather is live context, never HypeScore input.
-        URL u=new URL("https://api.open-meteo.com/v1/forecast?latitude=18.381&longitude=-65.902&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch&timezone=America%2FPuerto_Rico");
-        c=(HttpURLConnection)u.openConnection();c.setConnectTimeout(8000);c.setReadTimeout(10000);c.setUseCaches(false);c.setRequestMethod("GET");c.setRequestProperty("Accept","application/json");c.setRequestProperty("User-Agent","PlayersHype-User-V0.1");
-        int code=c.getResponseCode();if(code<200||code>=300)return;
-        StringBuilder b=new StringBuilder();try(BufferedReader r=new BufferedReader(new InputStreamReader(c.getInputStream(),StandardCharsets.UTF_8))){String line;while((line=r.readLine())!=null)b.append(line);}
-        JSONObject src=new JSONObject(b.toString()),cur=src.optJSONObject("current");if(cur==null)return;
-        JSONObject out=new JSONObject();out.put("trackId","camarero");out.put("source","Open-Meteo");out.put("time",cur.optString("time",""));out.put("temperatureF",cur.optDouble("temperature_2m",Double.NaN));out.put("feelsLikeF",cur.optDouble("apparent_temperature",Double.NaN));out.put("humidity",cur.optDouble("relative_humidity_2m",Double.NaN));out.put("precipitationIn",cur.optDouble("precipitation",Double.NaN));out.put("weatherCode",cur.optInt("weather_code",-1));out.put("windMph",cur.optDouble("wind_speed_10m",Double.NaN));out.put("windDirection",cur.optDouble("wind_direction_10m",Double.NaN));
-        weatherJson=out.toString();notifyRuntime("Clima actualizado");
-      }catch(Exception ignored){}finally{if(c!=null)c.disconnect();}
-    });
-  }
 
   private String downloadConfig() throws Exception{
     URL u=new URL(CONFIG_URL+"?ts="+System.currentTimeMillis());
