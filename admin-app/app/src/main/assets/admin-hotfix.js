@@ -64,7 +64,7 @@ function checklistBlocks(sectionText){
   hits.sort((a,b)=>a.start-b.start);
   return hits.map((h,i)=>{
     const end=i+1<hits.length?hits[i+1].start:sectionText.length;
-    const raw=sectionText.slice(h.start,end).trim();
+    const raw=sectionText.slice(h.start,end).split(/\n\s*(?:⚖️\s*)?CONTROL DE RIESGO\b|\n\s*(?:🎯\s*)?POOL INTELLIGENCE\b|\n\s*(?:🎯\s*)?HYPEBET\b|\n\s*CONCLUSIÓN DE JORNADA\b|\n\s*(?:🐺\s*)?HYPEPICK 6\b|\n\s*(?:🎯\s*)?VEREDICTO FINAL HYPEPREDICT\b/i)[0].trim();
     const hs=(raw.match(/HypeScore\s*:\s*(\d+(?:\.\d+)?)/i)||[])[1];
     return {programNumber:h.n,name:h.name,role:h.role,hypeScore:hs==null?null:+hs,reliability:field(raw,'Confiabilidad'),raw};
   });
