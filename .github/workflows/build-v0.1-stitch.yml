@@ -2434,13 +2434,12 @@ jobs:
           race=(root/"expansion/race-day.html").read_text(encoding="utf-8")
           assert "Análisis HypePredict no publicado para la carrera seleccionada." in predict
           tracks=(root/"tracks.html").read_text(encoding="utf-8")
-          assert "ph-unpublished-operational" in tracks
-          assert "Jornada no publicada" in tracks
-          assert "phDemoSuppressed" in tracks
           assert "playershype:selectedTrack" in tracks
           assert "predict.html?track=" in tracks
+          assert "phDemoSuppressed" not in tracks
+          assert "CLÁSICO SAN JERÓNIMO" not in tracks.upper()
+          assert "CLASICO SAN JERONIMO" not in tracks.upper()
           assert "ph-unpublished-operational" in race
-          assert "ph-unpublished-operational" in predict
           home=(root/"index.html").read_text(encoding="utf-8")
           assert "phHomeOperational" in home
           assert "Sin jornada publicada" in home
