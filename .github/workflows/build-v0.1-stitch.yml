@@ -2547,10 +2547,14 @@ jobs:
           p.write_text(s,encoding="utf-8")
           print(f"SPLASH INACCESSIBLE IMAGES REPLACED: {replaced}")
           PY
-          if grep -Eiq '<img[^>]+src=["''' ]*https?://' app/src/main/assets/expansion/splash.html; then
-            echo "Remote splash image remains after fallback replacement" >&2
-            exit 1
-          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path("app/src/main/assets/expansion/splash.html").read_text(encoding="utf-8",errors="ignore")
+          refs=re.findall(r'<img[^>]+src=["\\\']([^"\\\']+)["\\\']',s,re.I)
+          remote=[u for u in refs if u.startswith(("http://","https://"))]
+          if remote: raise SystemExit("Remote splash image remains after fallback replacement: "+", ".join(remote))
+          PY
       - name: Validate packaged runtime JavaScript
         run: |
           node --check app/src/main/assets/remote-config.js
