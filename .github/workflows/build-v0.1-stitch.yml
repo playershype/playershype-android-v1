@@ -2620,11 +2620,21 @@ jobs:
           from pathlib import Path
           def canonicalize(path,shell):
               p=Path(path); s=p.read_text(encoding="utf-8",errors="ignore")
-              body_start=s.lower().find("<body")
-              if body_start < 0: raise SystemExit(path+" body missing")
-              body_open=s.find(">",body_start); body_end=s.lower().rfind("</body>")
-              if body_open < 0 or body_end < 0: raise SystemExit(path+" body malformed")
-              p.write_text(s[:body_open+1]+shell+s[body_end:],encoding="utf-8")
+              low=s.lower()
+              html_start=low.find("<html")
+              head_start=low.find("<head")
+              head_end=low.find("</head>")
+              if html_start < 0 or head_start < 0 or head_end < 0: raise SystemExit(path+" document shell malformed")
+              html_open=s.find(">",html_start)
+              head_close=head_end+len("</head>")
+              # Preserve metadata/title only. Do NOT preserve Stitch page CSS here:
+              # it was hiding the canonical runtime root on device.
+              head=s[head_start:head_close]
+              import re
+              head=re.sub(r"<style[\\s\\S]*?</style>","",head,flags=re.I)
+              head=re.sub(r"<link[^>]+(?:stylesheet|fonts\\.googleapis|fonts\\.gstatic)[^>]*>","",head,flags=re.I)
+              doc=s[:html_open+1]+head+"<body>"+shell+"</body></html>"
+              p.write_text(doc,encoding="utf-8")
           canonicalize("app/src/main/assets/predict.html",'''<main id="ph-remote-root"></main>
           <nav class="nav">
             <a href="tracks.html">TRACK HUB</a>
@@ -2667,6 +2677,8 @@ jobs:
             for bad in ["Mi Hermano Luis","Clásico San Jerónimo","Algoritmo V4.2"]:
               if bad.lower() in html.lower(): raise SystemExit(name+" demo leakage: "+bad)
           if 'href="predict.html"' in tracks: raise SystemExit("Track Hub contains duplicate direct Predict nav")
+          for name,html in [("tracks",tracks),("predict",predict)]:
+            if "<style" in html.lower(): raise SystemExit(name+" retained Stitch page CSS after canonicalization")
           required_remote=["function renderTracks(c)","predict.html?track=","function renderPredict(c)","window.onPlayersHypeConfigState"]
           missing=[x for x in required_remote if x not in remote]
           if missing: raise SystemExit("Remote operational runtime incomplete: "+", ".join(missing))
