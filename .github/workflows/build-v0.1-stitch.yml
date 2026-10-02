@@ -2715,7 +2715,7 @@ jobs:
               "candidate.raceDays=raceDays",
               "candidate.tracks=TRACKS.map",
               "candidate.hypepredict=Object.assign",
-              "candidate.horseData=draft.horseData||{}",
+              "candidate.horseData=hasHorseData?draft.horseData:(candidate.horseData||{})",
               "function previewPublication()",
               "PREVISUALIZACIÓN LISTA",
               "PUBLICAR permanece bloqueado",
