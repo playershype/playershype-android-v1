@@ -2524,35 +2524,31 @@ jobs:
           if orphan:
             raise SystemExit("Critical orphan pages: "+", ".join(orphan))
           PY
-      - name: Package splash remote images locally
+      - name: Replace inaccessible Stitch splash images with packaged branding
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re, urllib.request, urllib.parse, mimetypes
+          import re
           p=Path("app/src/main/assets/expansion/splash.html")
           s=p.read_text(encoding="utf-8",errors="ignore")
-          out=p.parent/"media"
-          out.mkdir(parents=True,exist_ok=True)
-          refs=re.findall(r'<img[^>]+src=["\\\']([^"\\\']+)["\\\']',s,re.I)
-          remote=[u for u in refs if u.startswith(("http://","https://"))]
-          for i,u in enumerate(remote,1):
-              ext=Path(urllib.parse.urlparse(u).path).suffix.lower()
-              if ext not in {".png",".jpg",".jpeg",".webp",".gif",".svg"}: ext=".png"
-              dst=out/f"splash-packaged-{i}{ext}"
-              req=urllib.request.Request(u,headers={"User-Agent":"Mozilla/5.0"})
-              try:
-                  with urllib.request.urlopen(req,timeout=30) as r:
-                      data=r.read()
-                  if len(data)<128: raise RuntimeError("downloaded asset is empty")
-                  dst.write_bytes(data)
-              except Exception as e:
-                  raise SystemExit(f"Cannot package splash image {u}: {e}")
-              s=s.replace(u,"media/"+dst.name)
+          imgs=list(re.finditer(r'<img\\b[^>]*>',s,re.I))
+          replaced=0
+          for m in reversed(imgs):
+              tag=m.group(0)
+              srcm=re.search(r'src=["\\\']([^"\\\']+)["\\\']',tag,re.I)
+              src=srcm.group(1).strip() if srcm else ""
+              local_ok=False
+              if src and not src.startswith(("http://","https://","data:")):
+                  local_ok=(p.parent/src).resolve().exists()
+              if src.startswith(("http://","https://")) or (src and not src.startswith("data:") and not local_ok):
+                  replacement='<div data-ph-packaged-logo role="img" aria-label="PlayersHype Official Logo" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font:900 clamp(30px,8vw,58px)/1 Arial,sans-serif;letter-spacing:-.055em;color:#f5f9ff;text-align:center">Players<span style="color:#55dbf6">Hype</span></div>'
+                  s=s[:m.start()]+replacement+s[m.end():]
+                  replaced+=1
           p.write_text(s,encoding="utf-8")
-          print(f"SPLASH REMOTE IMAGES PACKAGED: {len(remote)}")
+          print(f"SPLASH INACCESSIBLE IMAGES REPLACED: {replaced}")
           PY
-          if grep -Eiq '<img[^>]+src=["'\'' ]*https?://' app/src/main/assets/expansion/splash.html; then
-            echo "Remote splash image remains after packaging" >&2
+          if grep -Eiq '<img[^>]+src=["''' ]*https?://' app/src/main/assets/expansion/splash.html; then
+            echo "Remote splash image remains after fallback replacement" >&2
             exit 1
           fi
       - name: Validate packaged runtime JavaScript
