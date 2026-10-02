@@ -6,9 +6,6 @@ import android.content.ContentValues;
 import android.provider.MediaStore;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
@@ -148,7 +145,6 @@ public final class MainActivity extends ComponentActivity {
     @JavascriptInterface public String getWeather(){return weatherJson==null?"":weatherJson;}
     @JavascriptInterface public void refresh(){syncRemote();syncWeather();}
     @JavascriptInterface public boolean exportFile(String filename,String mime,String content){if(Build.VERSION.SDK_INT<Build.VERSION_CODES.Q)return false;try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(java.io.OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;String payload=content==null?"":content;int marker=payload.indexOf(";base64,");if(payload.startsWith("data:")&&marker>5){String encoded=payload.substring(marker+8);o.write(android.util.Base64.decode(encoded,android.util.Base64.DEFAULT));}else{o.write(payload.getBytes(StandardCharsets.UTF_8));}}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
-    @JavascriptInterface public boolean exportPdf(String filename,String imageData){if(Build.VERSION.SDK_INT<Build.VERSION_CODES.Q)return false;PdfDocument pdf=null;try{String safe=(filename==null?"playershype-export.pdf":filename).replaceAll("[\\\\/:*?\"<>|]","_");if(!safe.toLowerCase().endsWith(".pdf"))safe+=".pdf";String payload=imageData==null?"":imageData;int marker=payload.indexOf(";base64,");if(!payload.startsWith("data:image/")||marker<5)return false;byte[] bytes=android.util.Base64.decode(payload.substring(marker+8),android.util.Base64.DEFAULT);Bitmap bmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length);if(bmp==null)return false;pdf=new PdfDocument();PdfDocument.PageInfo info=new PdfDocument.PageInfo.Builder(bmp.getWidth(),bmp.getHeight(),1).create();PdfDocument.Page page=pdf.startPage(info);page.getCanvas().drawBitmap(bmp,0,0,null);pdf.finishPage(page);ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,"application/pdf");v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(java.io.OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;pdf.writeTo(o);}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"PDF guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}finally{if(pdf!=null)pdf.close();}}
 
   }
 
