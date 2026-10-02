@@ -357,19 +357,10 @@ jobs:
           </script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
-          # Entry points from Track Hub / Predict.
-          for rel in ["tracks.html","predict.html"]:
-            p=Path("app/src/main/assets")/rel; s=p.read_text(encoding="utf-8")
-            bridge="""<script>
-          document.addEventListener('click',function(e){
-            const el=e.target.closest('a,button'); if(!el)return;
-            const t=(el.innerText||el.textContent||'').trim().toUpperCase();
-            if(t.includes('RACE DAY')||t.includes('JORNADA')||t.includes('CARRERA')) location.href='expansion/race-day.html';
-            else if(t.includes('HORSE')||t.includes('EJEMPLAR')||t.includes('CABALLO')) location.href='expansion/horse-hub.html';
-          });
-          </script>"""
-            s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
-            p.write_text(s,encoding="utf-8")
+          # Operational Track Hub/HypePredict are canonical remote-config surfaces.
+          # Do not route generic labels into Stitch Expansion 02 demo race/horse screens.
+          # Expansion screens remain packaged only as gated visual references until
+          # they are fully rebound to canonical race/horse data.
           # Stitch User Utilities — exact screens from Expansion 03.
           pkg3=Path("PlayersHype-V0.1-STITCH-USER-EXPANSION-03.zip")
           if not pkg3.exists():
@@ -1217,6 +1208,12 @@ jobs:
               if token not in s: raise SystemExit(f"{rel} missing canonical horse data guard: {token}")
           print("HORSE DATA RUNTIME CONTRACT OK: unpublished demo content is gated")
           PY
+          # Known Expansion 02 demo identities must never be reachable from operational roots.
+          for page in app/src/main/assets/tracks.html app/src/main/assets/predict.html; do
+            ! grep -qi "expansion/horse-hub.html" "$page"
+            ! grep -qi "expansion/race-day.html" "$page"
+          done
+          echo "OPERATIONAL ROOTS ARE ISOLATED FROM EXPANSION 02 DEMO ROUTES"
       - name: Verify Track Race HypePredict Horse context contract
         run: |
           python3 - <<'PY'
