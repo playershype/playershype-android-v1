@@ -828,7 +828,7 @@ jobs:
             window.dispatchEvent(new CustomEvent('playershype:track-selected',{detail:ctx}));
             e.preventDefault();
             e.stopImmediatePropagation();
-            location.href='expansion/race-day.html';
+            location.href='predict.html?track='+encodeURIComponent(ctx.id);
           },true);
           </script>"""
           s=s.replace("</body>",select_bridge+"\n</body>") if "</body>" in s else s+select_bridge
@@ -1316,7 +1316,6 @@ jobs:
           rules={
             "tracks.html":[
               (["HYPEPREDICT"],"predict.html"),
-              (["RACE DAY","JORNADA","CARRERA"],"expansion/race-day.html"),
               (["HORSE","EJEMPLAR","CABALLO"],"expansion/horse-hub.html"),
             ],
             "predict.html":[
@@ -2433,8 +2432,6 @@ jobs:
           assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in predict
           assert "ph-config-diagnostic" not in predict
           race=(root/"expansion/race-day.html").read_text(encoding="utf-8")
-          assert "raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json" in race
-          assert "Jornada todavía no publicada para esta pista." in race
           assert "Análisis HypePredict no publicado para la carrera seleccionada." in predict
           tracks=(root/"tracks.html").read_text(encoding="utf-8")
           assert "ph-unpublished-operational" in tracks
@@ -2519,11 +2516,17 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path("app/src/main/assets/predict.html").read_text(encoding="utf-8",errors="ignore")
-          d=Path("app/src/main/assets/predict-dashboard.js").read_text(encoding="utf-8",errors="ignore")
+          root=Path("app/src/main/assets")
+          p=(root/"predict.html").read_text(encoding="utf-8",errors="ignore")
+          d=(root/"predict-dashboard.js").read_text(encoding="utf-8",errors="ignore")
+          tracks=(root/"tracks.html").read_text(encoding="utf-8",errors="ignore")
           bad=["MI HERMANO LUIS","CLÁSICO SAN JERÓNIMO","CLASICO SAN JERONIMO","ALGORITMO V4.2"]
-          leaked=[x for x in bad if x in p.upper() or x in d.upper()]
-          if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO FINAL APK: "+", ".join(leaked))
+          leaked=[x for x in bad if x in p.upper() or x in d.upper() or x in tracks.upper()]
+          if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO OPERATIONAL PATH: "+", ".join(leaked))
+          if "location.href='expansion/race-day.html'" in tracks:
+              raise SystemExit("TRACK HUB STILL ROUTES PUBLISHED TRACKS TO STITCH RACE-DAY DEMO")
+          if "predict.html?track=" not in tracks:
+              raise SystemExit("TRACK HUB CANONICAL PREDICT ROUTE MISSING")
           if 'ph-remote-root' not in p: raise SystemExit("canonical HypePredict root missing")
           if 'predict-dashboard.js' not in p: raise SystemExit("canonical HypePredict renderer is not loaded by predict.html")
           if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
@@ -2542,6 +2545,34 @@ jobs:
           echo "${GITHUB_SHA}" > artifacts/BUILD_COMMIT.txt
           sha256sum artifacts/PlayersHype-App-V0.1-STITCH.apk > artifacts/SHA256SUMS.txt
           cp route-audit.json artifacts/ROUTE_AUDIT.json
+      - name: Audit actual built APK operational HypePredict route
+        run: |
+          rm -rf /tmp/ph-apk-audit
+          mkdir -p /tmp/ph-apk-audit
+          unzip -q artifacts/PlayersHype-App-V0.1-STITCH.apk -d /tmp/ph-apk-audit
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("/tmp/ph-apk-audit/assets")
+          required=["tracks.html","predict.html","predict-dashboard.js","remote-config.js"]
+          missing=[x for x in required if not (root/x).exists()]
+          if missing: raise SystemExit("APK missing operational assets: "+", ".join(missing))
+          tracks=(root/"tracks.html").read_text(encoding="utf-8",errors="ignore")
+          predict=(root/"predict.html").read_text(encoding="utf-8",errors="ignore")
+          dash=(root/"predict-dashboard.js").read_text(encoding="utf-8",errors="ignore")
+          bad=["MI HERMANO LUIS","CLÁSICO SAN JERÓNIMO","CLASICO SAN JERONIMO","ALGORITMO V4.2"]
+          for name,txt in [("tracks.html",tracks),("predict.html",predict),("predict-dashboard.js",dash)]:
+              leaked=[x for x in bad if x in txt.upper()]
+              if leaked: raise SystemExit(f"APK operational demo leak in {name}: {leaked}")
+          if "location.href='expansion/race-day.html'" in tracks:
+              raise SystemExit("APK Track Hub still routes selected track to Stitch race-day demo")
+          if "predict.html?track=" not in tracks:
+              raise SystemExit("APK Track Hub canonical HypePredict route missing")
+          if 'ph-remote-root' not in predict:
+              raise SystemExit("APK canonical HypePredict root missing")
+          if "window.PlayersHypeDashboardRender" not in dash:
+              raise SystemExit("APK HypePredict renderer missing")
+          print("ACTUAL APK OPERATIONAL HYPEPREDICT ROUTE VERIFIED")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: PlayersHype-App-V0.1-STITCH
