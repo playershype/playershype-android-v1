@@ -1484,146 +1484,31 @@ jobs:
             p.write_text(s,encoding="utf-8")
           PY
 
-      - name: Hard-gate unpublished operational prototype content
+      - name: Bind published Track Hub to canonical HypePredict analysis
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root=Path("app/src/main/assets")
-          # Hard gate: unpublished remote state wins over prototype/demo presentation.
-          gate=r"""<style id="ph-hard-gate-style">
-          html.ph-unpublished-hardgate body > *:not(#ph-hardgate-shell):not(script):not(style){display:none!important}
-          #ph-hardgate-shell{min-height:100vh;background:#031322;color:#fff;font-family:system-ui,sans-serif;padding:calc(env(safe-area-inset-top,0px) + 24px) 20px 100px;box-sizing:border-box}
-          #ph-hardgate-shell .brand{font-size:24px;font-weight:900;letter-spacing:.3px}
-          #ph-hardgate-shell .brand b{color:#a8e000}
-          #ph-hardgate-shell .card{margin-top:42px;padding:24px 18px;border-radius:20px;background:#0b2033;border:1px solid rgba(255,255,255,.12)}
-          #ph-hardgate-shell h1{margin:0 0 8px;font-size:25px}
-          #ph-hardgate-shell p{margin:0;color:#b9c4cf;line-height:1.5}
-          #ph-hardgate-shell .track{margin-top:14px;color:#57d6ed;font-weight:800}
-          #ph-hardgate-shell nav{position:fixed;left:0;right:0;bottom:0;padding:14px 20px calc(env(safe-area-inset-bottom,0px) + 14px);background:#031322;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-around}
-          #ph-hardgate-shell nav a{color:#c5ced7;text-decoration:none;font-size:12px;font-weight:800}
-          </style>
-          <script>
-          (function(){
-            function track(){
-              try{return window.PLAYERSHYPE_SELECTED_TRACK||JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){return null;}
-            }
-            function shell(t,isPredict){
-              let n=document.getElementById('ph-hardgate-shell');
-              if(!n){n=document.createElement('div');n.id='ph-hardgate-shell';document.body.appendChild(n);}
-              const name=(t&&t.name)||(t&&t.id)||'Hipódromo';
-              n.innerHTML='<div class="brand">PLAYERS<b>HYPE</b></div><div class="card"><div style="font-size:12px;font-weight:800;color:#a8e000">ESTADO DE JORNADA</div><h1>'+(isPredict?'HypePredict no publicado':'Jornada no publicada')+'</h1><p>'+(isPredict?'No hay un análisis HypePredict publicado para la carrera seleccionada.':'Los datos operativos aparecerán cuando PlayersHype publique la jornada.')+'</p><div class="track">'+name+'</div></div><nav><a href="index.html">HOME</a><a href="tracks.html">TRACKS</a><a href="predict.html">PREDICT</a></nav>';
-              document.documentElement.classList.add('ph-unpublished-hardgate');
-              document.documentElement.dataset.phHardGate='unpublished';
-            }
-            function release(){
-              document.documentElement.classList.remove('ph-unpublished-hardgate');
-              document.getElementById('ph-hardgate-shell')?.remove();
-              document.documentElement.dataset.phHardGate='published';
-            }
-            function apply(cfg){
-              const t=track(); if(!cfg)return;
-              const isPredict=location.pathname.endsWith('/predict.html');
-              if(isPredict){
-                let r=null;try{r=window.PLAYERSHYPE_SELECTED_RACE||JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');}catch(_){}
-                const tid=(r&&r.trackId)||(t&&t.id)||'', key=r?String(r.id??r.number??r.index??''):'';
-                const a=cfg.hypepredict&&cfg.hypepredict.analyses&&cfg.hypepredict.analyses[tid]&&cfg.hypepredict.analyses[tid][key];
-                (!a||a.status!=='published')?shell(t,true):release();
-              }else{
-                if(!t||!t.id)return;
-                const d=cfg.raceDays&&cfg.raceDays[t.id];
-                (!d||d.status==='unpublished'||!Array.isArray(d.races)||!d.races.length)?shell(t,false):release();
-              }
-            }
-            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
-            window.addEventListener('playershype:config',e=>apply(e.detail));
-            window.addEventListener('playershype:track-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
-            window.addEventListener('playershype:race-context',()=>window.PLAYERSHYPE_CONFIG&&apply(window.PLAYERSHYPE_CONFIG));
-          })();
-          </script>"""
-          # Root TRACKS and PREDICT are the two screens proven leaking on-device.
-          for rel in ["tracks.html","predict.html"]:
-            p=root/rel; s=p.read_text(encoding="utf-8")
-            s=s.replace("</body>",gate+"\n</body>") if "</body>" in s else s+gate
-            p.write_text(s,encoding="utf-8")
-          PY
-
-      - name: Fix Track Hub card gating and direct Predict context
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          root=Path("app/src/main/assets")
-
-          # TRACKS: evaluate the remote raceDays contract directly. Do not require
-          # selectedTrack merely to suppress prototype operational data.
-          p=root/"tracks.html"; s=p.read_text(encoding="utf-8")
+          p=Path("app/src/main/assets/tracks.html")
+          s=p.read_text(encoding="utf-8")
           bridge=r"""<script>
           (function(){
-            function allUnpublished(cfg){
-              if(!cfg||!Array.isArray(cfg.tracks)||!cfg.raceDays)return false;
-              return cfg.tracks.length>0 && cfg.tracks.every(t=>{
-                const d=cfg.raceDays[t.id];
-                return !d || d.status==='unpublished' || !Array.isArray(d.races) || d.races.length===0;
-              });
+            function config(){return window.PLAYERSHYPE_CONFIG||null;}
+            function trackForText(txt,cfg){
+              const u=(txt||'').toUpperCase();
+              return (cfg&&Array.isArray(cfg.tracks)?cfg.tracks:[]).find(t=>u.includes(String(t.name||'').toUpperCase())||u.includes(String(t.id||'').toUpperCase()));
             }
-            function gate(cfg){
-              if(!allUnpublished(cfg))return;
-              let shell=document.getElementById('ph-trackhub-hardgate');
-              if(!shell){
-                shell=document.createElement('div'); shell.id='ph-trackhub-hardgate';
-                shell.style.cssText='position:fixed;inset:0;z-index:10050;background:#031322;color:#fff;font-family:system-ui,sans-serif;padding:calc(env(safe-area-inset-top,0px) + 24px) 20px 100px;box-sizing:border-box;overflow:auto';
-                shell.innerHTML='<div style="font-size:24px;font-weight:900">PLAYERS<span style="color:#a8e000">HYPE</span></div><div style="margin-top:42px;padding:24px 18px;border-radius:20px;background:#0b2033;border:1px solid rgba(255,255,255,.12)"><div style="font-size:12px;font-weight:800;color:#a8e000">TRACK HUB</div><h1 style="margin:8px 0;font-size:25px">Jornadas no publicadas</h1><p style="margin:0;color:#b9c4cf;line-height:1.5">No hay carreras operativas publicadas para los hipódromos disponibles. El Track Hub se actualizará cuando PlayersHype publique una jornada.</p></div><nav style="position:fixed;left:0;right:0;bottom:0;padding:14px 20px calc(env(safe-area-inset-bottom,0px) + 14px);background:#031322;border-top:1px solid rgba(255,255,255,.1);display:flex;justify-content:space-around"><a style="color:#c5ced7;text-decoration:none;font-size:12px;font-weight:800" href="index.html">HOME</a><a style="color:#a8e000;text-decoration:none;font-size:12px;font-weight:800" href="tracks.html">TRACKS</a><a style="color:#c5ced7;text-decoration:none;font-size:12px;font-weight:800" href="predict.html">PREDICT</a></nav>';
-                document.body.appendChild(shell);
-              }
-              document.documentElement.dataset.phTrackHubGate='unpublished';
-            }
-            function release(){
-              document.getElementById('ph-trackhub-hardgate')?.remove();
-              document.documentElement.dataset.phTrackHubGate='published';
-            }
-            function apply(cfg){allUnpublished(cfg)?gate(cfg):release();}
-            if(window.PLAYERSHYPE_CONFIG)apply(window.PLAYERSHYPE_CONFIG);
-            window.addEventListener('playershype:config',e=>apply(e.detail));
-          })();
-          </script>"""
-          s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
-          p.write_text(s,encoding="utf-8")
-
-          # PREDICT: direct entry has no selected track/race. Say so explicitly;
-          # never invent or display the generic word "Hipódromo" as context.
-          p=root/"predict.html"; s=p.read_text(encoding="utf-8")
-          direct=r"""<script>
-          (function(){
-            function context(){
-              let t=null,r=null;
-              try{t=window.PLAYERSHYPE_SELECTED_TRACK||JSON.parse(localStorage.getItem('playershype:selectedTrack')||'null');}catch(_){}
-              try{r=window.PLAYERSHYPE_SELECTED_RACE||JSON.parse(localStorage.getItem('playershype:selectedRace')||'null');}catch(_){}
-              const shell=document.getElementById('ph-hardgate-shell');
-              if(!shell)return;
-              const trackNode=shell.querySelector('.track');
-              if(trackNode){
-                if(t&&(t.name||t.id)) trackNode.textContent=t.name||t.id;
-                else trackNode.textContent='Selecciona un hipódromo y una carrera en Track Hub.';
-              }
-              if(!r){
-                const h=shell.querySelector('h1');
-                const p=shell.querySelector('p');
-                if(h)h.textContent='Selecciona una carrera';
-                if(p)p.textContent='HypePredict mostrará el análisis cuando selecciones una carrera publicada desde Track Hub.';
-              }
-            }
-            window.addEventListener('playershype:config',()=>setTimeout(context,0));
-            window.addEventListener('playershype:analysis',()=>setTimeout(context,0));
             document.addEventListener('click',function(e){
-              const shell=document.getElementById('ph-hardgate-shell');
-              const track=shell&&shell.querySelector('.track');
-              if(!track||!(e.target===track||track.contains(e.target)))return;
-              e.preventDefault();e.stopImmediatePropagation();
-              location.href='expansion/race-day.html';
+              const el=e.target.closest('a,button,[role="button"],article,section,div'); if(!el)return;
+              const cfg=config(), t=trackForText(el.innerText||el.textContent,cfg); if(!t)return;
+              const d=cfg.raceDays&&cfg.raceDays[t.id];
+              if(!d||d.status==='unpublished'||!Array.isArray(d.races)||!d.races.length)return;
+              e.preventDefault(); e.stopImmediatePropagation();
+              try{localStorage.setItem('playershype:selectedTrack',JSON.stringify(t));}catch(_){}
+              location.href='predict.html?track='+encodeURIComponent(t.id);
             },true);
-            setTimeout(context,600);
           })();
           </script>"""
-          s=s.replace("</body>",direct+"\n</body>") if "</body>" in s else s+direct
+          s=s.replace("</body>",bridge+"\\n</body>") if "</body>" in s else s+bridge
           p.write_text(s,encoding="utf-8")
           PY
 
