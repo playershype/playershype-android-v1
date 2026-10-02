@@ -23,3 +23,6 @@
 
 /* Real-device QA: centered saddlecloth numerals + compact jornada identity */
 .cloth{display:inline-flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important;font-size:19px!important;font-weight:950!important;letter-spacing:0!important;text-indent:0!important}.refcard{min-height:92px;display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center}.refcard .refval{width:100%;display:flex!important;align-items:center!important;gap:10px}.refcard .refval>.cloth{flex:0 0 38px;width:38px!important;height:38px!important;min-width:38px!important;font-size:22px!important}.refcard .refval>span:last-child{font-size:14px;font-weight:900;line-height:1.2;text-align:left}.cmpheads .silknum{font-size:0!important}.cmpheads .silknum:before{content:attr(data-num)}
+
+/* Tale of the Tape uses the same official saddlecloth visual language */
+.cmpheads .cloth.comparecloth{display:flex!important;width:64px!important;height:64px!important;min-width:64px!important;margin:0 auto 10px;border-radius:12px!important;font-size:30px!important;box-shadow:0 0 0 3px #27445e,0 4px 12px rgba(0,0,0,.35)}
