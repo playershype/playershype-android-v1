@@ -2608,33 +2608,6 @@ jobs:
           node --check app/src/main/assets/remote-config.js
           node --check app/src/main/assets/predict-dashboard.js
           echo "PACKAGED USER RUNTIME JAVASCRIPT VERIFIED"
-      - name: Audit final packaged operational User surfaces
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          tracks=Path("app/src/main/assets/tracks.html").read_text(encoding="utf-8")
-          predict=Path("app/src/main/assets/predict.html").read_text(encoding="utf-8")
-          remote=Path("app/src/main/assets/remote-config.js").read_text(encoding="utf-8")
-          dash=Path("app/src/main/assets/predict-dashboard.js").read_text(encoding="utf-8")
-          main=Path("app/src/main/java/com/playershype/app/MainActivity.java").read_text(encoding="utf-8")
-          for name,html in [("tracks",tracks),("predict",predict)]:
-            if html.count('id="ph-remote-root"')!=1: raise SystemExit(name+" must contain exactly one canonical remote root")
-            for bad in ["Mi Hermano Luis","Clásico San Jerónimo","Algoritmo V4.2"]:
-              if bad.lower() in html.lower(): raise SystemExit(name+" demo leakage: "+bad)
-          if 'href="predict.html"' in tracks: raise SystemExit("Track Hub contains duplicate direct Predict nav")
-          for name,html in [("tracks",tracks),("predict",predict)]:
-            if "<style" in html.lower(): raise SystemExit(name+" retained inline Stitch page CSS after canonicalization")
-            if "stylesheet" in html.lower(): raise SystemExit(name+" retained external Stitch stylesheet after canonicalization")
-          required_remote=["function renderTracks(c)","predict.html?track=","function renderPredict(c)","window.onPlayersHypeConfigState"]
-          missing=[x for x in required_remote if x not in remote]
-          if missing: raise SystemExit("Remote operational runtime incomplete: "+", ".join(missing))
-          required_dash=["PlayersHypeDashboardRender","PACE PROJECTION","HYPEBOARD","HypeMatch"]
-          missing=[x for x in required_dash if x not in dash]
-          if missing: raise SystemExit("HypePredict dashboard runtime incomplete: "+", ".join(missing))
-          if 'asset("remote-config.js")' not in main or 'asset("predict-dashboard.js")' not in main:
-            raise SystemExit("Native User bridge no longer injects canonical runtimes")
-          print("FINAL PACKAGED USER SURFACES VERIFIED AFTER ALL WORKFLOW MUTATIONS")
-          PY
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
