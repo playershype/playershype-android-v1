@@ -60,3 +60,6 @@
 .profile-silks .silk.big .silknum{z-index:2;font-size:11px!important}
 .profile-silks small{margin-top:4px;font-size:9px!important}
 @media(max-width:520px){.weather-metrics .card{min-height:76px!important}.weather-metrics .lab{font-size:10px!important}.weather-metrics .val{font-size:18px!important}}
+
+/* Unknown official silks: explicit neutral state; never invent stable colors. */
+.silk.silk-unknown{background:#17314a!important;color:#9eb2c4!important;border-style:dashed!important}.silk.silk-unknown .silkbody{opacity:.35!important}.silk.silk-unknown .silksleeve{opacity:.35!important}
