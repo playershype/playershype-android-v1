@@ -2526,7 +2526,10 @@ jobs:
           if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO FINAL APK: "+", ".join(leaked))
           if 'ph-remote-root' not in p: raise SystemExit("canonical HypePredict root missing")
           if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
-          print("FINAL HYPEPREDICT IS DATA-DRIVEN AND DEMO-FREE")
+          required_runtime=["CHECKLIST","Full Field Checklist","a.poolIntelligence||{}","HYPEMATCH","PROYECCIÓN DE LLEGADA","PACE PROJECTION","HYPEBOARD","CONTROL DE RIESGO","HYPEBET"]
+          missing=[x for x in required_runtime if x not in d]
+          if missing: raise SystemExit("HUB FUNCTIONAL CONTRACT MISSING: "+", ".join(missing))
+          print("FINAL HYPEPREDICT IS DATA-DRIVEN, DEMO-FREE, AND HUB-CONTRACT READY")
           PY
 
       - name: Build V0.1 debug APK
