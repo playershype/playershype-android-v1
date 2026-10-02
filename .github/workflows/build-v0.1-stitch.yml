@@ -596,7 +596,16 @@ jobs:
             matches=[p for p in root6.rglob("code.html") if p.parent.name==key]
             if len(matches)!=1:
               raise SystemExit(f"Expected exactly one Expansion 06 screen for {key}, found {len(matches)}: {matches}; available={[p.parent.name for p in root6.rglob('code.html')]}")
-            shutil.copy2(matches[0], EXP/out)
+            src=matches[0]
+            shutil.copy2(src, EXP/out)
+            # Preserve Stitch screen-local media referenced by code.html (logo/photos/etc).
+            # Previous builds copied only HTML, leaving relative image src paths broken in the APK.
+            for media_dir_name in ("media","images","assets"):
+              media_dir=src.parent/media_dir_name
+              if media_dir.exists() and media_dir.is_dir():
+                dst=EXP/media_dir_name
+                dst.mkdir(parents=True,exist_ok=True)
+                shutil.copytree(media_dir,dst,dirs_exist_ok=True)
           exp6_routes={
             "splash.html":{"ENTRAR":"../index.html","CONTINUAR":"../index.html"},
             "vip-secret-room.html":{"PERFIL":"vip-profile-active.html","MANADA":"manada.html"},
@@ -2501,6 +2510,20 @@ jobs:
         run: |
           node --check app/src/main/assets/remote-config.js
           node --check app/src/main/assets/predict-dashboard.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          splash=Path("app/src/main/assets/expansion/splash.html")
+          s=splash.read_text(encoding="utf-8",errors="ignore")
+          refs=re.findall(r'<img[^>]+src=["\\\']([^"\\\']+)["\\\']',s,re.I)
+          missing=[]
+          for ref in refs:
+              if ref.startswith(("http://","https://","data:")): continue
+              p=(splash.parent/ref).resolve()
+              if not p.exists(): missing.append(ref)
+          if missing: raise SystemExit("Splash image assets missing: "+", ".join(missing))
+          print("SPLASH IMAGE ASSETS VERIFIED")
+          PY
           echo "PACKAGED USER RUNTIME JAVASCRIPT VERIFIED"
       - name: Final restore canonical HypePredict runtime
         run: |
