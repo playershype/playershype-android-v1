@@ -46,3 +46,17 @@
 .weather-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:0 10px 10px}.weather-metrics .card{padding:8px}.weather-metrics .val{font-size:11px}
 .weather-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border-top:1px solid #173a57;color:#7892a9;font-size:8px}.weather-foot button{flex:none;border:1px solid #27506e;border-radius:8px;background:#0b2740;color:#55dbf6;padding:7px 9px;font-size:8px;font-weight:950}
 @media(max-width:520px){.jornada-status{grid-template-columns:1fr 1fr}.jornada-status>div:first-child{grid-column:1/-1}.weather-metrics{grid-template-columns:repeat(2,1fr)}.weather-main>strong{font-size:38px}}
+
+/* Real-device QA: denser weather metrics + restored silks identity */
+.weather-metrics .card{min-height:78px!important;padding:12px 11px!important;display:flex!important;flex-direction:column;justify-content:center}
+.weather-metrics .lab{font-size:10px!important;line-height:1.15!important}
+.weather-metrics .val{margin-top:7px!important;font-size:17px!important;line-height:1.15!important}
+.profile-silks{min-width:78px!important}
+.profile-silks .silk.big{position:relative!important;width:68px!important;height:62px!important;min-width:68px!important;overflow:visible!important;border-radius:8px 8px 15px 15px!important}
+.profile-silks .silk.big .silkbody{left:15px!important;right:15px!important;top:8px!important;bottom:7px!important;border-width:3px!important}
+.profile-silks .silk.big .silksleeve{position:absolute;display:block;top:9px;width:19px;height:31px;background:inherit;border:2px solid currentColor;opacity:.82;z-index:0}
+.profile-silks .silk.big .silksleeve.left{left:-13px;transform:skewY(18deg);border-radius:8px 3px 8px 10px}
+.profile-silks .silk.big .silksleeve.right{right:-13px;transform:skewY(-18deg);border-radius:3px 8px 10px 8px}
+.profile-silks .silk.big .silknum{z-index:2;font-size:11px!important}
+.profile-silks small{margin-top:4px;font-size:9px!important}
+@media(max-width:520px){.weather-metrics .card{min-height:76px!important}.weather-metrics .lab{font-size:10px!important}.weather-metrics .val{font-size:18px!important}}
