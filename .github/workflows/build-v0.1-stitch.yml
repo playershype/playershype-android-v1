@@ -152,6 +152,12 @@ jobs:
           PY
       - name: Install Android SDK 36
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Preserve canonical data-driven HypePredict runtime
+        run: |
+          cp app/src/main/assets/predict.html /tmp/playershype-canonical-predict.html
+          test -s /tmp/playershype-canonical-predict.html
+          grep -q 'ph-remote-root' /tmp/playershype-canonical-predict.html
+
       - name: Install official Stitch V0.1 screens
         run: |
           set -euxo pipefail
@@ -170,6 +176,12 @@ jobs:
           cp "$HOME_HTML" app/src/main/assets/index.html
           cp "$TRACKS_HTML" app/src/main/assets/tracks.html
           cp "$PREDICT_HTML" app/src/main/assets/predict.html
+          # HypePredict's Stitch screen is visual reference only. Runtime must be data-driven.
+          cp /tmp/playershype-canonical-predict.html app/src/main/assets/predict.html
+          grep -q 'ph-remote-root' app/src/main/assets/predict.html
+          if grep -Eqi 'MI HERMANO LUIS|CL[ÁA]SICO SAN JER[ÓO]NIMO|ALGORITMO V4\\.2' app/src/main/assets/predict.html; then
+            echo "Demo HypePredict leaked into operational runtime" >&2; exit 1
+          fi
           python3 - <<'PY'
           from pathlib import Path
           files = {
