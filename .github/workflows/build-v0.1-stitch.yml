@@ -2678,7 +2678,7 @@ jobs:
               if bad.lower() in html.lower(): raise SystemExit(name+" demo leakage: "+bad)
           if 'href="predict.html"' in tracks: raise SystemExit("Track Hub contains duplicate direct Predict nav")
           for name,html in [("tracks",tracks),("predict",predict)]:
-            if "<style" in html.lower(): raise SystemExit(name+" retained Stitch page CSS after canonicalization")
+            if "<style" in html.lower(): raise SystemExit(name+" retained inline Stitch page CSS after canonicalization")\n            if "stylesheet" in html.lower(): raise SystemExit(name+" retained external Stitch stylesheet after canonicalization")
           required_remote=["function renderTracks(c)","predict.html?track=","function renderPredict(c)","window.onPlayersHypeConfigState"]
           missing=[x for x in required_remote if x not in remote]
           if missing: raise SystemExit("Remote operational runtime incomplete: "+", ".join(missing))
