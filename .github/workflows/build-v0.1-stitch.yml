@@ -651,6 +651,24 @@ jobs:
             bridge=f"""<script>document.addEventListener('click',function(e){{const el=e.target.closest('a,button');if(!el)return;const t=(el.innerText||el.textContent||'').trim().toUpperCase();{cases}}});</script>"""
             s=s.replace("</body>",bridge+"\n</body>") if "</body>" in s else s+bridge
             p.write_text(s,encoding="utf-8")
+          # Expansion 06 media hardening.
+          # Keep startup branding offline-safe even when Stitch exported a remote/missing logo.
+          p=EXP/"splash.html"
+          s=p.read_text(encoding="utf-8")
+          import re
+          imgs=list(re.finditer(r'<img\\b[^>]*>',s,re.I))
+          if imgs:
+            tag=imgs[0].group(0)
+            srcm=re.search(r'src=["\\\']([^"\\\']+)["\\\']',tag,re.I)
+            src=srcm.group(1).strip() if srcm else ""
+            local_ok=False
+            if src and not src.startswith(("http://","https://","data:")):
+              local_ok=(p.parent/src).resolve().exists()
+            if not local_ok:
+              replacement='<div data-ph-packaged-logo role="img" aria-label="PlayersHype Official Logo" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font:900 clamp(30px,8vw,58px)/1 Arial,sans-serif;letter-spacing:-.055em;color:#f5f9ff;text-align:center">Players<span style="color:#55dbf6">Hype</span></div>'
+              s=s[:imgs[0].start()]+replacement+s[imgs[0].end():]
+              p.write_text(s,encoding="utf-8")
+
           # Expansion 06 structural entry points.
           # Root Home references Splash as the official startup state; MainActivity may promote it to first load later.
           p=Path("app/src/main/assets/index.html"); s=p.read_text(encoding="utf-8")
@@ -2553,7 +2571,11 @@ jobs:
               p=(splash.parent/ref).resolve()
               if not p.exists(): missing.append(ref)
           if missing: raise SystemExit("Splash image assets missing: "+", ".join(missing))
-          print("SPLASH IMAGE ASSETS VERIFIED")
+          remote=[ref for ref in refs if ref.startswith(("http://","https://"))]
+          if remote: raise SystemExit("Splash still depends on remote image assets: "+", ".join(remote))
+          if not refs and 'data-ph-packaged-logo' not in s:
+              raise SystemExit("Splash has neither packaged image nor packaged logo fallback")
+          print("SPLASH BRAND ASSET VERIFIED: offline-safe")
           PY
           echo "PACKAGED USER RUNTIME JAVASCRIPT VERIFIED"
       - name: Final restore canonical HypePredict runtime
