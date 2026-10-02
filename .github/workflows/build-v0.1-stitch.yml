@@ -2515,6 +2515,20 @@ jobs:
           grep -q 'ph-remote-root' app/src/main/assets/predict.html
           node --check app/src/main/assets/predict-dashboard.js
 
+      - name: Guard final HypePredict against Stitch demo leakage
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/predict.html").read_text(encoding="utf-8",errors="ignore")
+          d=Path("app/src/main/assets/predict-dashboard.js").read_text(encoding="utf-8",errors="ignore")
+          bad=["MI HERMANO LUIS","CLÁSICO SAN JERÓNIMO","CLASICO SAN JERONIMO","ALGORITMO V4.2"]
+          leaked=[x for x in bad if x in p.upper() or x in d.upper()]
+          if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO FINAL APK: "+", ".join(leaked))
+          if 'ph-remote-root' not in p: raise SystemExit("canonical HypePredict root missing")
+          if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
+          print("FINAL HYPEPREDICT IS DATA-DRIVEN AND DEMO-FREE")
+          PY
+
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
