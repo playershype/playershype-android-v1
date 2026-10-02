@@ -1,6 +1,23 @@
 (function(){
 'use strict';
 if(!location.pathname.toLowerCase().endsWith('/predict.html'))return;
+const __diagRoot=document.getElementById('ph-remote-root');
+function __diag(msg){
+ const r=document.getElementById('ph-remote-root')||__diagRoot;
+ if(!r)return;
+ let d=document.getElementById('ph-predict-diag');
+ if(!d){d=document.createElement('div');d.id='ph-predict-diag';d.style.cssText='margin:12px 20px;padding:12px;border:1px solid #49647d;border-radius:10px;color:#d9ecff;background:#102235;font:700 12px Arial,sans-serif;white-space:pre-wrap';r.prepend(d)}
+ d.textContent+=(d.textContent?'\n':'')+msg;
+}
+__diag('1 SCRIPT OK');
+__diag(window.PlayersHypeConfig?'2 BRIDGE OK':'2 BRIDGE MISSING');
+if(window.PlayersHypeConfig){
+ try{
+  const __raw=window.PlayersHypeConfig.getConfig();
+  __diag(__raw?'3 CONFIG RAW OK':'3 CONFIG EMPTY');
+  if(__raw){const __c=JSON.parse(String(__raw));__diag(__c&&__c.raceDays?'4 CONFIG JSON OK':'4 CONFIG JSON INVALID')}
+ }catch(__e){__diag('4 CONFIG ERROR: '+(__e&&__e.message?__e.message:String(__e)))}
+}
 const __root=document.getElementById('ph-remote-root');
 if(__root&&!__root.innerHTML.trim())__root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">Cargando HypePredict...</div>';
 if(!window.PlayersHypeConfig){if(__root)__root.innerHTML='<div style="padding:24px;color:#f5f9ff;font:700 16px Arial,sans-serif">HypePredict no pudo conectar con la configuración. Regresa a Track Hub e intenta nuevamente.</div>';return;}
