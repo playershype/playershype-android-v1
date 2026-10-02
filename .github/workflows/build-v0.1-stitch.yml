@@ -2670,7 +2670,7 @@ jobs:
           required_remote=["function renderTracks(c)","predict.html?track=","function renderPredict(c)","window.onPlayersHypeConfigState"]
           missing=[x for x in required_remote if x not in remote]
           if missing: raise SystemExit("Remote operational runtime incomplete: "+", ".join(missing))
-          required_dash=["PlayersHypeDashboardRender","Pace Projection","HypeBoard","HypeMatch"]
+          required_dash=["PlayersHypeDashboardRender","PACE PROJECTION","HYPEBOARD","HypeMatch"]
           missing=[x for x in required_dash if x not in dash]
           if missing: raise SystemExit("HypePredict dashboard runtime incomplete: "+", ".join(missing))
           if 'asset("remote-config.js")' not in main or 'asset("predict-dashboard.js")' not in main:
