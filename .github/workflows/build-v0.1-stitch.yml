@@ -2616,23 +2616,25 @@ jobs:
           test -s app/src/main/assets/predict-dashboard.css
           python3 - <<'PY'
           from pathlib import Path
-          p=Path("app/src/main/assets/predict.html")
-          s=p.read_text(encoding="utf-8",errors="ignore")
-          # Preserve the Stitch shell/navigation, but remove hard-coded demo body.
-          body_start=s.lower().find("<body")
-          if body_start < 0: raise SystemExit("predict.html body missing")
-          body_open=s.find(">",body_start)
-          body_end=s.lower().rfind("</body>")
-          if body_open < 0 or body_end < 0: raise SystemExit("predict.html body malformed")
-          shell='''<main id="ph-remote-root"></main>
+          def canonicalize(path,shell):
+              p=Path(path); s=p.read_text(encoding="utf-8",errors="ignore")
+              body_start=s.lower().find("<body")
+              if body_start < 0: raise SystemExit(path+" body missing")
+              body_open=s.find(">",body_start); body_end=s.lower().rfind("</body>")
+              if body_open < 0 or body_end < 0: raise SystemExit(path+" body malformed")
+              p.write_text(s[:body_open+1]+shell+s[body_end:],encoding="utf-8")
+          canonicalize("app/src/main/assets/predict.html",'''<main id="ph-remote-root"></main>
+          <nav class="nav">
+            <a href="tracks.html">TRACK HUB</a>
+            <a href="index.html">HOME</a>
+            <a href="https://www.youtube.com/@playershype1">TV</a>
+          </nav>''')
+          canonicalize("app/src/main/assets/tracks.html",'''<main id="ph-remote-root"></main>
           <nav class="nav">
             <a href="index.html">HOME</a>
-            <a href="tracks.html">TRACKS</a>
-            <a class="on" href="predict.html">PREDICT</a>
+            <a class="on" href="tracks.html">TRACK HUB</a>
             <a href="https://www.youtube.com/@playershype1">TV</a>
-          </nav>'''
-          s=s[:body_open+1]+shell+s[body_end:]
-          p.write_text(s,encoding="utf-8")
+          </nav>''')
           PY
           # Prove the operational Track Hub / HypePredict surfaces contain no known Stitch demo race data.
           for page in app/src/main/assets/predict.html app/src/main/assets/tracks.html; do
@@ -2641,6 +2643,9 @@ jobs:
             ! grep -qi "Algoritmo V4.2" "$page"
           done
           grep -q 'id="ph-remote-root"' app/src/main/assets/predict.html
+          grep -q 'id="ph-remote-root"' app/src/main/assets/tracks.html
+          ! grep -qi '>PREDICT<' app/src/main/assets/predict.html
+          ! grep -qi 'href="predict.html"' app/src/main/assets/tracks.html
           # MainActivity injects both runtimes on predict.html.
           grep -q 'asset("remote-config.js")' app/src/main/java/com/playershype/app/MainActivity.java
           grep -q 'asset("predict-dashboard.js")' app/src/main/java/com/playershype/app/MainActivity.java
