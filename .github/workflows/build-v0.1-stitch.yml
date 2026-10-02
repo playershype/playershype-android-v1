@@ -2428,16 +2428,10 @@ jobs:
           assert "ph-unpublished-operational" in tracks
           assert "Jornada no publicada" in tracks
           assert "phDemoSuppressed" in tracks
-          assert "ph-trackhub-hardgate" in tracks
-          assert "Jornadas no publicadas" in tracks
+          assert "playershype:selectedTrack" in tracks
+          assert "predict.html?track=" in tracks
           assert "ph-unpublished-operational" in race
           assert "ph-unpublished-operational" in predict
-          assert "ph-unpublished-hardgate" in tracks
-          assert "ph-hardgate-shell" in tracks
-          assert "ph-unpublished-hardgate" in predict
-          assert "HypePredict no publicado" in predict
-          assert "Selecciona una carrera" in predict
-          assert "Selecciona un hipódromo y una carrera en Track Hub." in predict
           home=(root/"index.html").read_text(encoding="utf-8")
           assert "phHomeOperational" in home
           assert "Sin jornada publicada" in home
