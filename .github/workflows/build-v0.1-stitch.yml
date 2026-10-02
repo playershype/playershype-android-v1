@@ -2505,7 +2505,21 @@ jobs:
       - name: Final restore canonical HypePredict runtime
         run: |
           cp /tmp/playershype-canonical-predict.html app/src/main/assets/predict.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("app/src/main/assets/predict.html")
+          s=p.read_text(encoding="utf-8")
+          marker='<script src="predict-dashboard.js"></script>'
+          runtime='<script src="remote-config.js"></script>'+marker
+          if marker not in s:
+              raise SystemExit("canonical predict dashboard script marker missing")
+          if 'src="remote-config.js"' not in s:
+              s=s.replace(marker,runtime)
+          p.write_text(s,encoding="utf-8")
+          PY
           grep -q 'ph-remote-root' app/src/main/assets/predict.html
+          grep -q 'src="remote-config.js"' app/src/main/assets/predict.html
+          node --check app/src/main/assets/remote-config.js
           node --check app/src/main/assets/predict-dashboard.js
 
       - name: Guard final HypePredict against Stitch demo leakage
@@ -2526,7 +2540,9 @@ jobs:
           if "predict.html?track=" not in tracks:
               raise SystemExit("TRACK HUB CANONICAL PREDICT ROUTE MISSING")
           if 'ph-remote-root' not in p: raise SystemExit("canonical HypePredict root missing")
+          if 'src="remote-config.js"' not in p: raise SystemExit("canonical remote runtime is not loaded by predict.html")
           if 'predict-dashboard.js' not in p: raise SystemExit("canonical HypePredict renderer is not loaded by predict.html")
+          if p.index('src="remote-config.js"') > p.index('src="predict-dashboard.js"'): raise SystemExit("remote runtime must load before HypePredict renderer")
           if "window.PlayersHypeDashboardRender" not in d: raise SystemExit("canonical HypePredict renderer missing")
           required_runtime=["CHECKLIST","Full Field Checklist","a.poolIntelligence||{}","HYPEMATCH","PROYECCIÓN DE LLEGADA","PACE PROJECTION","HYPEBOARD","CONTROL DE RIESGO","HYPEBET"]
           missing=[x for x in required_runtime if x not in d]
@@ -2569,6 +2585,10 @@ jobs:
               raise SystemExit("APK Track Hub canonical HypePredict route missing")
           if 'ph-remote-root' not in predict:
               raise SystemExit("APK canonical HypePredict root missing")
+          if 'src="remote-config.js"' not in predict:
+              raise SystemExit("APK predict.html does not load remote runtime")
+          if predict.index('src="remote-config.js"') > predict.index('src="predict-dashboard.js"'):
+              raise SystemExit("APK remote runtime loads after HypePredict renderer")
           if "window.PlayersHypeDashboardRender" not in dash:
               raise SystemExit("APK HypePredict renderer missing")
           print("ACTUAL APK OPERATIONAL HYPEPREDICT ROUTE VERIFIED")
