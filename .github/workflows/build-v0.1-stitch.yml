@@ -2731,6 +2731,31 @@ jobs:
           print("ADMIN CANONICAL PUBLICATION PREVIEW CONTRACT VERIFIED")
           PY
 
+      - name: Audit Admin restore then edit preservation contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          shell=Path("admin-app/app/src/main/assets/admin-shell.js").read_text(encoding="utf-8")
+          required=[
+              "readyCandidate=c",
+              "localStorage.setItem('playershypeAdminImportedConfig',JSON.stringify(c))",
+              "const base=(readyCandidate&&readyCandidate.schemaVersion?readyCandidate:",
+              "readyCandidate=Object.assign({},base,d,",
+              "readyCandidate.publishScope='control-center'",
+          ]
+          missing=[x for x in required if x not in shell]
+          if missing:
+              raise SystemExit("Restore/edit preservation contract missing: "+", ".join(missing))
+          forbidden=[
+              "readyCandidate=Object.assign({},BASE_CONFIG,d,",
+              "readyCandidate=Object.assign({},buildCandidate(),d,",
+          ]
+          bad=[x for x in forbidden if x in shell]
+          if bad:
+              raise SystemExit("Restore/edit can replace restored canonical package: "+", ".join(bad))
+          print("ADMIN RESTORE -> EDIT PRESERVATION CONTRACT VERIFIED")
+          PY
+
       - name: Build separate Admin V0.1 APK
         run: |
           ./gradlew -p admin-app :app:assembleDebug --no-daemon
