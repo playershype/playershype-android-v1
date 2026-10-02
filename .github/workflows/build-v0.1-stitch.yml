@@ -2506,6 +2506,37 @@ jobs:
           if orphan:
             raise SystemExit("Critical orphan pages: "+", ".join(orphan))
           PY
+      - name: Package splash remote images locally
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, urllib.request, urllib.parse, mimetypes
+          p=Path("app/src/main/assets/expansion/splash.html")
+          s=p.read_text(encoding="utf-8",errors="ignore")
+          out=p.parent/"media"
+          out.mkdir(parents=True,exist_ok=True)
+          refs=re.findall(r'<img[^>]+src=["\\\']([^"\\\']+)["\\\']',s,re.I)
+          remote=[u for u in refs if u.startswith(("http://","https://"))]
+          for i,u in enumerate(remote,1):
+              ext=Path(urllib.parse.urlparse(u).path).suffix.lower()
+              if ext not in {".png",".jpg",".jpeg",".webp",".gif",".svg"}: ext=".png"
+              dst=out/f"splash-packaged-{i}{ext}"
+              req=urllib.request.Request(u,headers={"User-Agent":"Mozilla/5.0"})
+              try:
+                  with urllib.request.urlopen(req,timeout=30) as r:
+                      data=r.read()
+                  if len(data)<128: raise RuntimeError("downloaded asset is empty")
+                  dst.write_bytes(data)
+              except Exception as e:
+                  raise SystemExit(f"Cannot package splash image {u}: {e}")
+              s=s.replace(u,"media/"+dst.name)
+          p.write_text(s,encoding="utf-8")
+          print(f"SPLASH REMOTE IMAGES PACKAGED: {len(remote)}")
+          PY
+          if grep -Eiq '<img[^>]+src=["'\'' ]*https?://' app/src/main/assets/expansion/splash.html; then
+            echo "Remote splash image remains after packaging" >&2
+            exit 1
+          fi
       - name: Validate packaged runtime JavaScript
         run: |
           node --check app/src/main/assets/remote-config.js
