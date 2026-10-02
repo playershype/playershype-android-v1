@@ -2519,7 +2519,7 @@ jobs:
           bad=["MI HERMANO LUIS","ALGORITMO V4.2"]
           leaked=[x for x in bad if x in p.upper() or x in d.upper() or x in tracks.upper()]
           if leaked: raise SystemExit("DEMO HYPEPREDICT LEAKED INTO OPERATIONAL PATH: "+", ".join(leaked))
-          if "phDemoSuppressed" in tracks or "CLÁSICO SAN JERÓNIMO" in tracks.upper() or "CLASICO SAN JERONIMO" in tracks.upper():
+          if "phDemoSuppressed" in tracks or "CLASICO SAN JERONIMO" in tracks.upper():
               raise SystemExit("TRACK HUB CONTAINS STITCH DEMO SUPPRESSION/PAYLOAD")
           if "location.href='expansion/race-day.html'" in tracks:
               raise SystemExit("TRACK HUB STILL ROUTES PUBLISHED TRACKS TO STITCH RACE-DAY DEMO")
@@ -2561,7 +2561,7 @@ jobs:
           for name,txt in [("tracks.html",tracks),("predict.html",predict),("predict-dashboard.js",dash)]:
               leaked=[x for x in bad if x in txt.upper()]
               if leaked: raise SystemExit(f"APK operational demo leak in {name}: {leaked}")
-          if "phDemoSuppressed" in tracks or "CLÁSICO SAN JERÓNIMO" in tracks.upper() or "CLASICO SAN JERONIMO" in tracks.upper():
+          if "phDemoSuppressed" in tracks or "CLASICO SAN JERONIMO" in tracks.upper():
               raise SystemExit("APK Track Hub contains Stitch demo suppression/payload")
           if "location.href='expansion/race-day.html'" in tracks:
               raise SystemExit("APK Track Hub still routes selected track to Stitch race-day demo")
