@@ -2622,20 +2622,22 @@ jobs:
               p=Path(path)
               original=p.read_text(encoding="utf-8",errors="ignore")
               import re
-              title=re.search(r"<title[^>]*>([\\s\\S]*?)</title>",original,re.I)
+              title=re.search(r"<title[^>]*>(.*?)</title>",original,re.I|re.S)
               title_text=title.group(1).strip() if title else "PlayersHype"
-              # Operational pages are intentionally rebuilt from a minimal clean
-              # document. No Stitch head/body/CSS survives into Track Hub/Predict.
-              doc='''<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>'''+title_text+'''</title>
-</head>
-<body>'''+shell+'''</body>
-</html>'''
-              p.write_text(doc,encoding="utf-8")
+              parts=[
+                  "<!doctype html>",
+                  '<html lang="es">',
+                  "<head>",
+                  '<meta charset="utf-8">',
+                  '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+                  "<title>"+title_text+"</title>",
+                  "</head>",
+                  "<body>",
+                  shell,
+                  "</body>",
+                  "</html>",
+              ]
+              p.write_text("\\n".join(parts),encoding="utf-8")
           canonicalize("app/src/main/assets/predict.html",'''<main id="ph-remote-root"></main>
           <nav class="nav">
             <a href="tracks.html">TRACK HUB</a>
