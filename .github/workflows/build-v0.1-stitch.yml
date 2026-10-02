@@ -2509,6 +2509,12 @@ jobs:
           node --check app/src/main/assets/remote-config.js
           node --check app/src/main/assets/predict-dashboard.js
           echo "PACKAGED USER RUNTIME JAVASCRIPT VERIFIED"
+      - name: Final restore canonical HypePredict runtime
+        run: |
+          cp /tmp/playershype-canonical-predict.html app/src/main/assets/predict.html
+          grep -q 'ph-remote-root' app/src/main/assets/predict.html
+          node --check app/src/main/assets/predict-dashboard.js
+
       - name: Build V0.1 debug APK
         run: |
           chmod +x gradlew
