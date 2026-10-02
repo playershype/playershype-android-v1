@@ -2531,29 +2531,15 @@ jobs:
           import re
           p=Path("app/src/main/assets/expansion/splash.html")
           s=p.read_text(encoding="utf-8",errors="ignore")
-          imgs=list(re.finditer(r'<img\\b[^>]*>',s,re.I))
-          replaced=0
-          for m in reversed(imgs):
-              tag=m.group(0)
-              srcm=re.search(r'src=["\\\']([^"\\\']+)["\\\']',tag,re.I)
-              src=srcm.group(1).strip() if srcm else ""
-              local_ok=False
-              if src and not src.startswith(("http://","https://","data:")):
-                  local_ok=(p.parent/src).resolve().exists()
-              if src.startswith(("http://","https://")) or (src and not src.startswith("data:") and not local_ok):
-                  replacement='<div data-ph-packaged-logo role="img" aria-label="PlayersHype Official Logo" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;font:900 clamp(30px,8vw,58px)/1 Arial,sans-serif;letter-spacing:-.055em;color:#f5f9ff;text-align:center">Players<span style="color:#55dbf6">Hype</span></div>'
-                  s=s[:m.start()]+replacement+s[m.end():]
-                  replaced+=1
+          remote_pat=re.compile(r'https?://lh3\\.googleusercontent\\.com/[^"\\\'<>\\s]+',re.I)
+          urls=remote_pat.findall(s)
+          fallback='data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22800%22 height=%22400%22 viewBox=%220 0 800 400%22%3E%3Crect width=%22800%22 height=%22400%22 fill=%22%23081c2d%22/%3E%3Ctext x=%22400%22 y=%22220%22 text-anchor=%22middle%22 font-family=%22Arial,sans-serif%22 font-size=%2290%22 font-weight=%22900%22 fill=%22%23f5f9ff%22%3EPlayersHype%3C/text%3E%3C/svg%3E'
+          for u in set(urls):
+              s=s.replace(u,fallback)
           p.write_text(s,encoding="utf-8")
-          print(f"SPLASH INACCESSIBLE IMAGES REPLACED: {replaced}")
-          PY
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          s=Path("app/src/main/assets/expansion/splash.html").read_text(encoding="utf-8",errors="ignore")
-          refs=re.findall(r'<img[^>]+src=["\\\']([^"\\\']+)["\\\']',s,re.I)
-          remote=[u for u in refs if u.startswith(("http://","https://"))]
-          if remote: raise SystemExit("Remote splash image remains after fallback replacement: "+", ".join(remote))
+          print(f"SPLASH BLOCKED GOOGLE IMAGE URLS REPLACED: {len(set(urls))}")
+          remaining=re.findall(r'<img[^>]+src=["\\\'](https?://[^"\\\']+)["\\\']',s,re.I)
+          if remaining: raise SystemExit("Remote splash image remains: "+", ".join(remaining))
           PY
       - name: Validate packaged runtime JavaScript
         run: |
