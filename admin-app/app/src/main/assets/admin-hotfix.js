@@ -101,7 +101,7 @@ function horseProfile(h){
     owner:field(b,'Establo/propietario'),uniform:field(b,'Uniforme'),lastFive:field(b,'Últimas cinco'),
     daysSinceRace:field(b,'Días sin correr'),workouts:field(b,'Briseos disponibles'),paceProfile:field(b,'Perfil'),
     powerRating:field(b,'Power/Rating'),distance:field(b,'Distancia'),value:field(b,'Value'),
-    reading:field(b,'LECTURA',['USO']),use:field(b,'USO',[])
+    reading:field(b,'LECTURA',['USO']),use:field(b,'USO',['CONTROL DE RIESGO','POOL INTELLIGENCE','HYPEBET','CONCLUSIÓN DE JORNADA','HYPEPICK 6','VEREDICTO FINAL'])
   };
 }
 function raceMeta(sectionText){
