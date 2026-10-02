@@ -8,7 +8,7 @@ const B=window.PlayersHypeConfig,ROOT='ph-remote-root',STYLE='ph-dashboard-v2-st
 const E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const C=s=>String(s==null?'':s).replace(/\r/g,'').trim();
 const esc=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-function cfg(){try{return JSON.parse(B.getConfig()||'null')}catch(e){return null}}
+function cfg(){try{const raw=B.getConfig();if(!raw)return null;if(typeof raw==='string')return JSON.parse(raw);if(typeof raw==='object')return JSON.parse(String(raw));return null}catch(e){return null}}
 function weather(){try{return JSON.parse(B.getWeather?B.getWeather()||'null':'null')}catch(e){return null}}
 function wdir(d){if(!Number.isFinite(+d))return'';const a=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return a[Math.round((+d%360)/22.5)%16]}
 function wdesc(c){c=+c;if(c===0)return'Despejado';if(c===1)return'Mayormente despejado';if(c===2)return'Parcialmente nublado';if(c===3)return'Nublado';if([45,48].includes(c))return'Niebla';if(c>=51&&c<=57)return'Llovizna';if(c>=61&&c<=67)return'Lluvia';if(c>=71&&c<=77)return'Nieve';if(c>=80&&c<=82)return'Aguaceros';if(c>=95)return'Tormentas';return'Condición disponible'}
