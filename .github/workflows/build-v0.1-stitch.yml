@@ -5,6 +5,11 @@ on:
     branches: [v0.1-stitch-clean]
 permissions:
   contents: read
+
+concurrency:
+  group: playershype-v01-stitch-clean
+  cancel-in-progress: true
+
 jobs:
   android:
     runs-on: ubuntu-latest
