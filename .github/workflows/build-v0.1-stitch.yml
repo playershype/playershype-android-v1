@@ -814,6 +814,9 @@ jobs:
             try{localStorage.setItem('playershype:selectedTrack',JSON.stringify(ctx));}catch(_){}
             window.PLAYERSHYPE_SELECTED_TRACK=ctx;
             window.dispatchEvent(new CustomEvent('playershype:track-selected',{detail:ctx}));
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            location.href='expansion/race-day.html';
           },true);
           </script>"""
           s=s.replace("</body>",select_bridge+"\n</body>") if "</body>" in s else s+select_bridge
@@ -1610,6 +1613,13 @@ jobs:
             }
             window.addEventListener('playershype:config',()=>setTimeout(context,0));
             window.addEventListener('playershype:analysis',()=>setTimeout(context,0));
+            document.addEventListener('click',function(e){
+              const shell=document.getElementById('ph-hardgate-shell');
+              const track=shell&&shell.querySelector('.track');
+              if(!track||!(e.target===track||track.contains(e.target)))return;
+              e.preventDefault();e.stopImmediatePropagation();
+              location.href='expansion/race-day.html';
+            },true);
             setTimeout(context,600);
           })();
           </script>"""
