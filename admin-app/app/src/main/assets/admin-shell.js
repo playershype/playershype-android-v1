@@ -5,7 +5,7 @@ const style=document.createElement('style');style.textContent=`
 .ph-shell button{display:inline-block;width:auto;padding:10px 13px;margin-right:7px;border-radius:12px;background:#12273b;color:#9fb0c1;font-size:11px}
 .ph-shell button.on{background:#b7e600;color:#07111d}
 .ph-module{display:none}.ph-module.on{display:block}
-.ph-roadmap{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.ph-roadmap div{padding:12px;border-radius:13px;background:#071727;border:1px solid #203b55}.ph-roadmap b{display:block;font-size:12px}.ph-home-module{cursor:pointer}.ph-home-module:after{content:'ABRIR';display:block;margin-top:8px;color:#b7e600;font-size:9px;font-weight:900}.ph-roadmap span{font-size:10px;color:#8fa0b2}.ph-field{display:block;margin:11px 0}.ph-field span{display:block;margin-bottom:5px;color:#8fa0b2;font-size:10px;font-weight:800}.ph-field input,.ph-field select{width:100%;padding:12px;border:1px solid #29445d;border-radius:11px;background:#071727;color:#fff}.ph-check{display:block;margin:10px 0;color:#c6d4df;font-size:11px}.ph-check input{width:auto;margin-right:7px}.ph-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin:9px 0;padding:10px;border:1px solid #203b55;border-radius:12px;background:#071727}.ph-item span{color:#b7e600}
+.ph-roadmap{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.ph-roadmap div,.ph-roadmap .ph-home-module{padding:12px;border-radius:13px;background:#071727;border:1px solid #203b55;text-align:left;color:#fff;width:100%;min-height:110px}.ph-roadmap b{display:block;font-size:12px}.ph-home-module{cursor:pointer}.ph-home-module:after{content:'ABRIR';display:block;margin-top:8px;color:#b7e600;font-size:9px;font-weight:900}.ph-roadmap span{font-size:10px;color:#8fa0b2}.ph-field{display:block;margin:11px 0}.ph-field span{display:block;margin-bottom:5px;color:#8fa0b2;font-size:10px;font-weight:800}.ph-field input,.ph-field select{width:100%;padding:12px;border:1px solid #29445d;border-radius:11px;background:#071727;color:#fff}.ph-check{display:block;margin:10px 0;color:#c6d4df;font-size:11px}.ph-check input{width:auto;margin-right:7px}.ph-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;margin:9px 0;padding:10px;border:1px solid #203b55;border-radius:12px;background:#071727}.ph-item span{color:#b7e600}
 `;document.head.appendChild(style);
 const body=document.body,hero=document.querySelector('.hero'),ready=document.querySelector('#readyCard');
 if(!hero||!ready)return;
@@ -26,7 +26,7 @@ const defs=[
 const nav=document.createElement('nav');nav.className='ph-shell';
 function card(id,title,desc){const s=document.createElement('section');s.id='mod-'+id;s.className='card ph-module';s.innerHTML='<p class="readyTitle">'+title+'</p><p>'+desc+'</p><div class="status">MÓDULO REGISTRADO · pendiente de completar y validar end-to-end.</div>';body.appendChild(s);return s}
 const home=card('inicio','Admin Control Center','Edita PlayersHype desde un solo lugar. Toca cualquier módulo para abrir sus controles.');
-home.querySelector('.status').outerHTML='<div class="ph-roadmap">'+defs.slice(1).map(x=>'<div class="ph-home-module" data-open="'+x[0]+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></div>').join('')+'</div>';
+home.querySelector('.status').outerHTML='<div class="ph-roadmap">'+defs.slice(1).map(x=>'<button type="button" class="ph-home-module" data-open="'+x[0]+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>').join('')+'</div>';
 for(const d of defs){if(d[0]!=='inicio'&&d[0]!=='hypepredict')card(...d)}
 
 function phDraft(){try{return JSON.parse(localStorage.getItem('playershypeAdminDraft')||'{}')}catch(e){return {}}}
@@ -83,6 +83,15 @@ function phEnsureModulePublishButtons(){
 phEnsureModulePublishButtons();
 
 defs.forEach(d=>{const b=document.createElement('button');b.textContent=d[1];b.dataset.mod=d[0];b.onclick=()=>{document.querySelectorAll('.ph-module').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.ph-shell button').forEach(x=>x.classList.remove('on'));const t=document.querySelector('#mod-'+d[0]);if(t)t.classList.add('on');b.classList.add('on');window.scrollTo(0,0)};nav.appendChild(b)});
-body.insertBefore(nav,hp);home.querySelectorAll('[data-open]').forEach(x=>x.onclick=()=>{const b=nav.querySelector('[data-mod="'+x.dataset.open+'"]');if(b)b.click()});const start=nav.querySelector('[data-mod="inicio"]');if(start){start.classList.add('on');const first=document.querySelector('#mod-inicio');if(first)first.classList.add('on')}if(window.phTrackHubMount)window.phTrackHubMount();
+body.insertBefore(nav,hp);
+function phOpenModule(id){
+  document.querySelectorAll('.ph-module').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.ph-shell button').forEach(x=>x.classList.remove('on'));
+  const target=document.getElementById('mod-'+id),tab=nav.querySelector('[data-mod="'+id+'"]');
+  if(!target){if(typeof status==='function')status('MÓDULO NO DISPONIBLE · '+id,'bad');return}
+  target.classList.add('on');if(tab)tab.classList.add('on');target.scrollIntoView({behavior:'smooth',block:'start'});
+}
+home.addEventListener('click',e=>{const x=e.target.closest('[data-open]');if(!x)return;e.preventDefault();e.stopPropagation();phOpenModule(x.dataset.open)});
+const start=nav.querySelector('[data-mod="inicio"]');if(start){start.classList.add('on');const first=document.querySelector('#mod-inicio');if(first)first.classList.add('on')}if(window.phTrackHubMount)window.phTrackHubMount();
 window.phAdminModules=defs.map(x=>x[0]);
 })();
