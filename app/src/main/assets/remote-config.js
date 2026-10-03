@@ -78,16 +78,7 @@
       if(t.image){const art=node('img','ph-track-art');art.src=t.image;art.alt='Arte de '+(t.name||'hipódromo');art.onerror=()=>art.remove();card.appendChild(art)}
       const copy=node('div','ph-track-copy');
       copy.appendChild(node('strong','',t.name));
-      const stateLabel=active?'PUBLICADO':'NO PUBLICADO';
       copy.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras'):'Sin jornada activa'));
-      if(t.location)copy.appendChild(node('small','',t.location));
-      copy.appendChild(node('small','',stateLabel+' · estado independiente de los demás hipódromos'));
-      if(active){
-        const a=(c.hypepredict&&c.hypepredict.analyses)||{};
-        const published=races.map(r=>{let x=a[r.id];if(!x){for(const k of Object.keys(a)){if(a[k]&&a[k].raceId===r.id){x=a[k];break}}}return x}).filter(Boolean);
-        const selectCount=published.filter(x=>x.quickHits&&x.quickHits.select).length;
-        copy.appendChild(node('small','',selectCount+' de '+races.length+' análisis HypePredict disponibles'));
-      }
       card.appendChild(copy);root.appendChild(card);
     });
     refreshButton(root);footer(root,c)
