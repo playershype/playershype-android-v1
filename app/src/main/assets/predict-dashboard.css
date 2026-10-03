@@ -63,3 +63,5 @@
 
 /* Unknown official silks: explicit neutral state; never invent stable colors. */
 .silk.silk-unknown{background:#17314a!important;color:#9eb2c4!important;border-style:dashed!important}.silk.silk-unknown .silkbody{opacity:.35!important}.silk.silk-unknown .silksleeve{opacity:.35!important}
+
+.track-switch{margin:7px 0 5px;position:relative;max-width:100%}.track-switch label{display:block;margin-bottom:4px;color:#6f899f;font-size:8px;font-weight:900;letter-spacing:.12em}.track-switch select{width:100%;appearance:auto;border:1px solid #285477;border-radius:12px;background:#071a2d;color:#f5f9ff;padding:9px 11px;font:900 25px/1.15 system-ui,-apple-system,Segoe UI,sans-serif;outline:none}.track-switch select:focus{border-color:#55dbf6;box-shadow:0 0 0 2px rgba(85,219,246,.15)}@media(max-width:430px){.track-switch select{font-size:24px;padding-right:8px}}
