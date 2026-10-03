@@ -24,7 +24,7 @@
       #${ROOT_ID} *{box-sizing:border-box} #${ROOT_ID} .ph-kicker{font-size:11px;font-weight:900;letter-spacing:.12em;color:#21d7ff} #${ROOT_ID} h2{margin:7px 0 4px;font-size:25px;line-height:1.08} #${ROOT_ID} p{margin:5px 0;color:#9eb2c5;line-height:1.42}
       #${ROOT_ID} .ph-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0} #${ROOT_ID} .ph-metric{background:#041322;border:1px solid #1c3853;border-radius:14px;padding:11px} #${ROOT_ID} .ph-metric b{display:block;font-size:17px} #${ROOT_ID} .ph-metric span{display:block;margin-top:3px;color:#7f96ad;font-size:9px;font-weight:900;letter-spacing:.04em}
       #${ROOT_ID} .ph-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0} #${ROOT_ID} button,#${ROOT_ID} a.ph-btn{appearance:none;border:0;border-radius:12px;padding:11px 13px;background:#17314a;color:#59d8f5;font-weight:900;font-size:12px;text-decoration:none} #${ROOT_ID} button.ph-primary{background:#b7e600;color:#07111d}
-      #${ROOT_ID} .ph-track{display:block;margin-top:9px;padding:13px;border:1px solid #1d3c59;border-radius:15px;background:#051526;color:inherit;text-decoration:none} #${ROOT_ID} .ph-track strong{display:block;font-size:16px} #${ROOT_ID} .ph-track small{display:block;margin-top:4px;color:#91a7bb}
+      #${ROOT_ID} .ph-track{display:block;margin-top:9px;padding:0;border:1px solid #1d3c59;border-radius:18px;background:#051526;color:inherit;text-decoration:none;overflow:hidden} #${ROOT_ID} .ph-track-art{width:100%;height:150px;object-fit:cover;display:block;background:#0a2238} #${ROOT_ID} .ph-track-copy{padding:14px} #${ROOT_ID} .ph-track strong{display:block;font-size:18px} #${ROOT_ID} .ph-track small{display:block;margin-top:5px;color:#91a7bb}
       #${ROOT_ID} details{margin-top:10px;border:1px solid #1d3c59;border-radius:15px;background:#051526;overflow:hidden} #${ROOT_ID} summary{cursor:pointer;padding:13px;font-weight:900;list-style:none} #${ROOT_ID} summary::-webkit-details-marker{display:none} #${ROOT_ID} .ph-race-body{padding:0 13px 13px} #${ROOT_ID} .ph-hits{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0 10px} #${ROOT_ID} .ph-hit{padding:9px;border-radius:11px;background:#0a2238;border:1px solid #173b5a} #${ROOT_ID} .ph-hit span{display:block;color:#7f98af;font-size:9px;font-weight:900} #${ROOT_ID} .ph-hit b{display:block;margin-top:3px;font-size:12px}
       #${ROOT_ID} .ph-horse{display:grid;grid-template-columns:38px 1fr auto;gap:9px;align-items:start;padding:10px 0;border-bottom:1px solid #15324b;font-size:12px} #${ROOT_ID} .ph-horse:last-child{border-bottom:0} #${ROOT_ID} .ph-silk{width:34px;height:34px;border-radius:9px;border:2px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center;background:#17314a;font-weight:950;color:#fff} #${ROOT_ID} .ph-horse-main b{display:block} #${ROOT_ID} .ph-horse-main small{display:block;margin-top:3px;color:#8fa6ba;line-height:1.35} #${ROOT_ID} .ph-score{color:#b7ff39;font-weight:950;white-space:nowrap} #${ROOT_ID} .ph-rev{margin-top:12px;color:#6f8498;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
       @media(max-width:430px){#${ROOT_ID} .ph-meta{grid-template-columns:1fr 1fr}#${ROOT_ID} .ph-hits{grid-template-columns:1fr}}
@@ -75,17 +75,20 @@
       const active=races.length>0&&d.status!=='unpublished';
       const card=node(active?'a':'div','ph-track');
       if(active)card.href='predict.html?track='+encodeURIComponent(t.id);
-      card.appendChild(node('strong','',t.name));
+      if(t.image){const art=node('img','ph-track-art');art.src=t.image;art.alt='Arte de '+(t.name||'hipódromo');art.onerror=()=>art.remove();card.appendChild(art)}
+      const copy=node('div','ph-track-copy');
+      copy.appendChild(node('strong','',t.name));
       const stateLabel=active?'PUBLICADO':'NO PUBLICADO';
-      card.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras'):'Sin jornada activa'));
-      card.appendChild(node('small','',stateLabel+' · estado independiente de los demás hipódromos'));
+      copy.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras'):'Sin jornada activa'));
+      if(t.location)copy.appendChild(node('small','',t.location));
+      copy.appendChild(node('small','',stateLabel+' · estado independiente de los demás hipódromos'));
       if(active){
         const a=(c.hypepredict&&c.hypepredict.analyses)||{};
         const published=races.map(r=>{let x=a[r.id];if(!x){for(const k of Object.keys(a)){if(a[k]&&a[k].raceId===r.id){x=a[k];break}}}return x}).filter(Boolean);
         const selectCount=published.filter(x=>x.quickHits&&x.quickHits.select).length;
-        card.appendChild(node('small','',selectCount+' de '+races.length+' análisis HypePredict disponibles'));
+        copy.appendChild(node('small','',selectCount+' de '+races.length+' análisis HypePredict disponibles'));
       }
-      root.appendChild(card);
+      card.appendChild(copy);root.appendChild(card);
     });
     refreshButton(root);footer(root,c)
   }
