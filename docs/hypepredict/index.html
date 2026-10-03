@@ -164,6 +164,29 @@ select,input,button{max-width:100%;min-width:0}
 @media(max-width:390px){.day-home{padding:15px;border-radius:18px}.day-home h2{font-size:23px}.day-kpis strong{font-size:20px}.day-status{max-width:92px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 /* BUILD 17 — LIVE TRACK WEATHER */
 .weather-box{margin-top:14px;background:#061d32;border:1px solid #31536d;border-radius:14px;padding:12px;min-height:72px}.weather-loading,.weather-unavailable{font-size:10px;color:#9db5c7;font-weight:800;padding:14px 4px}.weather-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.weather-head small{display:block;font-size:7px;letter-spacing:.11em;font-weight:1000;color:#84a5bd}.weather-head b{display:block;font-size:14px;margin-top:3px}.weather-head>strong{font-size:29px;line-height:1}.weather-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.weather-grid>div{background:#ffffff0a;border-radius:9px;padding:8px}.weather-grid span{display:block;font-size:6px;font-weight:1000;letter-spacing:.08em;color:#7899b1}.weather-grid b{display:block;font-size:11px;margin-top:3px}.weather-note{margin-top:8px;font-size:7px;color:#698ba4}
+
+/* BUILD 18 — MOBILE TYPE FIT */
+@media(max-width:650px){
+ .day-kicker{font-size:clamp(9px,2.5vw,11px)!important}
+ .day-home h2{font-size:clamp(29px,8.3vw,36px)!important;line-height:1!important;letter-spacing:-.025em}
+ .day-date{font-size:clamp(14px,3.8vw,17px)!important}
+ .day-status{font-size:clamp(9px,2.5vw,11px)!important;padding:7px 10px!important}
+ .weather-head small{font-size:clamp(8px,2.2vw,10px)!important}
+ .weather-head b{font-size:clamp(18px,5vw,22px)!important;line-height:1.08}
+ .weather-head>strong{font-size:clamp(38px,11vw,48px)!important}
+ .weather-grid span{font-size:clamp(7px,2vw,9px)!important}
+ .weather-grid b{font-size:clamp(14px,4vw,18px)!important}
+ .weather-note{font-size:clamp(8px,2.25vw,10px)!important}
+ .day-kpis strong{font-size:clamp(27px,7.5vw,34px)!important;line-height:1}
+ .day-kpis span{font-size:clamp(8px,2.3vw,10px)!important;margin-top:6px!important}
+ .day-racebar small{font-size:clamp(8px,2.3vw,10px)!important}
+ .day-pills a{font-size:clamp(13px,3.6vw,16px)!important;height:44px!important;flex-basis:48px!important}
+ .day-section-head small{font-size:clamp(8px,2.2vw,10px)!important}
+ .day-section-head h3{font-size:clamp(21px,6vw,27px)!important;line-height:1.05}
+ .day-section-head>span{font-size:clamp(10px,2.8vw,12px)!important}
+ .race-card h3,.race-card .title{font-size:clamp(20px,5.6vw,25px)!important}
+ .race-card .meta,.race-card .sub{font-size:clamp(11px,3vw,14px)!important}
+}
 </style>
 </head>
 <body>
