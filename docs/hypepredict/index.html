@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07182b">
+<title>HypePredict — PlayersHype</title>
+<style>
+:root{--navy:#07182b;--navy2:#102c44;--lime:#caff00;--cyan:#25c5df;--bg:#eef3f6;--card:#fff;--text:#132d46;--muted:#6d8194;--line:#d9e4ec}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-bottom:4px solid var(--lime);padding:18px 18px 16px}
+.wrap{max-width:1180px;margin:auto}.brand{font-size:12px;font-weight:900;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}.title{font-size:clamp(27px,5vw,46px);font-weight:1000;letter-spacing:-.04em;margin:5px 0 2px}.sub{color:#bdd0df;font-size:13px;font-weight:700}
+.controls{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin:18px auto 12px;padding:0 16px;max-width:1180px}
+select,button{min-height:46px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);font:inherit;font-weight:850;padding:0 12px}button{cursor:pointer;background:var(--navy);color:#fff;border-color:var(--navy)}
+.status{max-width:1180px;margin:0 auto;padding:0 16px 12px;font-size:12px;color:var(--muted);font-weight:750}
+.grid{max-width:1180px;margin:auto;padding:0 16px 34px;display:grid;gap:12px}.hero,.race,.empty{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 22px rgba(8,24,43,.06)}
+.hero{padding:18px}.kicker{font-size:10px;font-weight:1000;letter-spacing:.14em;text-transform:uppercase;color:#668095}.hero h2{margin:5px 0 3px;font-size:25px}.meta{color:var(--muted);font-size:13px;font-weight:750}
+.races{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.race{padding:15px;overflow:hidden}.racehead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.rnum{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--navy);color:var(--lime);font-weight:1000}.rtitle{flex:1}.rtitle b{display:block;font-size:16px}.rtitle span{font-size:11px;color:var(--muted);font-weight:800}.picks{margin-top:12px;display:grid;gap:7px}.pick{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #edf1f4;padding-top:7px;font-size:12px}.pick strong{font-weight:950}.tag{font-size:9px;font-weight:1000;letter-spacing:.08em;text-transform:uppercase;color:#60758a}.empty{padding:28px;text-align:center}.empty b{display:block;font-size:18px}.empty span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.45}
+.raw{white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.45;color:#40566a;max-height:380px;overflow:auto;background:#f7fafc;border-radius:10px;padding:10px;margin-top:10px}
+footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18px}
+@media(max-width:650px){.controls{grid-template-columns:1fr 1fr}.controls button{grid-column:1/-1}.races{grid-template-columns:1fr}.top{padding-top:calc(18px + env(safe-area-inset-top))}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="brand">PlayersHype · Definiendo el estándar</div><div class="title">HypePredict</div><div class="sub">Track Hub · análisis público de jornada</div></div></header>
+<section class="controls"><select id="track" aria-label="Hipódromo"><option>Cargando hipódromos…</option></select><select id="date" aria-label="Fecha"><option>Cargando fechas…</option></select><button id="refresh">Actualizar</button></section>
+<div class="status" id="status">Conectando con la data publicada…</div>
+<main class="grid" id="app"></main>
+<footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
+<script>
+const CONFIG_URL='../app/config.json'; let DATA=null, SELECTED_DATE='';
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function tracks(){return (DATA?.tracks||[]).filter(t=>t.enabled!==false)}
+function day(id,date){const raw=DATA?.raceDays?.[id]||null;if(!raw)return null;if(Array.isArray(raw))return date?raw.find(d=>d?.date===date)||raw[raw.length-1]:raw[raw.length-1];if(Array.isArray(raw.days))return date?raw.days.find(d=>d?.date===date)||raw.days[raw.days.length-1]:raw.days[raw.days.length-1];return raw}
+function analyses(){return DATA?.hypepredict?.analyses||{}}
+function analysisFor(race){return analyses()[race.id]||null}
+function roles(a){const out={};for(const h of a?.horses||[]){const role=String(h.role||'').toUpperCase();if(!out[role])out[role]=h}return out}
+function pickRow(label,h){return h?'<div class="pick"><span class="tag">'+esc(label)+'</span><strong>#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')+'</strong></div>':''}
+function raceCard(r){const a=analysisFor(r), rr=roles(a);let rows=pickRow('Select',rr.SELECT)+pickRow('Rival',rr.RIVAL)+pickRow('Tapada',rr.TAPADA)+pickRow('Huevazo',rr.HUEVAZO);if(!rows&&a?.horses?.length)rows=a.horses.slice(0,6).map(h=>pickRow(h.role||'HypeBoard',h)).join('');if(!rows)rows='<div class="pick"><span class="tag">Estado</span><strong>Sin análisis publicado</strong></div>';return '<article class="race"><div class="racehead"><div class="rnum">'+esc(r.number)+'</div><div class="rtitle"><b>Carrera '+esc(r.number)+'</b><span>'+esc(a?.status||'programada')+' · '+(r.entries?.length||0)+' ejemplares</span></div></div><div class="picks">'+rows+'</div></article>'}
+function syncDates(){const t=$('#track').value,raw=DATA?.raceDays?.[t]||null,days=Array.isArray(raw)?raw:(Array.isArray(raw?.days)?raw.days:(raw?[raw]:[])),dates=[...new Set(days.map(d=>d?.date).filter(Boolean))].sort().reverse();SELECTED_DATE=dates[0]||'';$('#date').innerHTML=dates.length?dates.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(''):'<option>Sin jornada publicada</option>';render()}
+function render(){const id=$('#track').value,t=tracks().find(x=>x.id===id),selected=$('#date').value||SELECTED_DATE,d=day(id,selected);if(!t||!d||!d.date){$('#app').innerHTML='<div class="empty"><b>No hay jornada publicada</b><span>'+esc(t?.name||id)+' todavía no tiene una fecha/jornada disponible.</span></div>';return}const races=d.races||[],published=races.filter(r=>analysisFor(r)?.status==='published').length;$('#app').innerHTML='<section class="hero"><div class="kicker">Jornada publicada</div><h2>'+esc(t.name)+'</h2><div class="meta">'+esc(d.date)+' · '+races.length+' carreras · '+published+' análisis HypePredict publicados</div></section><section class="races">'+races.map(raceCard).join('')+'</section>';$('#status').textContent='Config '+esc(DATA.revision||'')+' · '+t.name+' · '+published+'/'+races.length+' análisis'}
+async function load(){try{$('#status').textContent='Actualizando data pública…';const url=new URL(CONFIG_URL,location.href);url.searchParams.set('v',Date.now());const res=await fetch(url.href,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!res.ok)throw new Error('HTTP '+res.status);DATA=await res.json();const ts=tracks();$('#track').innerHTML=ts.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('');syncDates()}catch(e){$('#status').textContent='No se pudo cargar la data publicada';$('#app').innerHTML='<div class="empty"><b>HypePredict no pudo conectar</b><span>'+esc(e.message)+'</span></div>'}}
+$('#track').addEventListener('change',syncDates);$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;render()});$('#refresh').addEventListener('click',load);load();
+</script>
+</body></html>
