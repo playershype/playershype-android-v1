@@ -113,6 +113,47 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 .race-banner{display:grid;grid-template-columns:minmax(0,1fr) 76px;gap:12px;align-items:center;background:#fff;border-radius:0 0 18px 18px;padding:16px;margin-bottom:14px;border:1px solid #d8e2e8;border-top:0;box-shadow:0 8px 20px #061d3210}.rb-kicker{font-size:8px;font-weight:1000;letter-spacing:.16em;color:#0b65c2}.race-banner h2{margin:2px 0 3px;font-size:27px;color:#071e33}.rb-meta{font-size:11px;font-weight:900;color:#243e53}.rb-meta span{color:#9aabb8;margin:0 3px}.rb-sub{font-size:10px;color:#6e8190;margin-top:4px}.rb-count{height:72px;border-radius:14px;background:linear-gradient(145deg,#ffd85b,#f2b91f);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#071e33}.rb-count strong{font-size:28px;line-height:1}.rb-count span{font-size:7px;font-weight:1000;margin-top:4px}
 .tale{background:linear-gradient(135deg,#04192d,#0b3557)!important;color:#fff!important;border-color:#194d73!important}.tale h3{color:#fff!important}.tale-grid{display:grid;grid-template-columns:1fr 38px 1fr;align-items:center;gap:8px}.tale-side{text-align:center;min-width:0}.tale-side .saddle{margin:auto}.tale-side b{display:block;font-size:11px;margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tale-side strong{display:block;font-size:22px;color:#caff00;margin-top:4px}.tale-side span{font-size:10px;color:#ffd45a}.versus{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#caff00;color:#071e33;font-size:11px;font-weight:1000}
 @media(max-width:650px){.race-banner{grid-template-columns:minmax(0,1fr) 66px;padding:13px}.race-banner h2{font-size:24px}.rb-count{height:64px}.race-nav{border-radius:15px 15px 0 0}}
+
+/* BUILD 15 — MOBILE CONTAINMENT PASS */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+*,*::before,*::after{box-sizing:border-box}
+body>*,header,main,footer,.grid,#app,.card,.hero,.race-banner,.jornada-hero,.horse-card,.ph-horse{max-width:100%}
+img,svg,canvas,video{max-width:100%;height:auto}
+select,input,button{max-width:100%;min-width:0}
+.card,.hero,.horse-card,.ph-horse,.race-banner{overflow:hidden}
+.meta,.read,.workouts,.ph-uniform,.stat,.ph-primary>div,.ph-metrics>div,.horse-name,.rb-meta,.rb-sub,.kv,.value{overflow-wrap:anywhere;word-break:normal;min-width:0}
+.hypeboard-visual{max-width:100%;overflow-x:hidden;display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr))}
+.hbitem{min-width:0;max-width:100%}.hbitem b{white-space:normal;overflow-wrap:anywhere}
+.trackviz,.finish-viz,[data-trackviz]{width:100%!important;max-width:100%!important;overflow:hidden!important}
+.trackviz *,.finish-viz *{max-width:100%}
+.tale,.tale-grid{max-width:100%;min-width:0}.tale-side{min-width:0}.tale-side b{white-space:normal;overflow-wrap:anywhere}
+.race-nav{max-width:100%;overflow:hidden}.race-pills{width:100%;max-width:100%;overflow-x:auto!important;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}.race-pills::-webkit-scrollbar{display:none}.race-pills a{flex:0 0 38px}
+.races,.races>*{min-width:0;max-width:100%}
+@media(max-width:650px){
+ body{margin:0;min-width:0}
+ header{padding-left:16px!important;padding-right:16px!important}
+ main,.grid,#app{width:100%!important;max-width:100%!important;padding-left:0!important;padding-right:0!important}
+ .grid{padding:14px!important}
+ .card,.hero,.horse-card,.ph-horse,.race-banner,.jornada-hero{width:100%!important;min-width:0!important}
+ .stats,.ph-primary,.ph-metrics{width:100%;min-width:0}
+ .stats{grid-template-columns:1fr 1fr!important}
+ .ph-primary{grid-template-columns:1fr 1fr!important}
+ .ph-metrics{grid-template-columns:1fr 1fr!important}
+ .pace-runner{max-width:58px}
+ .finish-viz,.trackviz,[data-trackviz]{transform:none!important}
+ .tale-grid{grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr)!important}
+ .tale-title{align-items:flex-start}.tale-title select{width:52%;min-width:0}
+}
+@media(max-width:390px){
+ .grid{padding:10px!important}
+ .stats,.ph-primary,.ph-metrics{grid-template-columns:1fr 1fr!important}
+ .ph-horse-head{grid-template-columns:52px 58px minmax(0,1fr)!important;gap:7px!important;padding:11px!important}
+ .ph-cloth{height:52px!important;font-size:24px!important}
+ .ph-silks{height:60px!important}.ph-silks .silks-body{width:43px!important;height:48px!important}
+ .ph-identity .horse-name{font-size:15px!important}.ph-score strong{font-size:19px!important}
+ .race-banner{grid-template-columns:minmax(0,1fr) 58px!important}
+ .rb-count{height:58px!important}
+}
 </style>
 </head>
 <body>
