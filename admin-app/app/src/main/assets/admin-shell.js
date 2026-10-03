@@ -60,16 +60,22 @@ function phEnsureModulePublishButtons(){
     const wrap=document.createElement('div');wrap.className='actions';wrap.setAttribute('data-ph-publish-module',d[0]);
     const btn=document.createElement('button');btn.className='primary';btn.textContent='PUBLICAR / ACTUALIZAR '+d[1].toUpperCase();
     btn.onclick=async()=>{try{
-      if(typeof readyCandidate==='undefined'||!readyCandidate){
-        if(typeof buildCandidate==='function')readyCandidate=buildCandidate();
-      }
-      if(!readyCandidate)throw new Error('Primero guarda los cambios de este módulo.');
-      readyCandidate.publishScope='control-center';
+      btn.disabled=true;const original=btn.textContent;btn.textContent='PREPARANDO…';
+      const saveIds={inicio:'homeSave',tv:'tvSave',live:'liveSave',network:'netSave',manada:'manSave',latest:'newsSave',settings:'setSave'};
+      const saveId=saveIds[d[0]],saveBtn=saveId&&document.getElementById(saveId);
+      if(saveBtn){saveBtn.click();}
+      const draft=phDraft();
+      let base=(typeof readyCandidate!=='undefined'&&readyCandidate&&readyCandidate.schemaVersion?readyCandidate:(typeof buildCandidate==='function'?buildCandidate():null));
+      if(!base)throw new Error('No hay paquete preparado.');
+      readyCandidate=Object.assign({},base,draft,{revision:'v0.1-admin-'+new Date().toISOString(),publishScope:'control-center'});
       localStorage.setItem('playershypeAdminPreparedConfig',JSON.stringify(readyCandidate));
       if(typeof renderCandidate==='function')renderCandidate(readyCandidate);
+      if(typeof status==='function')status('LISTO · enviando '+d[1]+' al config remoto…','ok');
+      btn.textContent='PUBLICANDO…';
       if(typeof publishNow!=='function')throw new Error('Publisher no disponible en este APK.');
       await publishNow();
-    }catch(e){if(typeof status==='function')status('NO SE PUDO PUBLICAR · '+(e&&e.message?e.message:String(e)),'bad')}
+      setTimeout(()=>{btn.disabled=false;btn.textContent=original},2500);
+    }catch(e){btn.disabled=false;btn.textContent='PUBLICAR / ACTUALIZAR '+d[1].toUpperCase();if(typeof status==='function')status('NO SE PUDO PUBLICAR · '+(e&&e.message?e.message:String(e)),'bad')}
     };
     wrap.appendChild(btn);mod.appendChild(wrap);
   }
