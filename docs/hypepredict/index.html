@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07182b">
+<title>HypePredict — PlayersHype</title>
+<style>
+:root{--navy:#07182b;--navy2:#102c44;--lime:#caff00;--cyan:#25c5df;--bg:#eef3f6;--card:#fff;--text:#132d46;--muted:#6d8194;--line:#d9e4ec}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.top{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-bottom:4px solid var(--lime);padding:18px 18px 16px}
+.wrap{max-width:1180px;margin:auto}.brand{font-size:12px;font-weight:900;letter-spacing:.16em;color:var(--lime);text-transform:uppercase}.title{font-size:clamp(27px,5vw,46px);font-weight:1000;letter-spacing:-.04em;margin:5px 0 2px}.sub{color:#bdd0df;font-size:13px;font-weight:700}
+.controls{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin:18px auto 12px;padding:0 16px;max-width:1180px}
+select,button{min-height:46px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text);font:inherit;font-weight:850;padding:0 12px}button{cursor:pointer;background:var(--navy);color:#fff;border-color:var(--navy)}
+.status{max-width:1180px;margin:0 auto;padding:0 16px 12px;font-size:12px;color:var(--muted);font-weight:750}
+.grid{max-width:1180px;margin:auto;padding:0 16px 34px;display:grid;gap:12px}.hero,.race,.empty{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 22px rgba(8,24,43,.06)}
+.hero{padding:18px}.kicker{font-size:10px;font-weight:1000;letter-spacing:.14em;text-transform:uppercase;color:#668095}.hero h2{margin:5px 0 3px;font-size:25px}.meta{color:var(--muted);font-size:13px;font-weight:750}
+.races{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.race{padding:15px;overflow:hidden}.racehead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.rnum{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--navy);color:var(--lime);font-weight:1000}.rtitle{flex:1}.rtitle b{display:block;font-size:16px}.rtitle span{font-size:11px;color:var(--muted);font-weight:800}.picks{margin-top:12px;display:grid;gap:7px}.pick{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #edf1f4;padding-top:7px;font-size:12px}.pick strong{font-weight:950}.tag{font-size:9px;font-weight:1000;letter-spacing:.08em;text-transform:uppercase;color:#60758a}.empty{padding:28px;text-align:center}.empty b{display:block;font-size:18px}.empty span{display:block;margin-top:5px;color:var(--muted);font-size:13px;line-height:1.45}
+.raw{white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.45;color:#40566a;max-height:380px;overflow:auto;background:#f7fafc;border-radius:10px;padding:10px;margin-top:10px}
+footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18px}
+@media(max-width:650px){.controls{grid-template-columns:1fr 1fr}.controls button{grid-column:1/-1}.races{grid-template-columns:1fr}.top{padding-top:calc(18px + env(safe-area-inset-top))}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><div class="brand">PlayersHype · Definiendo el estándar</div><div class="title">HypePredict</div><div class="sub">Track Hub · análisis público de jornada</div></div></header>
+<section class="controls"><select id="track" aria-label="Hipódromo"><option>Cargando hipódromos…</option></select><select id="date" aria-label="Fecha"><option>Cargando fechas…</option></select><button id="refresh">Actualizar</button></section>
+<div class="status" id="status">Conectando con la data publicada…</div>
+<main class="grid" id="app"></main>
+<footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
+<script>
+const CONFIG_URL='../app/config.json';
+let ROOT=null, records=[];
+const $=s=>document.querySelector(s);
+const str=v=>v==null?'':String(v);
+const norm=s=>str(s).trim();
+const obj=v=>v&&typeof v==='object'&&!Array.isArray(v);
+function val(o,keys){if(!obj(o))return '';for(const k of keys){if(o[k]!=null&&o[k]!=='')return o[k]}return ''}
+function dateOf(o){return norm(val(o,['date','fecha','raceDate','race_date','jornadaDate','jornada_date']))}
+function trackOf(o){let v=val(o,['track','trackName','track_name','hipodromo','hipódromo','venue','racetrack']);return obj(v)?norm(val(v,['name','nombre','title'])):norm(v)}
+function racesOf(o){for(const k of ['races','carreras','raceCards','race_cards','analyses','analysis'])if(Array.isArray(o?.[k]))return o[k];return []}
+function score(o){let n=0;if(trackOf(o))n+=3;if(dateOf(o))n+=3;if(racesOf(o).length)n+=5;return n}
+function walk(v,path='',depth=0,out=[]){if(depth>7||out.length>1200)return out;if(Array.isArray(v)){for(let i=0;i<v.length;i++){const x=v[i];if(obj(x)&&score(x)>=5)out.push({node:x,path:path+'['+i+']'});walk(x,path+'['+i+']',depth+1,out)}}else if(obj(v)){if(score(v)>=5)out.push({node:v,path});for(const [k,x] of Object.entries(v))if(obj(x)||Array.isArray(x))walk(x,path?path+'.'+k:k,depth+1,out)}return out}
+function inferFromPath(rec){const bits=rec.path.split(/[.\[\]]+/).filter(Boolean);if(!trackOf(rec.node)){const known=bits.find(x=>/camarero|gulfstream|churchill|belmont|aqueduct|saratoga/i.test(x));if(known)rec._track=known}if(!dateOf(rec.node)){const d=bits.find(x=>/^20\d\d[-_]\d\d[-_]\d\d$/.test(x));if(d)rec._date=d.replaceAll('_','-')}}
+function T(r){return trackOf(r.node)||r._track||'Jornada'}function D(r){return dateOf(r.node)||r._date||'Sin fecha'}
+function unique(a){return [...new Set(a.filter(Boolean))]}
+function esc(s){return str(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function populate(){records.forEach(inferFromPath);const tracks=unique(records.map(T)).sort();$('#track').innerHTML=tracks.map(x=>'<option>'+esc(x)+'</option>').join('')||'<option>Sin hipódromos</option>';syncDates()}
+function syncDates(keep){const t=$('#track').value,ds=unique(records.filter(r=>T(r)===t).map(D)).sort().reverse();$('#date').innerHTML=ds.map(x=>'<option'+(x===keep?' selected':'')+'>'+esc(x)+'</option>').join('')||'<option>Sin fecha</option>';render()}
+function field(o,label,keys){const v=val(o,keys);if(v===''||obj(v)||Array.isArray(v))return '';return '<div class="pick"><span class="tag">'+esc(label)+'</span><strong>'+esc(v)+'</strong></div>'}
+function renderRace(r,i){const num=val(r,['race','raceNumber','race_number','number','numero','número'])||i+1;const name=val(r,['name','title','raceName','race_name','condition','condicion'])||'Carrera '+num;let html=field(r,'Select',['select','Select','selection','topPick','top_pick'])+field(r,'Rival',['rival','rivalPrincipal','rival_principal'])+field(r,'Tapada',['tapada','sleeper'])+field(r,'Huevazo',['huevazo'])+field(r,'HypeScore',['hypeScore','HypeScore','hype_score'])+field(r,'Conf.',['confidence','confiabilidad','Confidence']);if(!html){const safe={...r};for(const k of Object.keys(safe))if(typeof safe[k]==='string'&&safe[k].length>1500)safe[k]=safe[k].slice(0,1500)+'…';html='<div class="raw">'+esc(JSON.stringify(safe,null,2))+'</div>'}return '<article class="race"><div class="racehead"><div class="rnum">'+esc(num)+'</div><div class="rtitle"><b>'+esc(name)+'</b><span>HypePredict · análisis publicado</span></div></div><div class="picks">'+html+'</div></article>'}
+function render(){const t=$('#track').value,d=$('#date').value;const rec=records.find(r=>T(r)===t&&D(r)===d);if(!rec){$('#app').innerHTML='<div class="empty"><b>No hay jornada publicada</b><span>Selecciona otro hipódromo o fecha.</span></div>';return}const races=racesOf(rec.node);$('#app').innerHTML='<section class="hero"><div class="kicker">Jornada publicada</div><h2>'+esc(t)+'</h2><div class="meta">'+esc(d)+' · '+races.length+' carrera'+(races.length===1?'':'s')+'</div></section>'+(races.length?'<section class="races">'+races.map(renderRace).join('')+'</section>':'<div class="empty"><b>Jornada detectada</b><span>La estructura fue encontrada, pero no se detectó un arreglo de carreras compatible.</span><div class="raw">'+esc(JSON.stringify(rec.node,null,2).slice(0,6000))+'</div></div>');$('#status').textContent='Data pública cargada · '+records.length+' jornada(s) detectada(s)'}
+async function load(){try{$('#status').textContent='Actualizando data pública…';const res=await fetch(CONFIG_URL+'?v='+Date.now(),{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);ROOT=await res.json();records=walk(ROOT);if(!records.length&&obj(ROOT)){const arrays=Object.entries(ROOT).filter(([,v])=>Array.isArray(v));for(const [k,a] of arrays)for(const x of a)if(obj(x))records.push({node:x,path:k})}populate();if(!records.length){$('#status').textContent='Config cargado, sin jornadas reconocidas';$('#app').innerHTML='<div class="empty"><b>Config conectado</b><span>La data existe, pero esta primera versión no reconoció todavía su estructura de jornadas. No se expone ningún control administrativo.</span></div>'}}catch(e){$('#status').textContent='No se pudo cargar la data publicada';$('#app').innerHTML='<div class="empty"><b>HypePredict no pudo conectar</b><span>'+esc(e.message)+' · La página espera <code>docs/app/config.json</code> en el mismo sitio.</span></div>'}}
+$('#track').addEventListener('change',()=>syncDates());$('#date').addEventListener('change',render);$('#refresh').addEventListener('click',load);load();
+</script>
+</body></html>
