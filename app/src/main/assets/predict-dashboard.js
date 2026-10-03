@@ -26,7 +26,7 @@ const E=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','
 const C=s=>String(s==null?'':s).replace(/\r/g,'').trim();
 const esc=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function cfg(){try{const raw=B.getConfig();if(!raw)return null;if(typeof raw==='string')return JSON.parse(raw);if(typeof raw==='object')return JSON.parse(String(raw));return null}catch(e){return null}}
-const WEATHER_TRACKS={camarero:{name:'Hipódromo Camarero',place:'Canóvanas, Puerto Rico',lat:18.3829,lon:-65.8982}};
+const WEATHER_TRACKS={camarero:{name:'Hipódromo Camarero',place:'Canóvanas, Puerto Rico',lat:18.3829,lon:-65.8982},gulfstream:{name:'Gulfstream Park',place:'Hallandale Beach, Florida',lat:25.9781,lon:-80.1392},belmont:{name:'Belmont Park',place:'Elmont, New York',lat:40.7143,lon:-73.7220},churchill:{name:'Churchill Downs',place:'Louisville, Kentucky',lat:38.2027,lon:-85.7700}};
 let liveWeather=null,weatherBusy=false,weatherStamp=0;
 function weather(){try{return JSON.parse(B.getWeather?B.getWeather()||'null':'null')}catch(e){return null}}
 function wdir(d){if(!Number.isFinite(+d))return'';const a=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];return a[Math.round((+d%360)/22.5)%16]}
