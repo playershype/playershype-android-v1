@@ -28,6 +28,16 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 .read{margin-top:12px;padding:12px;border-left:4px solid var(--lime);background:#f8fafb;border-radius:8px;font-size:12px;line-height:1.55}.workouts{font-size:11px;line-height:1.55;margin-top:10px}
 .pace-map{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}.pace-lane{background:#f5f8fa;border-radius:12px;padding:10px;text-align:center}.pace-lane b{display:block;font-size:9px;letter-spacing:.08em}.pace-lane span{display:block;font-size:10px;margin-top:6px;font-weight:850}
 @media(max-width:650px){.horse-top{grid-template-columns:48px 64px 1fr}.cloth{width:48px;height:48px}.silks{width:62px}.stats{grid-template-columns:1fr 1fr}.pace-map{grid-template-columns:1fr 1fr}}
+
+.saddle{display:inline-grid;place-items:center;min-width:34px;height:30px;border-radius:7px;border:1px solid rgba(0,0,0,.25);font-weight:1000;font-size:15px}
+.trackviz,.finishviz{background:#0c503c;border:10px solid #d8b47a;border-radius:999px;padding:18px;position:relative;margin-top:12px;min-height:190px;overflow:hidden}
+.trackviz:after{content:"";position:absolute;inset:38px;background:#eef3f6;border-radius:999px}
+.lane-title{position:absolute;z-index:2;font-size:8px;font-weight:1000;letter-spacing:.08em;background:#fff;padding:3px 6px;border-radius:6px}
+.runner{position:absolute;z-index:3;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:1000;border:3px solid #fff;box-shadow:0 2px 7px #0005;cursor:pointer}
+.finishviz{border-radius:16px;background:linear-gradient(90deg,#d8b47a 0 82%,#fff 82% 86%,#111 86% 90%,#fff 90%);border-width:0;min-height:220px}
+.finish-line{position:absolute;right:11%;top:0;bottom:0;width:18px;background:repeating-conic-gradient(#111 0 25%,#fff 0 50%) 0/12px 12px}
+.finish-runner{position:absolute;left:var(--x);top:var(--y);z-index:3;display:flex;align-items:center;gap:7px}.finish-runner .saddle{box-shadow:0 2px 6px #0005}
+.vizinfo{margin-top:8px;font-size:11px;font-weight:850;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -40,8 +50,8 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 const CONFIG_URL='../app/config.json';let DATA=null,OPEN=null;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const tracks=()=> (DATA?.tracks||[]).filter(t=>t.enabled!==false),day=id=>DATA?.raceDays?.[id],analyses=()=>DATA?.hypepredict?.analyses||{},analysisFor=r=>analyses()[r.id];
-function horse(h){return h?('#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')):'No aplica'}
-function listPace(a){return (a||[]).map(x=>'#'+esc(x.programNumber)+' '+esc(x.name)).join(', ')||'—'}
+const cloths={1:['#d71920','#fff'],2:['#fff','#111'],3:['#f2cf00','#111'],4:['#1f4eaa','#fff'],5:['#18864b','#fff'],6:['#111','#f2cf00'],7:['#f28c28','#111'],8:['#ef6fa8','#111'],9:['#39a9db','#111'],10:['#7a3db8','#fff'],11:['#9aa4ad','#111'],12:['#8b5a2b','#fff'],13:['#8b5a2b','#fff'],14:['#8b5a2b','#fff']};function cloth(n){const c=cloths[n]||['#8b5a2b','#fff'];return '<span class="saddle" style="background:'+c[0]+';color:'+c[1]+'">'+esc(n)+'</span>'}function horse(h){return h?('#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')):'No aplica'}
+function listPace(a){return (a||[]).map(x=>'#'+esc(x.programNumber)+' '+esc(x.name)).join(', ')||'—'}function paceVisual(p){const groups=[['SPEED',p.speed||[],18,18],['PRESSER',p.presser||[],68,20],['STALKER',p.stalker||[],70,68],['CLOSER',p.closer||[],18,70]],parts=[];groups.forEach(([label,arr,x,y],gi)=>{arr.forEach((r,i)=>{const c=cloths[r.programNumber]||['#8b5a2b','#fff'];parts.push('<button class="runner" title="'+esc(r.name)+'" aria-label="'+esc(label+' '+r.name)+'" style="left:calc('+x+'% + '+(i*14)+'px);top:calc('+y+'% + '+(i*10)+'px);background:'+c[0]+';color:'+c[1]+'">'+esc(r.programNumber)+'</button>')})});return '<div class="trackviz"><span class="lane-title" style="left:12%;top:7%">SPEED</span><span class="lane-title" style="right:10%;top:7%">PRESSER</span><span class="lane-title" style="right:10%;bottom:7%">STALKER</span><span class="lane-title" style="left:12%;bottom:7%">CLOSER</span>'+parts.join('')+'</div>'}function finishVisual(a){const b=a.hypeBoard||[],max=b.length;return '<div class="finishviz"><div class="finish-line"></div>'+b.map((r,i)=>{const x=Math.max(7,76-i*8),y=8+(i*(78/Math.max(1,max-1)));return '<div class="finish-runner" style="--x:'+x+'%;--y:'+y+'%">'+cloth(r.programNumber)+'<b>#'+(i+1)+' '+esc(r.name)+'</b></div>'}).join('')+'</div><div class="vizinfo">Proyección visual basada en el orden del HypeBoard; no representa márgenes físicos calculados.</div>'}
 function card(title,body,cls=''){return '<section class="race '+cls+'"><div class="racehead"><div class="rtitle"><b>'+esc(title)+'</b></div></div>'+body+'</section>'}
 function kv(label,val){return '<div class="pick"><span class="tag">'+esc(label)+'</span><strong>'+esc(val??'—')+'</strong></div>'}
 function grab(s,a,b){const i=s.indexOf(a);if(i<0)return '';const x=i+a.length,j=b?s.indexOf(b,x):-1;return s.slice(x,j>x?j:s.length).trim()}
@@ -54,7 +64,7 @@ function detail(r){const a=analysisFor(r);if(!a)return '<div class="empty"><b>Si
 return '<button id="backRace" class="btn" style="margin-bottom:12px">← Volver a la jornada</button>'+
 '<section class="hero"><div class="kicker">HypePredict · Carrera '+esc(r.number)+'</div><h2>'+esc(m.distance||'')+' · '+esc(m.surface||'')+'</h2><div class="meta">'+esc(m.condition||m.title||'')+'</div></section>'+
 card('QUICK HITS','<div class="picks">'+kv('Select',horse(q.select))+kv('Rival',horse(q.rival))+kv('Tapada',horse(q.sleeper))+kv('Value',q.value)+kv('Riesgo',q.risk)+kv('Confianza',q.selectConfidence)+kv('Confiabilidad',q.selectReliability)+kv('Gap',q.gap)+kv('Decisión',q.decision)+'</div><p>'+esc(q.decisionReason||'')+'</p>')+
-card('PACE PROJECTION','<div class="pace-map"><div class="pace-lane"><b>SPEED</b><span>'+listPace(p.speed)+'</span></div><div class="pace-lane"><b>PRESSER</b><span>'+listPace(p.presser)+'</span></div><div class="pace-lane"><b>STALKER</b><span>'+listPace(p.stalker)+'</span></div><div class="pace-lane"><b>CLOSER</b><span>'+listPace(p.closer)+'</span></div></div><p>'+esc(p.scenario||'')+'</p>')+
+card('PACE PROJECTION',paceVisual(p)+'<p>'+esc(p.scenario||'')+'</p>')+card('PROYECCIÓN DE LLEGADA',finishVisual(a))+
 card('LECTURA GENERAL','<p>'+esc(a.raceRead||'—')+'</p>')+
 card('HYPEBOARD','<div class="picks">'+(a.hypeBoard||[]).map(x=>kv('#'+x.rank,'#'+x.programNumber+' '+x.name+' · '+x.hypeScore+' · '+x.reliability)).join('')+'</div>')+
 checklistFromSource(a)+
