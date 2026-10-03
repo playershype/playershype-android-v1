@@ -68,7 +68,14 @@ window.publishNow=async function(){
       if(!configured)throw new Error('Publicación cancelada: falta la credencial GitHub.');
     }
     if(typeof status==='function')status('PUBLICANDO · preservando jornadas existentes y actualizando config…');
-    window.HypeAndroid.publishConfig(JSON.stringify(readyCandidate));
+    let publishCandidate=readyCandidate;
+    try{
+      if(typeof window.HypeAndroid.getPublishedConfig==='function'&&typeof mergePublishedCandidate==='function'){
+        const raw=window.HypeAndroid.getPublishedConfig();
+        if(raw)publishCandidate=mergePublishedCandidate(JSON.parse(raw),readyCandidate);
+      }
+    }catch(e){throw new Error('No pude preservar las jornadas publicadas: '+(e&&e.message?e.message:e));}
+    window.HypeAndroid.publishConfig(JSON.stringify(publishCandidate));
   }catch(e){
     if(typeof setFlow==='function')setFlow(2);
     if(typeof status==='function')status('PUBLICACIÓN DETENIDA · '+(e&&e.message?e.message:e),'bad');
