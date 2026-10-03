@@ -122,7 +122,7 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 <main class="grid" id="app"></main>
 <footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
 <script>
-const CONFIG_URL='../app/config.json';let DATA=null,OPEN=null;
+const CONFIG_URL='https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json';let DATA=null,OPEN=null;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const tracks=()=> (DATA?.tracks||[]).filter(t=>t.enabled!==false),day=id=>DATA?.raceDays?.[id],analyses=()=>DATA?.hypepredict?.analyses||{},analysisFor=r=>analyses()[r.id];
 const cloths={1:['#d71920','#fff'],2:['#fff','#111'],3:['#1769c2','#fff'],4:['#f2cf00','#111'],5:['#18864b','#fff'],6:['#111','#f2c94c'],7:['#f28c28','#111'],8:['#ef8eb8','#111'],9:['#42c7c7','#111'],10:['#713b9c','#fff'],11:['#9aa4ad','#d71920'],12:['#b7e23a','#111'],13:['#79502e','#fff'],14:['#7a1f3d','#f2c94c'],15:['#b6a27a','#111'],16:['#75b9dc','#d71920'],17:['#132b55','#fff'],18:['#175b35','#f2c94c'],19:['#304c89','#d71920'],20:['#d92b87','#f2c94c'],21:['#b68ad8','#132b55']};function cloth(n){const c=cloths[n]||['#8b5a2b','#fff'];return '<span class="saddle" style="background:'+c[0]+';color:'+c[1]+'">'+esc(n)+'</span>'}function horse(h){return h?('#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')):'No aplica'}
