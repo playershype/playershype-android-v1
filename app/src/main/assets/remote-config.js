@@ -76,12 +76,14 @@
       const card=node(active?'a':'div','ph-track');
       if(active)card.href='predict.html?track='+encodeURIComponent(t.id);
       card.appendChild(node('strong','',t.name));
-      card.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras · '+d.status):'Jornada no publicada'));
+      const stateLabel=active?'PUBLICADO':'NO PUBLICADO';
+      card.appendChild(node('small','',active?((d.date||'Sin fecha')+' · '+races.length+' carreras'):'Sin jornada activa'));
+      card.appendChild(node('small','',stateLabel+' · estado independiente de los demás hipódromos'));
       if(active){
         const a=(c.hypepredict&&c.hypepredict.analyses)||{};
         const published=races.map(r=>{let x=a[r.id];if(!x){for(const k of Object.keys(a)){if(a[k]&&a[k].raceId===r.id){x=a[k];break}}}return x}).filter(Boolean);
         const selectCount=published.filter(x=>x.quickHits&&x.quickHits.select).length;
-        card.appendChild(node('small','',selectCount+' análisis HypePredict disponibles'));
+        card.appendChild(node('small','',selectCount+' de '+races.length+' análisis HypePredict disponibles'));
       }
       root.appendChild(card);
     });
