@@ -154,7 +154,7 @@ parseTextReport=function(text){
 applyParsed=function(p){
   _applyParsed(p);
   if(!p||p.candidate||!p.reportMeta)return;
-  draft.latestReport=Object.assign({},draft.latestReport||{},p.reportMeta,{trackId:p.track.id,date:p.date,rawReport:p.raw,source:'admin-auto-parser',processedAt:new Date().toISOString()});persist();readyCandidate=buildCandidate();const errors=validateCandidate(readyCandidate);if(errors.length)throw new Error(errors[0]);renderReady(p.track.id,p.date,p.races,p.analyses);
+  draft.reportsByTrack=draft.reportsByTrack||{};draft.reportsByTrack[p.track.id]=Object.assign({},p.reportMeta,{trackId:p.track.id,date:p.date,rawReport:p.raw,source:'admin-auto-parser',processedAt:new Date().toISOString()});draft.latestReport=Object.assign({},draft.latestReport||{},draft.reportsByTrack[p.track.id]);persist();readyCandidate=buildCandidate();const errors=validateCandidate(readyCandidate);if(errors.length)throw new Error(errors[0]);renderReady(p.track.id,p.date,p.races,p.analyses);
 };
 
 validateCandidate=function(c){
