@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "v0.1-admin-2026-10-04T15-40-55-237Z",
+  "revision": "v0.1-admin-2026-10-04T15-42-24-988Z",
   "home": {
     "hero": {
       "eyebrow": "PLAYERSHYPE NETWORK",
@@ -76,7 +76,7 @@
       "aliases": [],
       "note": "",
       "logo": "",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "belmont",
