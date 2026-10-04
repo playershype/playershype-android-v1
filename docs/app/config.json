@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "v0.1-admin-2026-10-04T15-04-43-982Z",
+  "revision": "v0.1-admin-2026-10-04T15-06-23-252Z",
   "home": {
     "hero": {
       "eyebrow": "PLAYERSHYPE NETWORK",
@@ -84,7 +84,14 @@
       "image": "\/assets\/media\/track-belmont.jpg",
       "status": "scheduled",
       "races": 11,
-      "featured": false
+      "featured": false,
+      "nameEn": "Belmont Park",
+      "location": "",
+      "locationEn": "",
+      "aliases": [],
+      "note": "",
+      "logo": "",
+      "enabled": true
     },
     {
       "id": "churchill",
@@ -105,7 +112,7 @@
       "id": "keeneland",
       "name": "Keeneland",
       "nameEn": "Keeneland",
-      "location": "4201 Versailles Rd, Lexington, KY 40510, United States",
+      "location": "4201 Versailles Rd, Lexington, KY 40510, USA",
       "locationEn": "",
       "aliases": [],
       "note": "",
