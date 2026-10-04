@@ -30,7 +30,16 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 <script>
 const CONFIG_URL='../app/config.json'; let DATA=null, SELECTED_DATE='';
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function tracks(){return (DATA?.tracks||[]).filter(t=>t.enabled!==false)}
+function tracks(){
+ const declared=(DATA?.tracks||[]).filter(t=>t&&t.enabled!==false);
+ const byId=new Map(declared.map(t=>[t.id,t]));
+ for(const id of Object.keys(DATA?.raceDays||{})){
+  if(!id||byId.has(id))continue;
+  const d=DATA.raceDays[id],hasDay=Array.isArray(d)?d.some(x=>x?.date||x?.races?.length):(Array.isArray(d?.days)?d.days.some(x=>x?.date||x?.races?.length):!!(d?.date||d?.races?.length));
+  if(hasDay)byId.set(id,{id,name:String(id).replace(/[-_]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),enabled:true,recovered:true});
+ }
+ return [...byId.values()]
+}
 function day(id,date){const raw=DATA?.raceDays?.[id]||null;if(!raw)return null;if(Array.isArray(raw))return date?raw.find(d=>d?.date===date)||raw[raw.length-1]:raw[raw.length-1];if(Array.isArray(raw.days))return date?raw.days.find(d=>d?.date===date)||raw.days[raw.days.length-1]:raw.days[raw.days.length-1];return raw}
 function analyses(){return DATA?.hypepredict?.analyses||{}}
 function analysisFor(race){return analyses()[race.id]||null}
