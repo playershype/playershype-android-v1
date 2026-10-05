@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "v0.1-admin-2026-10-04T15-42-24-988Z",
+  "revision": "v0.1-admin-2026-10-05T16-16-30-355Z",
   "home": {
     "hero": {
       "eyebrow": "PLAYERSHYPE NETWORK",
@@ -122,6 +122,20 @@
       "enabled": true,
       "status": "scheduled",
       "races": 10
+    },
+    {
+      "id": "parx-racing",
+      "name": "Parx Racing",
+      "nameEn": "Parx Racing",
+      "location": "",
+      "locationEn": "3001 Street Road, Bensalem, PA 19020",
+      "aliases": [],
+      "note": "",
+      "image": "",
+      "featured": false,
+      "status": "pending",
+      "races": 0,
+      "enabled": true
     }
   ],
   "hypepredict": {
@@ -10106,6 +10120,11 @@
           ]
         }
       ]
+    },
+    "parx-racing": {
+      "status": "unpublished",
+      "date": null,
+      "races": []
     }
   },
   "horseData": {
