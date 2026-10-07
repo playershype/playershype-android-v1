@@ -54,8 +54,10 @@ function silkParse(uniform){
  const words=s.match(/[a-z]+/g)||[];let base=null,secondary=null;
  for(const w of words){const c=silkColorToken(w);if(c){if(!base)base=c;else if(c!==base&&!secondary)secondary=c}}
  const colorAfter=(rx)=>{const m=rx.exec(s);if(!m)return null;const tail=s.slice(m.index+m[0].length,m.index+m[0].length+55),ww=tail.match(/[a-z]+/g)||[];for(const w of ww){const c=silkColorToken(w);if(c)return c}return null};
- const sleeveColor=colorAfter(/mangas?\s+(?:color\s+)?/)||((/mangas?/.test(s)&&secondary)?secondary:base);
  const ringColor=colorAfter(/(?:aros?|anillos?|bandas?)\s+/)||secondary;
+ // Sleeve decorations are not the sleeve's base color. E.g. 'Dorada, aros azules en mangas' means GOLD sleeves with BLUE rings.
+ const explicitSleeve=/mangas?\s+(?:de\s+)?(?:color\s+)?(rojas?|azules?|amarillas?|doradas?|verdes?|negras?|blancas?|naranjas?|anaranjadas?|rosadas?|moradas?|violetas?|grises?|turquesas?|marrones?|celestes?|cremas?)\b/.exec(s);
+ const sleeveColor=explicitSleeve?silkColorToken(explicitSleeve[1]):base;
  const starColor=colorAfter(/estrell(?:a|as)\s+/)||secondary;
  const stripeColor=colorAfter(/(?:franjas?|rayas?)\s+/)||secondary;
  const sashColor=colorAfter(/(?:banda|faja)\s+/)||secondary;
