@@ -52,6 +52,24 @@ jobs:
           git fetch origin main
           git checkout main
           git checkout v0.1-stitch-clean -- docs/app/config.json
+          # Reject a manual workflow publication that would erase a prior jornada.
+          python3 - <<'PY'
+          import json,subprocess,sys
+          old=json.loads(subprocess.check_output(['git','show','HEAD:docs/app/config.json'],text=True))
+          new=json.load(open('docs/app/config.json',encoding='utf-8'))
+          history=new.get('raceDayHistory',{})
+          for track,previous in old.get('raceDays',{}).items():
+              if not isinstance(previous,dict): continue
+              old_date=previous.get('date')
+              incoming=new.get('raceDays',{}).get(track,{})
+              if old_date and old_date!=incoming.get('date') and old_date not in history.get(track,{}):
+                  sys.exit('BLOCKED: historical jornada '+track+'/'+old_date+' missing from archive. Publish through the updated Admin.')
+          for track,dates in old.get('raceDayHistory',{}).items():
+              for date in dates:
+                  if date not in history.get(track,{}):
+                      sys.exit('BLOCKED: historical archive would lose '+track+'/'+date)
+          print('Historical race days preserved.')
+          PY
           python3 scripts/validate_v01_config.py docs/app/config.json || {
             git show v0.1-stitch-clean:scripts/validate_v01_config.py > /tmp/validate_v01_config.py
             python3 /tmp/validate_v01_config.py docs/app/config.json
