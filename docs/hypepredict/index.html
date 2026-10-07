@@ -19,6 +19,10 @@ select,button{min-height:46px;border:1px solid var(--line);border-radius:12px;ba
 .raw{white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.45;color:#40566a;max-height:380px;overflow:auto;background:#f7fafc;border-radius:10px;padding:10px;margin-top:10px}
 footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18px}
 @media(max-width:650px){.controls{grid-template-columns:1fr 1fr}.controls button{grid-column:1/-1}.races{grid-template-columns:1fr}.top{padding-top:calc(18px + env(safe-area-inset-top))}}
+
+/* HypePredict: authentic uniform colors, separate from saddlecloth */
+.ph-silk{width:60px;height:60px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex:none}.ph-silk svg{width:100%;height:100%;overflow:visible}.ph-silk-unknown{color:#64748b;font-size:11px;font-weight:800}
+.ph-horse{display:flex;align-items:center;gap:10px;margin-top:8px}.ph-horse-name{font-size:13px;font-weight:850}.ph-uniform-description{display:block;font-size:10px;color:#60758a;font-weight:650;margin-top:2px}
 </style>
 </head>
 <body>
@@ -33,6 +37,10 @@ const URL_PARAMS=new URLSearchParams(location.search);
 const REQUESTED_TRACK=URL_PARAMS.get('track')||'';
 const REQUESTED_DATE=URL_PARAMS.get('date')||'';
 const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+// A silk is never inferred from the saddlecloth/program number.
+function phSilkColor(w){const k=String(w||'').toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');return ({dorado:'#d4af37',dorada:'#d4af37',amarillo:'#f5c518',amarilla:'#f5c518',azul:'#1565c0',azules:'#1565c0',rojo:'#c62828',roja:'#c62828',verde:'#218c4c',blanco:'#f4f4f4',blanca:'#f4f4f4',negro:'#171717',negra:'#171717',naranja:'#ef6c00',rosado:'#ec407a',rosada:'#ec407a',gris:'#757575',morado:'#6a1b9a',morada:'#6a1b9a',violeta:'#6a1b9a',turquesa:'#00a6a6',marron:'#6d4c41',celeste:'#69bfe8',crema:'#eadfbd'})[k]||null}
+function phSilk(description){const raw=String(description||'').trim();if(!raw||/^(no disponible|uniform not available)$/i.test(raw))return '<span class="ph-silk ph-silk-unknown" title="Uniforme no disponible">UNIFORME NO DISPONIBLE</span>';const t=raw.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');const colors=(t.match(/[a-z]+/g)||[]).map(phSilkColor).filter(Boolean);const base=colors[0];if(!base)return '<span class="ph-silk ph-silk-unknown" title="'+esc(raw)+'">UNIFORME NO DISPONIBLE</span>';const secondary=colors.find(c=>c!==base)||base;const ring=t.match(/(?:aros?|anillos?|bandas?)\\s+([a-z]+)/);const ringColor=ring?phSilkColor(ring[1]):null;const sleeve=t.match(/mangas?\\s+(?:de\\s+)?(?:color\\s+)?([a-z]+)/);const sleeveColor=sleeve&&phSilkColor(sleeve[1])||base;const hasRings=/(?:aros?|anillos?|bandas?).{0,35}mangas|mangas.{0,35}(?:aros?|anillos?|bandas?)/.test(t);const hasStar=/estrell/.test(t);const starColor=secondary;let details='';if(hasRings&&ringColor&&ringColor!==sleeveColor)details='<path d="M8 16L17 19M7 20L16 23M43 19L52 16M44 23L53 20" stroke="'+ringColor+'" stroke-width="3"/>';if(hasStar)details+='<path d="M30 19l2.5 6 6.5.4-5 4.3 1.5 6.5-5.5-3.4-5.5 3.4 1.5-6.5-5-4.3 6.5-.4z" fill="'+starColor+'"/>';return '<span class="ph-silk" title="'+esc(raw)+'"><svg viewBox="0 0 60 54" role="img" aria-label="'+esc(raw)+'"><path d="M20 12L12 10 5 20 14 25 20 20Z M40 12L48 10 55 20 46 25 40 20Z" fill="'+sleeveColor+'" stroke="#07182b" stroke-width="1.5"/><path d="M20 12Q24 7 30 7Q36 7 40 12L43 45Q30 50 17 45Z" fill="'+base+'" stroke="#07182b" stroke-width="1.5"/>'+details+'</svg></span>'}
 function tracks(){
  const declared=(DATA?.tracks||[]).filter(t=>t&&t.enabled!==false);
  const byId=new Map(declared.map(t=>[t.id,t]));
@@ -47,7 +55,7 @@ function day(id,date){const raw=DATA?.raceDays?.[id]||null;if(!raw)return null;i
 function analyses(){return DATA?.hypepredict?.analyses||{}}
 function analysisFor(race){return analyses()[race.id]||null}
 function roles(a){const out={};for(const h of a?.horses||[]){const role=String(h.role||'').toUpperCase();if(!out[role])out[role]=h}return out}
-function pickRow(label,h){return h?'<div class="pick"><span class="tag">'+esc(label)+'</span><strong>#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')+'</strong></div>':''}
+function pickRow(label,h){return h?'<div class="pick"><span class="tag">'+esc(label)+'</span><div class="ph-horse">'+phSilk(h.uniform)+'<div><strong class="ph-horse-name">#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')+'</strong><span class="ph-uniform-description">'+esc(h.uniform||'Uniforme no disponible')+'</span></div></div></div>':''}
 function raceCard(r){const a=analysisFor(r), rr=roles(a);let rows=pickRow('Select',rr.SELECT)+pickRow('Rival',rr.RIVAL)+pickRow('Tapada',rr.TAPADA)+pickRow('Huevazo',rr.HUEVAZO);if(!rows&&a?.horses?.length)rows=a.horses.slice(0,6).map(h=>pickRow(h.role||'HypeBoard',h)).join('');if(!rows)rows='<div class="pick"><span class="tag">Estado</span><strong>Sin análisis publicado</strong></div>';return '<article class="race"><div class="racehead"><div class="rnum">'+esc(r.number)+'</div><div class="rtitle"><b>Carrera '+esc(r.number)+'</b><span>'+esc(a?.status||'programada')+' · '+(r.entries?.length||0)+' ejemplares</span></div></div><div class="picks">'+rows+'</div></article>'}
 function datesFor(t){const raw=DATA?.raceDays?.[t]||null,days=Array.isArray(raw)?raw:(Array.isArray(raw?.days)?raw.days:(raw?[raw]:[]));return [...new Set(days.map(d=>d?.date).filter(Boolean))].sort().reverse()}
 function latestPublishedTrack(ts){let best=null;for(const t of ts){const d=datesFor(t.id)[0]||'';if(d&&(!best||d>best.date))best={id:t.id,date:d}}return best?.id||ts[0]?.id||''}
