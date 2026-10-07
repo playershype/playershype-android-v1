@@ -248,6 +248,7 @@ select,input,button{max-width:100%;min-width:0}
 .scratches-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.scratches-head b{font-size:17px}.scratches-head span{font-size:11px;font-weight:900;letter-spacing:.08em;color:#8b5b00}
 .scratches-list{display:flex;flex-wrap:wrap;gap:8px}.scratch-chip{background:#fff;border:1px solid #e3bd6b;border-radius:12px;padding:8px 10px;font-weight:900;font-size:13px;color:#173047}.scratch-chip em{font-style:normal;color:#a13d20}
 .day-scratches{margin:18px 0}.day-scratches .scratch-chip{font-size:14px}
+.ph-silks .silks-body[style*="--silk-sleeve"]:before,.ph-silks .silks-body[style*="--silk-sleeve"]:after{background:var(--silk-sleeve)!important}
 </style>
 </head>
 <body>
@@ -277,7 +278,9 @@ const SILK_COLORS=[
  [['gold','oro'],'#d8a51d'],[['yellow','amarilla','amarillo'],'#f2c94c'],[['orange','anaranjado','naranja'],'#f28c28'],[['silver','plata'],'#b8c1c9'],[['gray','grey','gris'],'#9aa4ad'],[['black','negra','negro'],'#20252b'],[['white','blanca','blanco'],'#f7f7f7'],[['brown','marrón','marron'],'#79502e']
 ];
 function silkColors(desc){const x=String(desc||'').toLowerCase(),out=[];for(const [words,color] of SILK_COLORS)if(words.some(w=>x.includes(w))&&!out.includes(color))out.push(color);return out}
-function silkStyle(desc){const x=String(desc||'').toLowerCase(),c=silkColors(x),a=c[0]||'#f7f7f7',b=c[1]||a,d=c[2]||b;let bg='linear-gradient(90deg,'+a+' 0 33%,'+b+' 33% 66%,'+a+' 66%)';
+function silkStyle(desc){const x=String(desc||'').toLowerCase(),c=silkColors(x),a=c[0]||'#f7f7f7',b=c[1]||a,d=c[2]||b;
+ // Sleeve rings do not make the body blue. Gold with blue rings on sleeves is a GOLD jersey.
+ if(/\\bdorad[ao]s?\\b/.test(x)&&/(?:aros?|anillos?|bandas?).{0,40}mangas|mangas.{0,40}(?:aros?|anillos?|bandas?)/.test(x))return 'background:#d8a51d;--silk-cap:#d8a51d;--silk-sleeve:repeating-linear-gradient(0deg,#d8a51d 0 8px,#2463d4 8px 12px,#d8a51d 12px 19px)';let bg='linear-gradient(90deg,'+a+' 0 33%,'+b+' 33% 66%,'+a+' 66%)';
  if(/halves|half|mitades|halved/.test(x))bg='linear-gradient(90deg,'+a+' 0 50%,'+b+' 50%)';
  else if(/quarters|quartered|cuartos|blocks|bloques|cuadros/.test(x))bg='conic-gradient('+a+' 0 25%,'+b+' 0 50%,'+a+' 0 75%,'+b+' 0)';
  else if(/stripes|striped|rayas|líneas|lineas|bars|bandas|franja/.test(x))bg='repeating-linear-gradient(90deg,'+a+' 0 9px,'+b+' 9px 18px)';
