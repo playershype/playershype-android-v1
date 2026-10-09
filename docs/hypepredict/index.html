@@ -333,7 +333,46 @@ $('#app').innerHTML=jornadaHome(t,d,races,pub)+dayScratches(races)+dayBoard(race
 function fillTracksForDate(date,preferred){const available=tracksForDate(date);$('#track').innerHTML=available.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('');if(preferred&&available.some(t=>t.id===preferred))$('#track').value=preferred;return available}
 function syncDates(){OPEN=null;const current=$('#track').value,d=day(current);if(d?.date&&$('#date').value!==d.date)$('#date').value=d.date;render()}
 async function activateDate(date){if(!HISTORY[date]){DATA=LIVE_DATA;return}const merged={schemaVersion:2,revision:'history-'+date,tracks:[],raceDays:{},hypepredict:{analyses:{}},horseData:{}};for(const u of HISTORY[date]){const res=await fetch(u+'?v='+Date.now(),{cache:'no-store'});if(!res.ok)throw Error('Histórico '+date+' HTTP '+res.status);const j=await res.json();for(const t of (j.tracks||[]))if(!merged.tracks.some(x=>x.id===t.id))merged.tracks.push(t);Object.assign(merged.raceDays,j.raceDays||{});Object.assign(merged.hypepredict.analyses,j.hypepredict?.analyses||{});Object.assign(merged.horseData,j.horseData||{})}DATA=merged}async function syncTracksFromDate(){OPEN=null;const date=$('#date').value;try{await activateDate(date);const available=fillTracksForDate(date);if(!available.length){$('#app').innerHTML='<div class="empty"><b>No hay análisis publicados para esta fecha</b></div>';return}history.pushState({},'',location.pathname+'?date='+encodeURIComponent(date)+'&track='+encodeURIComponent($('#track').value));render()}catch(e){$('#app').innerHTML='<div class="empty"><b>No se pudo cargar el histórico</b><span>'+esc(e.message)+'</span></div>'}}
-async function load(){try{$('#status').textContent='Actualizando data pública…';const res=await fetch(CONFIG_URL+'?v='+Date.now(),{cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);LIVE_DATA=await res.json();DATA=LIVE_DATA;const params=new URLSearchParams(location.search),requestedTrack=params.get('track'),requestedRace=params.get('race'),requestedDate=params.get('date'),liveRequestedDay=requestedTrack?LIVE_DATA?.raceDays?.[requestedTrack]:null,allDates=dates(),initialDate=requestedDate||liveRequestedDay?.date||allDates[0];$('#date').innerHTML=allDates.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('');if(initialDate)$('#date').value=initialDate;await activateDate(initialDate);const available=fillTracksForDate(initialDate,requestedTrack);if(!available.length)throw Error('No hay análisis publicados');OPEN=(requestedTrack&&available.some(t=>t.id===requestedTrack))?requestedRace:null;render()}catch(e){$('#status').textContent='No se pudo cargar la data publicada';$('#app').innerHTML='<div class="empty"><b>HypePredict no pudo conectar</b><span>'+esc(e.message)+'</span></div>'}}
+
+/* Live freshness guard: GitHub Raw may serve an earlier config for several minutes
+   after the Admin successfully commits a new jornada to main.
+   Check the latest commit metadata and use GitHub's immutable blob only if Raw is stale. */
+async function fetchVerifiedConfig(){
+ const res=await fetch(CONFIG_URL+'?v='+Date.now(),{cache:'no-store'});
+ if(!res.ok)throw Error('Config público HTTP '+res.status);
+ const data=await res.json();
+ window.phLiveConfigSource='GitHub Raw';
+ window.phLiveConfigStale=false;
+ try{
+  const base='https://api.github.com/repos/playershype/playershype-android-v1';
+  const recent=await fetch(base+'/commits?path=docs/app/config.json&per_page=1&v='+Date.now(),{cache:'no-store'});
+  if(!recent.ok)return data;
+  const changes=await recent.json(),updated=Date.parse(changes?.[0]?.commit?.committer?.date||'');
+  const match=String(data.revision||'').match(/^v0\.1-admin-(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/);
+  const current=match?Date.parse(match[1]+'T'+match[2]+':'+match[3]+':'+match[4]+'.'+match[5]+'Z'):NaN;
+  if(!Number.isFinite(updated)||Number.isFinite(current)&&updated-current<120000)return data;
+  window.phLiveConfigStale=true;
+  const metaResponse=await fetch(base+'/contents/docs/app/config.json?ref=main&v='+Date.now(),{cache:'no-store'});
+  if(!metaResponse.ok)return data;
+  const meta=await metaResponse.json();
+  if(!meta.sha)return data;
+  const blobResponse=await fetch(base+'/git/blobs/'+encodeURIComponent(meta.sha),{cache:'no-store'});
+  if(!blobResponse.ok)return data;
+  const blob=await blobResponse.json();
+  if(blob.encoding!=='base64'||!blob.content)return data;
+  const binary=atob(blob.content.replace(/\s/g,'')),bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  const verified=JSON.parse(new TextDecoder('utf-8').decode(bytes));
+  if(verified.schemaVersion<2||!verified.raceDays||!verified.hypepredict)return data;
+  window.phLiveConfigSource='GitHub API (commit verificado)';
+  window.phLiveConfigStale=false;
+  return verified;
+ }catch(err){
+  return data;
+ }
+}
+
+async function load(){try{$('#status').textContent='Actualizando data pública…';LIVE_DATA=await fetchVerifiedConfig();DATA=LIVE_DATA;const params=new URLSearchParams(location.search),requestedTrack=params.get('track'),requestedRace=params.get('race'),requestedDate=params.get('date'),liveRequestedDay=requestedTrack?LIVE_DATA?.raceDays?.[requestedTrack]:null,allDates=dates(),initialDate=(requestedDate&&allDates.includes(requestedDate)?requestedDate:(liveRequestedDay?.date||allDates[0]));$('#date').innerHTML=allDates.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('');if(initialDate)$('#date').value=initialDate;await activateDate(initialDate);const available=fillTracksForDate(initialDate,requestedTrack);if(!available.length)throw Error('No hay análisis publicados');OPEN=(requestedTrack&&available.some(t=>t.id===requestedTrack))?requestedRace:null;render()}catch(e){$('#status').textContent='No se pudo cargar la data publicada';$('#app').innerHTML='<div class="empty"><b>HypePredict no pudo conectar</b><span>'+esc(e.message)+'</span></div>'}}
 $('#track').addEventListener('change',()=>{OPEN=null;history.pushState({},'',location.pathname+'?date='+encodeURIComponent($('#date').value)+'&track='+encodeURIComponent($('#track').value));syncDates()});$('#date').addEventListener('change',syncTracksFromDate);window.addEventListener('popstate',()=>location.reload());$('#refresh').addEventListener('click',load);load();
 </script>
 </body></html>
