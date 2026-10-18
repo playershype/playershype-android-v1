@@ -4,7 +4,8 @@ const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES?process.
 const root=path.resolve(__dirname,'..'),config=JSON.parse(fs.readFileSync(root+'/docs/app/config.json'));
 const server=http.createServer((req,res)=>{try{
  const url=new URL(req.url,'http://localhost');const android=url.pathname.startsWith('/android/');
- const file=path.join(root,android?'app/src/main/assets':'docs/hypepredict',url.pathname.replace(/^\/(android|web)\//,''));
+ const assetRoot=android?(process.env.PH_ANDROID_ASSETS||path.join(root,'app/src/main/assets')):path.join(root,'docs/hypepredict');
+ const file=path.join(assetRoot,url.pathname.replace(/^\/(android|web)\//,''));
  let body=fs.readFileSync(file);if(android&&file.endsWith('.html')){
   body=body.toString();if(file.endsWith('predict.html'))body=body.replace('<script src="predict-dashboard.js">','<script src="remote-config.js"></script><script src="predict-dashboard.js">');
   else body=body.replace('</body>','<script src="race-history.js"></script><script src="remote-config.js"></script></body>');
@@ -18,6 +19,8 @@ try{
  await context.route('**/*',route=>{
   const u=route.request().url();if(u.startsWith(origin))return route.continue();
   if(u.includes('/main/docs/app/config.json'))return route.fulfill({json:config});
+  // Styling CDN is outside this offline navigation test; preserve its config API.
+  if(new URL(u).hostname==='cdn.tailwindcss.com')return route.fulfill({contentType:'text/javascript',body:'window.tailwind={config:{}};'});
   return route.fulfill({status:404,body:''});
  });
  await context.addInitScript(c=>{
@@ -26,6 +29,7 @@ try{
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(10000);
  const date='2026-10-08',track='camarero',snapshot=config.raceDayHistory[track][date],race=snapshot.day.races[0],analysis=snapshot.analyses[race.id],horse=analysis.horses[0];
  await page.goto(origin+'/android/tracks.html?date='+date);await page.waitForSelector('#ph-hub-date');assert.equal(await page.locator('#ph-hub-date').inputValue(),date);
+ await page.locator('#ph-hub-date').click();assert.ok(page.url().includes('tracks.html?date='+date),'opening the date picker must not trigger a legacy track route');await page.keyboard.press('Escape');
  const link=page.locator('a.ph-track[href*="track=camarero"]');assert.ok((await link.getAttribute('href')).includes('date='+date));await link.click();
  await page.waitForSelector('#ph-date-select');assert.equal(await page.locator('#ph-date-select').inputValue(),date);
  await page.locator('.tabs [data-v="r'+race.number+'"]').click();assert.ok(page.url().includes('race='+race.id));

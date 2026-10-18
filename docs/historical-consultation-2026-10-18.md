@@ -29,3 +29,9 @@ All existing validation and APK checks remain enabled.
 - `CHROMIUM_PATH=... node tests/history_browser.cjs`: real Chromium using the Android HTML/JS with a simulated native data/export bridge, and the web UI with the same real config. Track Hub, dates, races, profile, HypeMatch JSON, refresh/back, all stored web jornadas and unavailable track/date/race checked; no JavaScript errors.
 - Build-only prepared config passes `scripts/validate_v01_config.py`.
 - Browser checks do not certify installation or behavior on a physical Android device. Record CI/APK and deployed-web verification separately.
+
+## Packaged navigation correction
+
+The first build (f6ee026) passed Java, lint and static APK checks, but a browser test using its extracted assets exposed a generated Stitch click router stripping the selected date. The assembly now excludes the canonical Track Hub from those legacy routers. CI runs the browser navigation test against the extracted APK before uploading it, including opening the date picker and following a historical track link. External styling is stubbed only in the offline navigation test.
+
+Web deployment fe5c4ea succeeded. A live browser check opened Camarero 2026-10-08 with six original race analyses, retained the selected track/date and reported no JavaScript errors. Physical Android installation remains unverified.

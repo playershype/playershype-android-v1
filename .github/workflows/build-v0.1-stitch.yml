@@ -2622,6 +2622,7 @@ jobs:
 
       - name: Build V0.1 debug APK
         run: |
+          python3 scripts/guard_history_track_navigation.py app/src/main/assets/tracks.html
           chmod +x gradlew
           ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug --no-daemon
           mkdir -p artifacts
@@ -2663,6 +2664,11 @@ jobs:
               raise SystemExit("APK HypePredict renderer missing")
           print("ACTUAL APK OPERATIONAL HYPEPREDICT ROUTE VERIFIED")
           PY
+      - name: Verify historical navigation in the packaged APK assets
+        run: |
+          npm install --prefix /tmp/ph-history-browser playwright@1.62.1
+          /tmp/ph-history-browser/node_modules/.bin/playwright install --with-deps chromium
+          NODE_PATH=/tmp/ph-history-browser/node_modules PH_ANDROID_ASSETS=/tmp/ph-apk-audit/assets node tests/history_browser.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: PlayersHype-App-V0.1-STITCH
