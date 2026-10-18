@@ -4,6 +4,7 @@
   window.__PLAYERSHYPE_REMOTE_RUNTIME__=true;
 
   const B=window.PlayersHypeConfig;
+  const HISTORY=window.PlayersHypeHistory;
   const PATH=(location.pathname||'').toLowerCase();
   const isHome=PATH.endsWith('/index.html');
   const isTracks=PATH.endsWith('/tracks.html');
@@ -67,14 +68,19 @@
     const root=mount();root.style.display='block';document.querySelectorAll('body > *').forEach(el=>{if(el!==root&&el.id!==BADGE_ID&&el.tagName!=='SCRIPT'&&el.tagName!=='STYLE'&&el.tagName!=='NAV')el.style.display='none'});
     root.appendChild(node('div','ph-kicker','TRACK HUB · SINCRONIZADO'));
     root.appendChild(node('h2','','Track Hub'));
-    root.appendChild(node('p','','Jornadas publicadas por PlayersHype Admin.'));
-    const tracks=(c.tracks||[]).filter(t=>t.enabled!==false);
+    root.appendChild(node('p','','Consulta las carreras y análisis de cada fecha.'));
+    const params=new URLSearchParams(location.search),dates=HISTORY.dates(c),date=params.get('date')||dates[0]||'',label=node('label','','FECHA '),picker=node('select');picker.id='ph-hub-date';picker.setAttribute('aria-label','Fecha de jornada');picker.style.cssText='padding:12px;background:#07192b;color:white;border:1px solid #466b85;border-radius:10px;max-width:100%';
+    const options=dates.includes(date)?dates:[date,...dates].filter(Boolean);
+    for(const value of options){const option=node('option','',value+(dates.includes(value)?'':' · SIN DATOS'));option.value=value;picker.appendChild(option)}picker.value=date;
+    picker.onchange=()=>{const u=new URL(location.href);u.searchParams.set('date',picker.value);history.pushState(null,'',u.pathname+u.search);safeRender()};label.appendChild(picker);root.appendChild(label);
+    c=HISTORY.forDate(c,date);const tracks=c.tracks;
+    if(!tracks.length)root.appendChild(node('p','','No hay análisis publicados para '+date+'. Selecciona otra fecha.'));
     tracks.forEach(t=>{
       const d=(c.raceDays&&c.raceDays[t.id])||{status:'unpublished',date:null,races:[]};
       const races=Array.isArray(d.races)?d.races:[];
       const active=races.length>0&&d.status!=='unpublished';
       const card=node(active?'a':'div','ph-track');
-      if(active)card.href='predict.html?track='+encodeURIComponent(t.id);
+      if(active)card.href='predict.html?track='+encodeURIComponent(t.id)+'&date='+encodeURIComponent(date);
       if(t.image){const art=node('img','ph-track-art');art.src=t.image;art.alt='Arte de '+(t.name||'hipódromo');art.onerror=()=>art.remove();card.appendChild(art)}
       const copy=node('div','ph-track-copy');
       copy.appendChild(node('strong','',t.name));
@@ -100,5 +106,6 @@
 
   window.onPlayersHypeConfigState=function(){safeRender();if(isPredict&&typeof window.PlayersHypeDashboardRender==='function')window.PlayersHypeDashboardRender()};
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateBadge()});
+  window.addEventListener('playershype:history-ready',()=>{if(isTracks)safeRender()});window.addEventListener('popstate',()=>{if(isTracks)safeRender()});
   if(!isPredict)safeRender();else{addStyle();updateBadge();}
 })();

@@ -11,8 +11,14 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Validate V0.1 publication source config
-        run: python3 scripts/validate_v01_config.py docs/app/config.json
+      - name: Verify historical consultation against original snapshots
+        run: node tests/test_race_history.cjs
+      - name: Prepare and validate build-only track registry
+        run: |
+          # Recover tracks that already have published days. No commit or remote write.
+          python3 scripts/prepare_history_build_config.py docs/app/config.json /tmp/playershype-history-build.json
+          python3 scripts/validate_v01_config.py /tmp/playershype-history-build.json
+          cp /tmp/playershype-history-build.json docs/app/config.json
       - name: Test complete Race Day publication package contract
         run: |
           python3 - <<'PY'

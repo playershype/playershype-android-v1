@@ -50,3 +50,6 @@ Archivo aportado por el usuario: HUB.html (referencia de diseño y lógica, NO a
 
 ## Advertencias
 No confundir HUB.html de 5 MB con el Admin APK; sirve como especificación. Los resultados almacenados en localStorage de Admin no son resultados publicados. No presentar cambios de GitHub como APK ya probado.
+
+## Consulta histórica — actualización 2026-10-18
+Se implementó un lector común por pista/fecha para Android y web, con análisis y fichas de cada snapshot, sin fallback a la jornada actual. Ver `docs/historical-consultation-2026-10-18.md` para alcance y pruebas. Postmortem/publicación de resultados continúa fuera de esta entrega. No confundir pruebas del runtime en Chromium con aceptación en Android físico.

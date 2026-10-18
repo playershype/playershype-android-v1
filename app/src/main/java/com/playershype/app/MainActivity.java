@@ -68,7 +68,7 @@ public final class MainActivity extends ComponentActivity {
     revision=getSharedPreferences(PREFS,Context.MODE_PRIVATE).getString(PREF_REVISION,"");
     lastSync=getSharedPreferences(PREFS,Context.MODE_PRIVATE).getLong(PREF_LAST_SYNC,0L);
     syncState=cachedConfig.isEmpty()?"idle":"cached";
-    remoteRuntime=asset("remote-config.js")+"\n"+asset("predict-dashboard.js");
+    remoteRuntime=asset("race-history.js")+"\n"+asset("remote-config.js")+"\n"+asset("predict-dashboard.js");
 
     backCallback=new OnBackPressedCallback(false){
       @Override public void handleOnBackPressed(){
