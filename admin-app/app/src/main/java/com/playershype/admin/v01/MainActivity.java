@@ -62,8 +62,15 @@ public final class MainActivity extends ComponentActivity {
         try{
           String token=secret();
           if(token==null||token.trim().isEmpty())throw new Exception("No hay token guardado.");
-          meta(token,SOURCE);
-          meta(token,PROD);
+          checkGitHubTokenAndRepository(token);
+          try{
+            meta(token,SOURCE);
+            meta(token,PROD);
+          }catch(Exception e){
+            String m=e.getMessage()==null?"":e.getMessage();
+            if(m.contains("HTTP 404")||m.contains("HTTP 403"))throw new Exception("Repositorio visible, pero no se pudo leer config.json. Verifica Permissions > Contents: Read and write en el token (HTTP 404/403).");
+            throw e;
+          }
           callbackPublisherTest(true,"Lectura autorizada en v0.1-stitch-clean y main. Los permisos de escritura se verifican al publicar.");
         }catch(Exception e){
           callbackPublisherTest(false,e.getMessage()==null?"No se pudo verificar GitHub.":e.getMessage());
@@ -87,7 +94,20 @@ public final class MainActivity extends ComponentActivity {
 
   HttpURLConnection conn(String url,String method,String token)throws Exception{HttpURLConnection c=(HttpURLConnection)new URL(url).openConnection();c.setConnectTimeout(15000);c.setReadTimeout(20000);c.setRequestMethod(method);c.setUseCaches(false);c.setRequestProperty("Accept","application/vnd.github+json");c.setRequestProperty("X-GitHub-Api-Version","2022-11-28");c.setRequestProperty("Authorization","Bearer "+token);c.setRequestProperty("User-Agent","PlayersHype-Admin-V0.1");return c;}
   String body(HttpURLConnection c,int code)throws Exception{InputStream in=code>=200&&code<400?c.getInputStream():c.getErrorStream();if(in==null)return"";StringBuilder b=new StringBuilder();try(BufferedReader r=new BufferedReader(new InputStreamReader(in,StandardCharsets.UTF_8))){String l;while((l=r.readLine())!=null)b.append(l).append('\n');}return b.toString();}
-  JSONObject meta(String token,String branch)throws Exception{HttpURLConnection c=conn(API+"/contents/"+PATH+"?ref="+branch,"GET",token);int code=c.getResponseCode();String b=body(c,code);if(code<200||code>=300)throw new Exception("No pude leer "+branch+"/"+PATH+" (HTTP "+code+").");if(b==null||b.trim().isEmpty())throw new Exception("GitHub devolvió metadata vacía para "+branch+"/"+PATH+".");return new JSONObject(b);}
+  void checkGitHubTokenAndRepository(String token)throws Exception{
+    HttpURLConnection auth=conn("https://api.github.com/user","GET",token);
+    int ac=auth.getResponseCode();auth.disconnect();
+    if(ac==401)throw new Exception("TOKEN INVALIDO O EXPIRADO (HTTP 401). Renueva la credencial y guardala en el Admin.");
+    if(ac==403)throw new Exception("GITHUB RECHAZO LA AUTENTICACION (HTTP 403). Comprueba la credencial y sus restricciones.");
+    if(ac!=200)throw new Exception("No se pudo validar el token con GitHub (HTTP "+ac+").");
+    HttpURLConnection repo=conn(API,"GET",token);
+    int rc=repo.getResponseCode();repo.disconnect();
+    if(rc==404)throw new Exception("TOKEN SIN ACCESO AL REPOSITORIO PRIVADO (HTTP 404). GitHub > Fine-grained tokens: Resource owner playershype; Repository access playershype-android-v1; Permissions > Contents: Read and write.");
+    if(rc==401)throw new Exception("TOKEN INVALIDO O EXPIRADO (HTTP 401).");
+    if(rc==403)throw new Exception("GITHUB NO PERMITE ACCEDER AL REPOSITORIO (HTTP 403). Comprueba permisos y aprobaciones.");
+    if(rc!=200)throw new Exception("No se pudo acceder a playershype-android-v1 (HTTP "+rc+").");
+  }
+  JSONObject meta(String token,String branch)throws Exception{HttpURLConnection c=conn(API+"/contents/"+PATH+"?ref="+branch,"GET",token);int code=c.getResponseCode();String b=body(c,code);if(code==404)throw new Exception("GitHub devolvio HTTP 404 al leer "+branch+"/"+PATH+". Verifica acceso al repositorio privado y permisos Contents: Read and write.");if(code==401)throw new Exception("TOKEN INVALIDO O EXPIRADO (HTTP 401).");if(code<200||code>=300)throw new Exception("No pude leer "+branch+"/"+PATH+" (HTTP "+code+").");if(b==null||b.trim().isEmpty())throw new Exception("GitHub devolvió metadata vacía para "+branch+"/"+PATH+".");return new JSONObject(b);}
   String blobText(String token,String sha)throws Exception{if(sha==null||sha.trim().isEmpty())throw new Exception("GitHub no devolvió SHA para "+PATH+".");HttpURLConnection c=conn(API+"/git/blobs/"+sha,"GET",token);int code=c.getResponseCode();String b=body(c,code);if(code<200||code>=300)throw new Exception("No pude leer el contenido remoto (HTTP "+code+").");if(b==null||b.trim().isEmpty())throw new Exception("GitHub devolvió contenido remoto vacío.");JSONObject x=new JSONObject(b);String enc=x.optString("encoding","");String data=x.optString("content","");if(data.isEmpty())throw new Exception("GitHub no devolvió el contenido de "+PATH+".");if(!"base64".equalsIgnoreCase(enc))throw new Exception("Codificación remota no soportada: "+enc);return new String(Base64.decode(data.replace("\n",""),Base64.DEFAULT),StandardCharsets.UTF_8);}
   JSONObject getConfig(String token,String branch)throws Exception{JSONObject m=meta(token,branch);String raw=m.optString("content","");if(!raw.isEmpty())raw=new String(Base64.decode(raw.replace("\n",""),Base64.DEFAULT),StandardCharsets.UTF_8);else raw=blobText(token,m.optString("sha",""));if(raw==null||raw.trim().isEmpty())throw new Exception("El config remoto está vacío.");try{return new JSONObject(raw);}catch(Exception e){throw new Exception("El config remoto no contiene JSON válido: "+e.getMessage());}}
   void putConfig(String token,String branch,String content,String msg)throws Exception{JSONObject m=meta(token,branch),p=new JSONObject();p.put("message",msg);p.put("branch",branch);p.put("sha",m.getString("sha"));p.put("content",Base64.encodeToString(content.getBytes(StandardCharsets.UTF_8),Base64.NO_WRAP));HttpURLConnection c=conn(API+"/contents/"+PATH,"PUT",token);c.setDoOutput(true);c.setRequestProperty("Content-Type","application/json; charset=utf-8");try(OutputStream o=c.getOutputStream()){o.write(p.toString().getBytes(StandardCharsets.UTF_8));}int code=c.getResponseCode();String response=body(c,code);if(code<200||code>=300)throw new Exception("No pude actualizar "+branch+"/"+PATH+" (HTTP "+code+").");if(response==null||response.trim().isEmpty())throw new Exception("GitHub no confirmó la actualización de "+branch+"/"+PATH+".");}
