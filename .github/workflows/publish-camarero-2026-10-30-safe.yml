@@ -1,0 +1,70 @@
+name: Publish Camarero 2026-10-30 with history preservation
+
+on:
+  push:
+    branches:
+      - v0.1-stitch-clean
+    paths:
+      - 'docs/hypepredict/pending/camarero-2026-10-30.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-camarero-2026-10-30-guarded
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout controlled staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: v0.1-stitch-clean
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Verify both branches and merge only Camarero
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main v0.1-stitch-clean
+          python3 scripts/publish_camarero_2026_10_30_safe.py
+      - name: Stage verified config in source branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "PlayersHype publication bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp /tmp/playershype-safe-publish-2026-10-30.json docs/app/config.json
+          git add docs/app/config.json
+          git commit -m "publish: stage Camarero Oct 30, preserve prior history"
+          git push origin HEAD:v0.1-stitch-clean
+      - name: Publish exact validated config to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          test "$(git rev-parse HEAD:docs/app/config.json)" = "cbd70d02fc806b0622a3933602a82c17ac86aa3f"
+          cp /tmp/playershype-safe-publish-2026-10-30.json docs/app/config.json
+          git add docs/app/config.json
+          git commit -m "publish: Camarero 2026-10-30 (7 races 52 horses)"
+          git push origin HEAD:main
+      - name: Confirm remote production data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          python3 - <<'PY'
+          import json, subprocess
+          raw=subprocess.check_output(["git","show","origin/main:docs/app/config.json"])
+          v=json.loads(raw)
+          r=v["raceDays"]["camarero"]
+          assert v["revision"]=="v0.1-admin-2026-10-30T14-00-23-333Z"
+          assert r["date"]=="2026-10-30" and len(r["races"])==7
+          assert sum(len(race["entries"]) for race in r["races"])==52
+          assert v["raceDayHistory"]["camarero"]["2026-10-29"]["day"]["date"]=="2026-10-29"
+          print("PRODUCTION VERIFIED: Camarero 2026-10-30, 7 races, 52 horses, Oct 29 archived")
+          PY
