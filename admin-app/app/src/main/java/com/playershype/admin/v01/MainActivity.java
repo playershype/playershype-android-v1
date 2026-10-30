@@ -56,12 +56,28 @@ public final class MainActivity extends ComponentActivity {
     @JavascriptInterface public boolean isPublisherConfigured(){try{return secret()!=null&&!secret().trim().isEmpty();}catch(Exception e){return false;}}
     @JavascriptInterface public boolean configurePublisher(String t){if(t==null||t.trim().length()<20||t.trim().length()>512)return false;try{saveSecret(t.trim());return true;}catch(Exception e){return false;}}
     @JavascriptInterface public void clearPublisher(){getSharedPreferences(PREFS,Context.MODE_PRIVATE).edit().remove(TOKEN).apply();}
+
+    @JavascriptInterface public void testPublisherConnection(){
+      io.execute(()->{
+        try{
+          String token=secret();
+          if(token==null||token.trim().isEmpty())throw new Exception("No hay token guardado.");
+          meta(token,SOURCE);
+          meta(token,PROD);
+          callbackPublisherTest(true,"Lectura autorizada en v0.1-stitch-clean y main. Los permisos de escritura se verifican al publicar.");
+        }catch(Exception e){
+          callbackPublisherTest(false,e.getMessage()==null?"No se pudo verificar GitHub.":e.getMessage());
+        }
+      });
+    }
     @JavascriptInterface public boolean exportFile(String filename,String mime,String content){if(Build.VERSION.SDK_INT<Build.VERSION_CODES.Q)return false;try{String safe=(filename==null?"playershype-export.txt":filename).replaceAll("[\\\\/:*?\"<>|]","_");ContentValues v=new ContentValues();v.put(MediaStore.MediaColumns.DISPLAY_NAME,safe);v.put(MediaStore.MediaColumns.MIME_TYPE,mime==null?"text/plain":mime);v.put(MediaStore.MediaColumns.IS_PENDING,1);Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);if(u==null)return false;try(OutputStream o=getContentResolver().openOutputStream(u)){if(o==null)return false;o.write((content==null?"":content).getBytes(StandardCharsets.UTF_8));}v.clear();v.put(MediaStore.MediaColumns.IS_PENDING,0);getContentResolver().update(u,v,null,null);runOnUiThread(()->Toast.makeText(MainActivity.this,"Guardado en Descargas: "+safe,Toast.LENGTH_LONG).show());return true;}catch(Exception e){return false;}}
     @JavascriptInterface public String getPublishedConfig(){try{String token=secret();if(token==null||token.isEmpty())return "";return getConfig(token,PROD).toString();}catch(Exception e){return "";}}
     @JavascriptInterface public void publishConfig(String json){io.execute(()->{try{String token=secret();if(token==null||token.isEmpty())throw new Exception("Conexión GitHub no configurada.");JSONObject candidate=new JSONObject(json);basicValidate(candidate);JSONObject remote=getConfig(token,PROD);boolean control="control-center".equals(candidate.optString("publishScope"));String tid=control?"":target(candidate);JSONObject merged=control?mergeControlCenter(remote,candidate):merge(remote,candidate,tid);basicValidate(merged);String label=tid.isEmpty()?"control-center":tid;String body=merged.toString(2)+"\n";putConfig(token,SOURCE,body,"config: stage PlayersHype V0.1 · "+label);putConfig(token,PROD,body,"config: publish PlayersHype V0.1 · "+label);JSONObject verify=getConfig(token,PROD);basicValidate(verify);if(!merged.getString("revision").equals(verify.optString("revision")))throw new Exception("La revisión publicada no coincide.");if(!samePublishedContract(merged,verify))throw new Exception("GitHub confirmó la revisión, pero el contenido remoto no coincide con el paquete publicado.");callback(true,tid.isEmpty()?"Control Center · config remoto verificado":tid+" · "+verify.getJSONObject("raceDays").getJSONObject(tid).optString("date")+" · config remoto verificado");}catch(Exception e){callback(false,e.getMessage()==null?"Error de publicación":e.getMessage());}});}
   }
 
   boolean samePublishedContract(JSONObject a,JSONObject b){try{String[] keys={"revision","home","live","channels","tracks","hypepredict","tv","latest","raceDays","horseData","membership","store","promotions","social","localization","appSettings","raceDayHistory"};for(String k:keys){boolean ah=a.has(k),bh=b.has(k);if(ah!=bh)return false;if(ah&&!a.get(k).toString().equals(b.get(k).toString()))return false;}return true;}catch(Exception e){return false;}}
+
+  void callbackPublisherTest(boolean ok,String m){runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onNativePublisherTestResult&&window.onNativePublisherTestResult("+(ok?"true":"false")+","+JSONObject.quote(m)+");",null);});}
 
   void callback(boolean ok,String m){runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.onNativePublishResult&&window.onNativePublishResult("+(ok?"true":"false")+","+JSONObject.quote(m)+");",null);});}
 
