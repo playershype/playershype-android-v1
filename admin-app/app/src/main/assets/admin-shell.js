@@ -132,6 +132,62 @@ function phEnsureModulePublishButtons(){
 }
 phEnsureModulePublishButtons();
 
+/* GitHub credential setup — visible, independent of preparing/publishing a race. */
+const ghNative=()=>window.HypeAndroid;
+const ghPanelHost=document.getElementById('mod-publish');
+if(ghPanelHost){
+  const ghPanel=document.createElement('section');
+  ghPanel.id='phGithubSetup';
+  ghPanel.style.cssText='margin:15px 0;padding:16px;border:1px solid #2d6681;border-radius:15px;background:#071727';
+  ghPanel.innerHTML='<p class="readyTitle">Conexión GitHub</p>'+
+    '<p style="margin:9px 0;color:#c3d4e2">Configura o renueva tu token de GitHub sin preparar ni publicar una carrera. Repositorio: <b>playershype/playershype-android-v1</b> · Rama de preparación: <b>v0.1-stitch-clean</b>.</p>'+
+    '<div id="phGithubStatus" class="status" role="status">Comprobando configuración local...</div>'+
+    '<div class="actions"><button type="button" class="secondary" id="phGithubSetupBtn">CONFIGURAR / RENOVAR TOKEN</button>'+
+    '<button type="button" class="secondary" id="phGithubCheckBtn">PROBAR CONEXIÓN</button>'+
+    '<button type="button" class="secondary" id="phGithubRemoveBtn">BORRAR TOKEN GUARDADO</button></div>'+
+    '<p class="micro">El token se almacena cifrado con Android Keystore. La prueba solo lee GitHub; no modifica ni publica archivos. No pegues tu token en el chat.</p>';
+  const actions=ghPanelHost.querySelector('.actions');
+  ghPanelHost.insertBefore(ghPanel,actions||ghPanelHost.firstChild);
+  const state=ghPanel.querySelector('#phGithubStatus');
+  const refreshGhState=()=>{
+    let configured=false;
+    try{configured=!!(ghNative()&&typeof ghNative().isPublisherConfigured==='function'&&ghNative().isPublisherConfigured());}
+    catch(_){state.textContent='No se pudo consultar la configuración segura.';state.className='status bad';return;}
+    state.textContent=configured?'TOKEN GUARDADO EN ESTE DISPOSITIVO · puedes probar la conexión.':'SIN TOKEN · toca CONFIGURAR / RENOVAR TOKEN.';
+    state.className='status '+(configured?'ok':'');
+  };
+  ghPanel.querySelector('#phGithubSetupBtn').onclick=async()=>{
+    try{if(typeof window.configureGitHub!=='function')throw Error('Módulo de credenciales no disponible.');
+      await window.configureGitHub();refreshGhState();
+    }catch(e){state.textContent=e.message||'Error al configurar GitHub';state.className='status bad';}
+  };
+  ghPanel.querySelector('#phGithubCheckBtn').onclick=()=>{
+    try{if(!ghNative()||typeof ghNative().testPublisherConnection!=='function')throw Error('Esta instalación no incluye la prueba de conexión.');
+      state.textContent='Verificando acceso de lectura al repositorio y ambas ramas...';state.className='status';
+      ghNative().testPublisherConnection();
+    }catch(e){state.textContent=e.message||'No se pudo probar la conexión';state.className='status bad';}
+  };
+  ghPanel.querySelector('#phGithubRemoveBtn').onclick=()=>{
+    if(!window.confirm('¿Borrar el token de GitHub guardado en este teléfono?'))return;
+    try{if(!ghNative()||typeof ghNative().clearPublisher!=='function')throw Error('Conexión segura no disponible.');
+      ghNative().clearPublisher();
+      try{localStorage.removeItem('playershype:admin:v01:githubToken')}catch(_){}
+      refreshGhState();
+    }catch(e){state.textContent=e.message||'No se pudo borrar la credencial';state.className='status bad';}
+  };
+  window.onNativePublisherTestResult=(ok,message)=>{
+    state.textContent=(ok?'CONEXIÓN VERIFICADA · ':'CONEXIÓN FALLIDA · ')+(message||'Sin detalle');
+    state.className='status '+(ok?'ok':'bad');
+  };
+  const shortcut=document.createElement('button');
+  shortcut.type='button';shortcut.className='secondary';shortcut.textContent='CONFIGURAR TOKEN GITHUB';
+  shortcut.onclick=()=>{document.querySelector('.ph-shell [data-mod="publish"]')?.click();ghPanel.scrollIntoView({behavior:'smooth',block:'start'});};
+  const publicationActions=document.querySelector('#readyCard .actions');
+  if(publicationActions)publicationActions.appendChild(shortcut);
+  refreshGhState();
+}
+
+
 defs.forEach(d=>{const b=document.createElement('button');b.textContent=d[1];b.dataset.mod=d[0];b.onclick=()=>{document.querySelectorAll('.ph-module').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.ph-shell button').forEach(x=>x.classList.remove('on'));const t=document.querySelector('#mod-'+d[0]);if(t)t.classList.add('on');b.classList.add('on');window.scrollTo(0,0)};nav.appendChild(b)});
 body.insertBefore(nav,hp);
 function phOpenModule(id){
