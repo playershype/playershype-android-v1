@@ -240,13 +240,29 @@ html,body{background:#eef2f6;color:#111827;scroll-behavior:auto}
 @media(max-width:1000px){.race-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:570px){.race-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.strip-cell{padding:10px}.strip-value{font-size:14px}}
 
+
+.hm-open{border:1px solid #102946;border-radius:11px;background:#102946;color:#caff00;padding:11px 14px;font-weight:1000;font-size:12px;cursor:pointer;min-height:44px}
+.hm-from-day{width:100%;padding:0;text-align:left;font:inherit;cursor:pointer}
+.hm-modal{position:fixed;inset:0;z-index:190;display:none;align-items:center;justify-content:center;background:rgba(3,13,26,.7);padding:16px;backdrop-filter:blur(5px)}
+.hm-modal.open{display:flex}.hm-dialog{width:min(940px,96vw);max-height:94dvh;overflow:auto;border-radius:20px;background:#f1f5f8;box-shadow:0 24px 80px rgba(0,0,0,.33)}
+.hm-top{position:sticky;top:0;background:linear-gradient(120deg,#071827,#102946);color:#fff;border-bottom:4px solid #caff00;padding:14px;display:flex;justify-content:space-between;gap:12px;z-index:2}
+.hm-title{font-size:23px;font-weight:1000;margin:5px 0}.hm-kicker{font-size:10px;letter-spacing:.14em;color:#caff00;font-weight:1000}.hm-sub{font-size:11px;color:#b9cad8}.hm-close{border:1px solid #42617c;background:#163a55;color:#fff;border-radius:10px;width:44px;height:44px;font-size:23px;cursor:pointer}
+.hm-body{padding:13px;display:grid;gap:12px}
+.hm-selectors{display:grid;grid-template-columns:minmax(0,1fr) 42px minmax(0,1fr);gap:9px;align-items:end}.hm-choice{background:#fff;border:1px solid #dce5ec;border-radius:12px;padding:10px;min-width:0}.hm-choice label{display:block;color:#657b8d;font-size:10px;font-weight:1000;letter-spacing:.12em;margin-bottom:6px}.hm-choice select{width:100%;min-height:44px;border-radius:10px;border:1px solid #cbd8e2;padding:7px;color:#14344b;background:#fff;font-size:12px;font-weight:900}.hm-vs{background:#102946;color:#caff00;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:1000}
+.hm-fighters{display:grid;grid-template-columns:minmax(0,1fr) 116px minmax(0,1fr);gap:9px}.hm-fighter{background:#fff;border:1px solid #dce5ec;border-radius:15px;padding:14px;min-width:0}.hm-fighter.right{text-align:right}.hm-horse{font-size:16px;font-weight:1000;color:#173049;line-height:1.3;overflow-wrap:anywhere;margin:9px 0}.hm-score{font-size:37px;color:#102946;font-weight:1000;line-height:1}.hm-role{font-size:11px;color:#708398;font-weight:850;margin-top:6px}.hm-center{border-radius:15px;background:#102946;color:#fff;padding:11px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.hm-center small{font-size:10px;line-height:1.4;color:#b4c8d7}.hm-center b{font-size:28px;color:#caff00;margin:6px 0}
+.hm-table{border:1px solid #dce5ec;border-radius:13px;background:#fff;overflow:hidden}.hm-row{display:grid;grid-template-columns:minmax(0,1fr) 125px minmax(0,1fr);border-bottom:1px solid #e8edf1}.hm-row:last-child{border-bottom:0}.hm-cell{font-size:12px;color:#244057;padding:10px;overflow-wrap:anywhere;line-height:1.4;display:flex;align-items:center;gap:5px;min-width:0}.hm-cell b{font-size:12px;color:#173049}.hm-cell.right{text-align:right;justify-content:flex-end}.hm-cell.metric{background:#f7f9fb;text-align:center;justify-content:center;border-left:1px solid #edf1f4;border-right:1px solid #edf1f4;color:#6b7e91;font-size:10px;text-transform:uppercase;font-weight:1000}.hm-edge{padding:3px 5px;background:#eaffb2;color:#486800;border:1px solid #c4ec77;border-radius:99px;font-size:9px;font-weight:1000;flex:none}
+.hm-reference{border-left:4px solid #25c5df;background:#fff;border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.65;color:#354d61}
+.hm-readings{display:grid;grid-template-columns:1fr 1fr;gap:9px}.hm-reading{border:1px solid #dce5ec;border-radius:13px;background:#fff;padding:12px}.hm-reading b{display:block;color:#18394f;font-size:13px;margin-bottom:7px}.hm-reading p{font-size:12px;line-height:1.7;color:#4a6072;margin:0}
+.hm-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.hm-actions button,.hm-profile{min-height:42px;padding:10px 12px;border-radius:10px;border:1px solid #c8d7e2;background:#fff;color:#102946;font-size:11px;font-weight:1000;cursor:pointer}.hm-actions .primary{background:#102946;color:#caff00}.hm-profile{margin-top:10px}
+@media(max-width:700px){.hm-modal{padding:0;align-items:flex-end}.hm-dialog{width:100%;max-height:96dvh;border-radius:20px 20px 0 0}.hm-top{padding:13px}.hm-title{font-size:20px}.hm-body{padding:9px;gap:9px}.hm-selectors{grid-template-columns:minmax(0,1fr) 33px minmax(0,1fr);gap:5px}.hm-choice{padding:7px}.hm-choice select{font-size:11px}.hm-vs{width:32px;height:32px;font-size:11px}.hm-fighters{grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr);gap:5px}.hm-fighter{padding:9px 7px}.hm-horse{font-size:13px}.hm-score{font-size:29px}.hm-center b{font-size:22px}.hm-center small{font-size:9px}.hm-row{grid-template-columns:minmax(0,1fr) 86px minmax(0,1fr)}.hm-cell{font-size:11px;padding:8px 5px}.hm-cell b{font-size:11px}.hm-cell.metric{font-size:9px}.hm-readings{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap"><div class="brand-mark">PH</div><div class="brand-copy"><div class="brand">PLAYERSHYPE · DEFINIENDO EL ESTÁNDAR</div><div class="title">HypePredict</div><div class="sub">Race Intelligence · Track Hub</div></div><div class="public-chip">● PUBLICADO</div></div></header>
 <section class="controls"><select id="track" aria-label="Hipódromo"><option>Cargando hipódromos…</option></select><select id="date" aria-label="Fecha"><option>Cargando fechas…</option></select><button id="refresh">Actualizar</button></section>
 <nav id="raceNav"></nav><div class="status" id="status">Conectando con la data publicada…</div>
-<main class="grid" id="app"></main><aside id="horseModal" class="horse-modal" aria-live="polite"></aside>
+<main class="grid" id="app"></main><aside id="horseModal" class="horse-modal" aria-live="polite"></aside><aside id="matchModal" class="hm-modal" aria-live="polite"></aside>
 <footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
 <script>
 const CONFIG_URL='../app/config.json'; let DATA=null, SELECTED_DATE='';
@@ -378,6 +394,93 @@ function syncDates(preferredDate=""){
 
 
 /* Navegación publicada: cada carrera es una pantalla y no una sección en una página larga. */
+
+let hpMatchContext=null,hpPendingProfile=null;
+function hpMatchField(h,label){
+ const src=String(h?.sourceText||"");
+ const escaped=String(label).replace(/[.*+?^$()|[\]{}]/g,"\\function hpScreen(){");
+ const m=src.match(new RegExp("^"+escaped+"\\s*:\\s*([^\\r\\n]*)","im"));
+ return m?.[1]?.trim()||"—";
+}
+function hpMatchSource(raceNo){
+ const id=document.querySelector("#track").value,date=document.querySelector("#date").value||SELECTED_DATE,d=day(id,date);
+ const race=d?.races?.find(r=>Number(r.number)===Number(raceNo)),a=race&&analysisFor(race);
+ return race&&a?.status==="published"&&a.trackId===id&&a.raceId===race.id?{race,a}:null;
+}
+function hpMatchDefaults(a){
+ const hs=a.horses||[];
+ const index=q=>hs.findIndex(h=>(q?.entryId&&h.entryId===q.entryId)||(q?.programNumber!=null&&Number(h.programNumber)===Number(q.programNumber)));
+ const left=Math.max(0,index(a.quickHits?.select));
+ const right=index(a.quickHits?.rival),fallback=hs.findIndex((_,i)=>i!==left);
+ return [left,right>=0&&right!==left?right:fallback];
+}
+function hpMatchLine(label,l,r,edge=false){
+ const a=String(l??"—"),b=String(r??"—");
+ const left=edge&&typeof l==="number"&&typeof r==="number"&&l>r;
+ const right=edge&&typeof l==="number"&&typeof r==="number"&&r>l;
+ return '<div class="hm-row"><div class="hm-cell"><b>'+esc(a)+'</b>'+(left?'<span class="hm-edge">EDGE HS</span>':"")+'</div><div class="hm-cell metric">'+esc(label)+'</div><div class="hm-cell right">'+(right?'<span class="hm-edge">EDGE HS</span>':"")+'<b>'+esc(b)+'</b></div></div>';
+}
+function hpMatchRender(){
+ const m=document.getElementById("matchModal"),ctx=hpMatchContext;if(!m||!ctx)return;
+ const ls=m.querySelector("#hmLeft"),rs=m.querySelector("#hmRight"),hs=ctx.a.horses||[];
+ let x=Number(ls.value),y=Number(rs.value);
+ if(!hs[x])x=0;
+ if(!hs[y]||y===x)y=hs.findIndex((_,i)=>i!==x);
+ if(!hs[y])return;
+ ls.value=String(x);rs.value=String(y);
+ const a=hs[x],b=hs[y],scoreA=Number(a.hypeScore),scoreB=Number(b.hypeScore);
+ const gap=Number.isFinite(scoreA)&&Number.isFinite(scoreB)?Math.abs(scoreA-scoreB).toFixed(1):"—";
+ const name=h=>"#"+esc(h.programNumber)+" "+esc(h.name);
+ const f=(h,k)=>hpMatchField(h,k);
+ const rows=[
+ hpMatchLine("HypeScore",a.hypeScore??"—",b.hypeScore??"—",true),
+ hpMatchLine("Posición HypeBoard","#"+(x+1),"#"+(y+1)),
+ hpMatchLine("Confiabilidad",a.reliability||"—",b.reliability||"—"),
+ hpMatchLine("Power / Rating",f(a,"Power/Rating"),f(b,"Power/Rating")),
+ hpMatchLine("Peso",f(a,"Peso"),f(b,"Peso")),
+ hpMatchLine("Forma reciente",f(a,"Últimas cinco"),f(b,"Últimas cinco")),
+ hpMatchLine("Días sin correr",f(a,"Días sin correr"),f(b,"Días sin correr")),
+ hpMatchLine("Perfil de paso",f(a,"Perfil"),f(b,"Perfil")),
+ hpMatchLine("Distancia",f(a,"Distancia"),f(b,"Distancia")),
+ hpMatchLine("Jinete",f(a,"Jinete"),f(b,"Jinete")),
+ hpMatchLine("Entrenador",f(a,"Entrenador"),f(b,"Entrenador")),
+ hpMatchLine("Establo / propietario",f(a,"Establo/propietario"),f(b,"Establo/propietario")),
+ hpMatchLine("Briseos",f(a,"Briseos disponibles"),f(b,"Briseos disponibles")),
+ hpMatchLine("Value",f(a,"Value"),f(b,"Value")),
+ hpMatchLine("Rol",a.role||"—",b.role||"—")
+ ].join("");
+ const ref=hs[hpMatchDefaults(ctx.a)[0]];
+ m.querySelector("#hmContent").innerHTML=
+ '<div class="hm-fighters"><div class="hm-fighter">'+hpSaddle(a.programNumber)+'<div class="hm-horse">'+name(a)+'</div><div class="hm-role">'+esc(a.role||"")+'</div><div class="hm-score">'+esc(a.hypeScore??"—")+'</div><div class="hm-role">HYPESCORE</div></div>'+
+ '<div class="hm-center"><small>SEPARACIÓN HS</small><b>'+gap+'</b><small>No es el gap oficial ni la probabilidad de ganar</small></div>'+
+ '<div class="hm-fighter right">'+hpSaddle(b.programNumber)+'<div class="hm-horse">'+name(b)+'</div><div class="hm-role">'+esc(b.role||"")+'</div><div class="hm-score">'+esc(b.hypeScore??"—")+'</div><div class="hm-role">HYPESCORE</div></div></div>'+
+ '<div class="hm-table">'+rows+'</div>'+
+ '<div class="hm-reference"><b>SELECT OFICIAL:</b> '+(ref?name(ref)+" · "+esc(ref.hypeScore??"—"):"No disponible")+' · <b>Gap sellado Select–Rival:</b> '+esc(ctx.a.quickHits?.gap||ctx.a.riskControl?.gap||"—")+'. La comparación no cambia el análisis oficial.</div>'+
+ '<div class="hm-readings">'+[a,b].map((h,j)=>'<div class="hm-reading"><b>LECTURA · '+name(h)+'</b><p>'+esc(hpHorseReading(h))+'</p><button type="button" class="hm-profile" data-compare-profile="'+(j===0?x:y)+'">VER PERFIL COMPLETO ›</button></div>').join("")+'</div>';
+ m.querySelectorAll("[data-compare-profile]").forEach(btn=>btn.addEventListener("click",()=>{
+  const i=Number(btn.dataset.compareProfile),n=ctx.race.number;
+  hpMatchClose();
+  if(hpScreen()===n)hpOpenHorse(i);else{hpPendingProfile=i;location.hash="#race-"+n}
+ }));
+}
+function hpMatchOpen(raceNo){
+ const ctx=hpMatchSource(raceNo);if(!ctx||!Array.isArray(ctx.a.horses)||ctx.a.horses.length<2)return;
+ hpMatchContext=ctx;hpCloseHorse();
+ const m=document.getElementById("matchModal");if(!m)return;
+ const opts=ctx.a.horses.map((h,i)=>'<option value="'+i+'">#'+esc(h.programNumber)+' '+esc(h.name)+'</option>').join("");
+ m.innerHTML='<div class="hm-dialog" role="dialog" aria-modal="true" aria-label="HypeMatch Head to Head"><header class="hm-top"><div><div class="hm-kicker">PLAYERSHYPE · HYPEMATCH</div><div class="hm-title">R'+esc(ctx.race.number)+' · HEAD TO HEAD</div><div class="hm-sub">Tale of the Tape · dos ejemplares del mismo lote</div></div><button id="hmClose" class="hm-close" aria-label="Cerrar">×</button></header><div class="hm-body"><div class="hm-selectors"><div class="hm-choice"><label for="hmLeft">ESQUINA A</label><select id="hmLeft">'+opts+'</select></div><div class="hm-vs">VS</div><div class="hm-choice"><label for="hmRight">ESQUINA B</label><select id="hmRight">'+opts+'</select></div></div><div id="hmContent"></div><div class="hm-actions"><button id="hmReset">SELECT VS RIVAL</button><button id="hmGo" class="primary">ABRIR CARRERA COMPLETA</button></div></div></div>';
+ const defaults=hpMatchDefaults(ctx.a);
+ m.querySelector("#hmLeft").value=String(defaults[0]);m.querySelector("#hmRight").value=String(defaults[1]);
+ m.classList.add("open");document.body.style.overflow="hidden";
+ m.querySelector("#hmLeft").onchange=()=>{const a=m.querySelector("#hmLeft"),b=m.querySelector("#hmRight");if(a.value===b.value)b.value=String(ctx.a.horses.findIndex((_,i)=>i!==Number(a.value)));hpMatchRender()};
+ m.querySelector("#hmRight").onchange=()=>{const a=m.querySelector("#hmLeft"),b=m.querySelector("#hmRight");if(a.value===b.value)a.value=String(ctx.a.horses.findIndex((_,i)=>i!==Number(b.value)));hpMatchRender()};
+ m.querySelector("#hmClose").onclick=hpMatchClose;
+ m.querySelector("#hmReset").onclick=()=>{const x=hpMatchDefaults(ctx.a);m.querySelector("#hmLeft").value=String(x[0]);m.querySelector("#hmRight").value=String(x[1]);hpMatchRender()};
+ m.querySelector("#hmGo").onclick=()=>{const n=ctx.race.number;hpMatchClose();if(hpScreen()!==n)location.hash="#race-"+n};
+ hpMatchRender();
+}
+function hpMatchClose(){document.getElementById("matchModal")?.classList.remove("open");hpMatchContext=null;document.body.style.overflow=""}
+
 function hpScreen(){var h=String(location.hash||"");var m=h.match(/^#race-([1-9][0-9]*)$/);return m?Number(m[1]):0}
 function hpEsc(v){return esc(v===null||v===undefined?"":v)}
 function hpSaddle(n){
@@ -395,10 +498,10 @@ function hpRaceNav(races,n){
 }
 function hpMatchCard(r,a){
  var q=hpQ(a),s=q.select||{},rv=q.rival||{},risk=q.risk||"No disponible";
- return '<a class="match-card" href="#race-'+hpEsc(r.number)+'"><div class="match-head">R'+hpEsc(r.number)+' · '+hpEsc(hpMeta(a).distance||"")+'<span>'+hpEsc(risk)+'</span></div>'+
+ return '<button type="button" class="match-card hm-from-day" data-match-race="'+hpEsc(r.number)+'"><div class="match-head">R'+hpEsc(r.number)+' · '+hpEsc(hpMeta(a).distance||"")+'<span>'+hpEsc(risk)+'</span></div>'+
  '<div class="match-body"><div class="match-fighter"><div class="match-tag">SELECT</div><div class="match-name">#'+hpEsc(s.programNumber)+' '+hpEsc(s.name||"Sin dato")+'</div><div class="match-score">'+hpScore(s)+'</div></div>'+
  '<div class="match-vs">VS</div><div class="match-fighter right"><div class="match-tag">RIVAL</div><div class="match-name">#'+hpEsc(rv.programNumber)+' '+hpEsc(rv.name||"Sin dato")+'</div><div class="match-score">'+hpScore(rv)+'</div></div></div>'+
- '<div class="match-footer"><span>Gap '+hpEsc(q.gap||"—")+' · '+hpEsc(q.decision||"")+'</span><strong>ABRIR CARRERA ›</strong></div></a>';
+ '<div class="match-footer"><span>Gap '+hpEsc(q.gap||"—")+' · '+hpEsc(q.decision||"")+'</span><strong>ABRIR HEAD TO HEAD ›</strong></div></button>';
 }
 function hpDayView(track,dayData){
  var races=dayData.races||[],list=races.map(function(r){return {race:r,analysis:analysisFor(r)}}).filter(function(x){return x.analysis&&x.analysis.status==="published"&&x.analysis.trackId===track.id&&x.analysis.raceId===x.race.id});
@@ -460,7 +563,7 @@ function hpDecisionStrip(a){
 
 function hpRaceView(track,dayData,race){
  var a=analysisFor(race),races=dayData.races||[],idx=races.findIndex(function(x){return x.id===race.id}),prev=races[idx-1],next=races[idx+1];
- var buttons='<a class="primary" href="#jornada">← VOLVER A JORNADA</a>'+(prev?'<a href="#race-'+hpEsc(prev.number)+'">← R'+hpEsc(prev.number)+'</a>':'')+(next?'<a href="#race-'+hpEsc(next.number)+'">R'+hpEsc(next.number)+' →</a>':'');
+ var buttons='<button class="hm-open" data-match-race="'+hpEsc(race.number)+'" type="button">⚔ HYPEMATCH · HEAD TO HEAD</button><a class="primary" href="#jornada">← VOLVER A JORNADA</a>'+(prev?'<a href="#race-'+hpEsc(prev.number)+'">← R'+hpEsc(prev.number)+'</a>':'')+(next?'<a href="#race-'+hpEsc(next.number)+'">R'+hpEsc(next.number)+' →</a>':'');
  return '<div class="race-screen"><div class="race-controls">'+buttons+'</div>'+
  '<div class="page-header"><div><div class="page-kicker">PLAYERSHYPE · HYPEPREDICT V1</div><h2 class="page-heading">Carrera '+hpEsc(race.number)+' · Análisis completo</h2><div class="page-desc">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+' · pantalla individual</div></div></div>'+
  hpDecisionStrip(a)+'<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
@@ -484,11 +587,14 @@ function render(){
  var published=races.filter(function(x){var a=analysisFor(x);return a&&a.status==="published"&&a.trackId===id&&a.raceId===x.id}).length;
  document.querySelector("#status").textContent="Config "+(DATA.revision||"")+" · "+track.name+" · "+published+"/"+races.length+" análisis · "+(r?"R"+r.number:"Jornada");
  document.querySelectorAll("[data-horse-index]").forEach(function(el){el.addEventListener("click",function(){hpOpenHorse(Number(el.dataset.horseIndex))})});
+ document.querySelectorAll("[data-match-race]").forEach(el=>el.addEventListener("click",()=>hpMatchOpen(Number(el.dataset.matchRace))));
 }
 function hpNavigate(){
+ hpMatchClose();
  hpCloseHorse();
  if(document.querySelector("#app"))render();
  window.scrollTo(0,0);
+ if(hpPendingProfile!==null&&hpScreen()){const p=hpPendingProfile;hpPendingProfile=null;hpOpenHorse(p)}
 }
 
 
@@ -512,6 +618,6 @@ async function load(){
   $("#app").innerHTML=`<div class="empty"><b>No se pudo conectar con HypePredict</b><span>${esc(e.message)}</span></div>`;
  }
 }
-$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape')hpCloseHorse()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
+$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape'){hpMatchClose();hpCloseHorse()}});document.getElementById('matchModal').addEventListener('click',e=>{if(e.target.id==='matchModal')hpMatchClose()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
 </script>
 </body></html>
