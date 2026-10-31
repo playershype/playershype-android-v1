@@ -1,0 +1,69 @@
+name: Repair Keeneland 2026-10-31 track attribution
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/hypepredict/pending/keeneland-id-fix.trigger'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: keeneland-oct31-attribution-guarded
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout current public config
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Verify immutable source and prepare repairs
+        run: |
+          set -euo pipefail
+          git fetch origin main v0.1-stitch-clean
+          python3 scripts/fix_keeneland_2026_10_31.py
+      - name: Publish staged config
+        run: |
+          set -euo pipefail
+          git config user.name "PlayersHype publication bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin v0.1-stitch-clean
+          git checkout -B v0.1-stitch-clean origin/v0.1-stitch-clean
+          test "$(git rev-parse HEAD:docs/app/config.json)" = "7d9ea362735223062bc18d52dd7823701ea9e353"
+          cp /tmp/playershype-keeneland-2026-10-31-repaired.json docs/app/config.json
+          git add docs/app/config.json
+          git commit -m "data: correct Oct 31 Breeders' Cup attribution to Keeneland"
+          git push origin HEAD:v0.1-stitch-clean
+      - name: Publish to public main branch
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          test "$(git rev-parse HEAD:docs/app/config.json)" = "7d9ea362735223062bc18d52dd7823701ea9e353"
+          cp /tmp/playershype-keeneland-2026-10-31-repaired.json docs/app/config.json
+          git add docs/app/config.json
+          git commit -m "data: Keeneland 31 Oct (12 races, 131 horses), restore Belmont"
+          git push origin HEAD:main
+      - name: Verify published config remotely
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          python3 - <<'PY'
+          import json,subprocess
+          v=json.loads(subprocess.check_output(["git","show","origin/main:docs/app/config.json"]))
+          k=v["raceDays"]["keeneland"]
+          assert k["date"]=="2026-10-31"
+          assert len(k["races"])==12
+          assert sum(len(r["entries"]) for r in k["races"])==131
+          assert v["raceDays"]["belmont"]["date"]=="2026-10-16"
+          assert v["raceDayHistory"]["keeneland"]["2026-10-04"]["day"]["date"]=="2026-10-04"
+          assert v["hypepredict"]["latestReport"]["trackId"]=="keeneland"
+          assert len(v["hypepredict"]["analyses"])==57
+          print("REMOTE DATA REPAIR VERIFIED")
+          PY
