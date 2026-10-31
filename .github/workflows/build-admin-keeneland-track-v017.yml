@@ -1,0 +1,74 @@
+name: Build PlayersHype Admin v0.1.7 Keeneland Track Fix
+
+on:
+  push:
+    branches:
+      - v0.1-stitch-clean
+    paths:
+      - 'admin-app/app/src/main/assets/admin.html'
+      - 'admin-app/app/build.gradle'
+      - '.github/workflows/build-admin-keeneland-track-v017.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check safe Keeneland parser without affecting other modules
+        run: |
+          set -euo pipefail
+          grep -q "TRACKS.push({id:'keeneland'" admin-app/app/src/main/assets/admin.html
+          grep -q "Encabezado e Hipódromo no coinciden" admin-app/app/src/main/assets/admin.html
+          grep -q '0.1.7-track-detection' admin-app/app/build.gradle
+          node - <<'JS'
+          const fs=require('fs');
+          const html=fs.readFileSync('admin-app/app/src/main/assets/admin.html','utf8');
+          const scripts=[...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
+          if(!scripts.length)throw Error('Missing Admin JS');
+          scripts.forEach(x=>new Function(x));
+          const fn=html.slice(html.indexOf('function trackFromText(text){'),html.indexOf('function dateFromText(text)'));
+          const tracks=[{id:'camarero',name:'Hipódromo Camarero'},{id:'belmont',name:'Belmont Park'},{id:'keeneland',name:'Keeneland'},{id:'gulfstream',name:'Gulfstream Park'},{id:'churchill',name:'Churchill Downs'}];
+          const parse=new Function('TRACKS',fn+'return trackFromText')(tracks);
+          if(parse('HYPEPREDICT — KEENELAND\nHipódromo: Keeneland\n18 Oct Bel 4F').id!=='keeneland')throw Error('False Belmont match');
+          if(parse('HYPEPREDICT — BELMONT\nHipódromo: Belmont Park\n14 Oct Kee 5F').id!=='belmont')throw Error('False Keeneland match');
+          if(parse('HYPEPREDICT — CAMARERO\nHipódromo: Camarero').id!=='camarero')throw Error('Camarero match');
+          try{parse('HYPEPREDICT — KEENELAND\nHipódromo: Belmont Park');throw Error('Mismatch accepted')}catch(e){if(e.message==='Mismatch accepted')throw e}
+          console.log('Admin parser: safety tests passed');
+          JS
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '13114758'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: false
+      - name: Install Android SDK 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build Admin only, without modifying public application
+        run: |
+          chmod +x gradlew
+          ./gradlew -p admin-app :app:assembleDebug --no-daemon
+      - name: Confirm packaged APK contains corrected Admin parser
+        run: |
+          set -euo pipefail
+          mkdir -p admin-release
+          cp admin-app/app/build/outputs/apk/debug/app-debug.apk admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk
+          unzip -p admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk assets/admin.html | grep -q 'TRACKS.push({id'
+          unzip -p admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk assets/admin.html | grep -q 'Encabezado e Hipódromo no coinciden'
+          test -s admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk > admin-release/SIGNATURE_VERIFICATION.txt
+          sha256sum admin-release/PlayersHype-Admin-V0.1.7-KEENELAND-FIX.apk > admin-release/SHA256SUMS.txt
+          git rev-parse HEAD > admin-release/BUILD_COMMIT.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-Admin-V0.1.7-KEENELAND-FIX
+          path: admin-release/
+          retention-days: 30
+          if-no-files-found: error
