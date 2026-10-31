@@ -94,13 +94,144 @@ body{background:#eaf0f5}
 @media(max-width:760px){.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pace-lanes{grid-template-columns:repeat(2,minmax(0,1fr))}.pool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.race-core{padding:15px;gap:16px}.race-banner{padding:15px}.race-no{width:45px;height:45px;font-size:20px}.race-title h3{font-size:18px}.quick-cell{padding:10px}.quick-cell .horse{font-size:13px}.quick-cell .score{font-size:20px}.read p,.pace-scenario,.risk-text,.strategy{font-size:13px}.board-table td,.board-table th{padding:9px 7px}.more{padding:0 15px}.race-index a{min-width:37px;min-height:37px}}
 
+
+/* Public Dashboard: recupera la arquitectura visual de HUB.html (solo lectura) */
+:root{--navy:#08182b;--navy2:#102946;--lime:#caff00;--cyan:#25c5df;--line:#dce3ea;--muted:#627084;--bg:#eef2f6}
+html,body{background:#eef2f6;color:#111827;scroll-behavior:auto}
+.top{padding:0;background:linear-gradient(135deg,#08182b,#0d2540);border-bottom:0;box-shadow:0 8px 24px rgba(8,24,43,.16)}
+.top .wrap{max-width:1600px;display:flex;align-items:center;gap:12px;padding:13px 20px}
+.brand-mark{width:42px;height:42px;border-radius:10px;flex:none;background:#202833;display:grid;place-items:center;color:#caff00;font-size:20px;font-weight:1000;letter-spacing:-.05em;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.brand-copy{min-width:0}.top .brand{font-size:11px;color:#caff00;letter-spacing:.15em}.top .title{margin:3px 0 0;font-size:21px;letter-spacing:-.03em;line-height:1.1}.top .sub{font-size:11px;margin-top:3px;color:#c7d6e7}
+.public-chip{margin-left:auto;border:1px solid rgba(202,255,0,.44);background:rgba(202,255,0,.11);border-radius:30px;padding:7px 9px;color:#e8ff99;font-weight:900;font-size:10px;white-space:nowrap}
+.controls{margin:0 auto;padding:13px 18px;max-width:1600px;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:9px}
+.controls select{color:#102946;border:1px solid #d8e0e8;border-radius:10px;font-size:14px;min-height:46px;background:#fff}
+.controls button{border-radius:10px;min-height:46px;font-size:13px}
+#status{max-width:1600px;margin:0 auto;padding:0 18px 10px;color:#758399;font-weight:800;font-size:11px}
+.grid{max-width:1600px;padding:0 18px 32px;gap:13px}
+.screen-nav{display:flex;gap:7px;overflow-x:auto;background:#fff;border-bottom:1px solid #dce3ea;padding:9px max(18px,calc((100vw - 1560px)/2));scrollbar-width:none}
+.screen-nav::-webkit-scrollbar{display:none}
+.screen-nav a{display:flex;align-items:center;justify-content:center;flex:none;min-width:42px;min-height:42px;padding:9px 12px;border:1px solid #dce3ea;border-radius:10px;background:white;color:#344054;font-weight:1000;font-size:13px;text-decoration:none}
+.screen-nav a.active{background:#08182b;color:#fff;border-color:#08182b;box-shadow:inset 0 -3px 0 #caff00}
+.screen-nav .nav-home{min-width:104px}
+.dashboard-shell{display:grid;gap:13px}
+.page-header{display:flex;gap:12px;justify-content:space-between;align-items:flex-end;padding:9px 1px 4px}
+.page-kicker{font-size:11px;font-weight:1000;color:#597085;text-transform:uppercase;letter-spacing:.17em}
+.page-heading{font-size:clamp(24px,4vw,34px);font-weight:1000;color:#0d2034;letter-spacing:-.04em;line-height:1.05;margin:4px 0}
+.page-desc{font-size:13px;color:#627084;line-height:1.5}
+.section-card{background:#fff;border:1px solid #dce3ea;border-radius:16px;box-shadow:0 8px 24px rgba(8,24,43,.05);padding:15px}
+.section-heading{font-size:13px;font-weight:1000;letter-spacing:.11em;text-transform:uppercase;color:#32465a;margin:0 0 12px}
+.jornada-command{display:flex;align-items:center;gap:12px;justify-content:space-between;background:#08182b;color:#fff;padding:16px 19px;border-radius:17px;border:1px solid #173951}
+.jornada-command-mark{display:grid;place-items:center;border-radius:12px;background:#caff00;color:#08182b;width:48px;height:48px;font-size:19px;font-weight:1000}
+.jornada-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.jornada-command-kicker{font-size:10px;font-weight:950;color:#caff00;letter-spacing:.15em}
+.jornada-command-title{font-size:21px;font-weight:1000;letter-spacing:-.03em}
+.jornada-command-sub{color:#bdd0df;font-size:12px;margin-top:3px}
+.jornada-count{border:1px solid rgba(202,255,0,.35);background:rgba(202,255,0,.09);color:#e8ff99;border-radius:50px;padding:8px 10px;font-size:11px;font-weight:950;white-space:nowrap}
+.radiography{background:linear-gradient(135deg,#071827 0%,#0b2942 55%,#0a1d30 100%);border:1px solid #183b55;color:#fff;padding:18px;border-radius:20px;box-shadow:0 18px 40px rgba(8,24,43,.12)}
+.radiography h2{font-size:25px;font-weight:1000;margin:4px 0 4px;line-height:1.1;letter-spacing:-.04em}
+.radiography-kicker{font-weight:1000;letter-spacing:.17em;color:#caff00;font-size:11px}
+.radiography-sub{color:#a9bfd0;font-size:12px;line-height:1.6;margin-bottom:15px}
+.xray-grid{display:grid;grid-template-columns:minmax(220px,.85fr) minmax(0,1.65fr);gap:12px}
+.xray-core{border:1px solid rgba(255,255,255,.12);border-radius:17px;background:rgba(255,255,255,.055);padding:23px 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:230px}
+.xray-core .cap{font-size:11px;color:#a9bfd0;letter-spacing:.11em;font-weight:1000}
+.xray-core .mark{width:49px;height:49px;margin:12px auto;background:#caff00;color:#08182b;border-radius:50%;display:grid;place-items:center;font-size:24px;font-weight:1000}
+.xray-core .val{font-size:25px;color:white;font-weight:1000;line-height:1.1}
+.xray-core .note{font-size:11px;line-height:1.5;color:#a4b8c8;margin-top:10px}
+.xray-signals{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xray-signal{position:relative;display:block;text-decoration:none;color:#fff;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:15px;padding:14px;min-height:108px}
+.xray-signal:after{content:"";position:absolute;bottom:0;left:0;right:0;height:3px;background:#25c5df}
+.xray-signal.base:after{background:#caff00}.xray-signal.risk:after{background:#ff8a34}.xray-signal.tight:after{background:#8b5cf6}
+.xray-signal .cap{font-size:10px;letter-spacing:.1em;font-weight:950;color:#a3bacb}
+.xray-signal .main{font-size:18px;font-weight:1000;margin-top:8px}
+.xray-signal .sub{font-size:11px;line-height:1.5;color:#a8bccb;margin-top:5px}
+.day-pulse{background:#08182b;border-radius:17px;padding:16px;color:#fff;border:1px solid #163951}
+.day-pulse-title{color:#caff00;font-size:12px;font-weight:1000;letter-spacing:.1em}
+.pulse-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:9px;margin-top:13px}
+.pulse-tile{background:#102b41;color:#fff;border:1px solid #33536a;border-radius:11px;padding:13px 10px;text-decoration:none}
+.pulse-tile .pulse-id{font-size:18px;font-weight:1000}
+.pulse-tile .pulse-risk{font-size:10px;color:#c9d9e4;line-height:1.5;margin-top:5px}
+.pulse-meter{height:52px;border-bottom:1px solid #3d5b72;display:flex;align-items:flex-end;margin:9px 0}
+.pulse-meter i{display:block;width:23px;height:var(--meter);max-height:100%;background:linear-gradient(0deg,#25c5df,#caff00);border-radius:5px 5px 0 0}
+.pulse-pick{font-size:11px;color:#e8f2f8;font-weight:900;line-height:1.3}
+.match-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.match-card{display:block;text-decoration:none;color:#11283f;background:#fff;border:1px solid #dce5ec;border-radius:14px;overflow:hidden}
+.match-head{background:#f6f9fb;border-bottom:1px solid #e5ecf1;padding:11px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px;font-weight:950}
+.match-head span{color:#a15b17}
+.match-body{display:grid;grid-template-columns:minmax(0,1fr) 55px minmax(0,1fr);gap:4px;align-items:center;padding:17px 11px}
+.match-fighter{min-width:0}.match-fighter.right{text-align:right}
+.match-tag{font-size:10px;color:#768698;font-weight:1000;letter-spacing:.08em}
+.match-name{font-size:13px;font-weight:1000;color:#173049;overflow-wrap:anywhere;margin-top:5px}
+.match-score{font-size:26px;font-weight:1000;line-height:1;margin-top:7px}
+.match-vs{text-align:center;font-size:12px;background:#102d46;color:#caff00;border-radius:50%;width:43px;height:43px;display:grid;place-items:center;font-weight:1000;margin:auto}
+.match-footer{padding:9px 11px;border-top:1px solid #eef2f4;color:#64788a;font-size:11px;font-weight:850;display:flex;justify-content:space-between;gap:7px}
+.match-footer strong{color:#1d7f95}
+.race-screen{display:grid;gap:12px}
+.race-controls{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.race-controls a{border:1px solid #d2dde5;padding:10px 13px;border-radius:10px;text-decoration:none;color:#173049;background:#fff;font-size:12px;font-weight:1000}
+.race-controls a.primary{background:#08182b;color:#caff00;border-color:#08182b}
+.race-page .race{box-shadow:none;border:none;border-radius:0;padding:0;background:transparent}
+.race-page .race-banner{border-radius:15px;background:linear-gradient(125deg,#08182b,#102946)}
+.race-page .race-core{padding:15px 0;gap:12px}
+.race-page .race-core>section{background:#fff;border:1px solid #dce3ea;border-radius:15px;padding:15px;box-shadow:0 5px 18px rgba(8,24,43,.045)}
+.race-page .race-core>section.decision{border-left:4px solid #caff00;background:#f6ffeb}
+.race-page .race-core>section.read{background:#fff}
+.race-page .race-core>section.risk{background:#fff9ed;border:1px solid #eadab6}
+.race-page .race-core>section.wager{background:#effbfe;border-color:#c4e5ea}
+.race-page .quick-cell{min-height:96px;background:#fff;border:1px solid #dce3ea}
+.race-page .quick-cell.select{background:#efffbe;border-color:#c9ef4b}
+.race-page .quick-cell .horse{font-size:14px}
+.race-page .section-label{color:#32465a;font-size:13px}
+.race-page .block-title{font-size:14px;text-transform:uppercase;letter-spacing:.08em}
+.race-page .board-table th{background:#f7f9fb;color:#546579;border-bottom:1px solid #dce3ea}
+.race-page .board-table tbody tr:first-child{background:#f5ffe8}
+.race-page .pace-lane{background:#f8fafc;border-radius:9px;border-top:3px solid #25c5df}
+.race-page .pace-lane:nth-child(1){border-top-color:#ff8a34}
+.race-page .pace-lane:nth-child(2){border-top-color:#ffd44d}
+.race-page .pace-lane:nth-child(4){border-top-color:#8b5cf6}
+.race-page .more{background:#fff;border:1px solid #dce3ea;border-radius:14px;padding:0 15px}
+.race-page .footer-action{padding:0 8px 10px}
+.original-field{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.original-horse{border:1px solid #dce3ea;background:white;border-radius:13px;padding:12px;cursor:pointer;text-align:left;color:#102d46}
+.original-horse:hover{border-color:#25c5df;background:#f7fcff}
+.original-horse-head{display:flex;gap:7px;align-items:center;justify-content:space-between}
+.original-horse-name{font-size:14px;font-weight:1000}
+.original-horse-score{font-size:18px;font-weight:1000}
+.original-horse-role{font-size:10px;color:#687d91;font-weight:900}
+.original-horse-read{color:#4d6174;font-size:12px;line-height:1.5;margin:9px 0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.original-horse-cta{font-size:11px;font-weight:950;color:#176076;border-top:1px solid #e6eef2;padding-top:8px}
+.saddle{width:33px;height:33px;flex:none;display:inline-grid;place-items:center;border-radius:9px;color:var(--saddle-color);background:var(--saddle-bg);border:1px solid rgba(0,0,0,.12);font-size:16px;font-weight:1000}
+.horse-modal{position:fixed;inset:0;z-index:150;background:rgba(7,17,29,.63);display:none;justify-content:flex-end}
+.horse-modal.open{display:flex}
+.horse-panel{height:100%;width:min(500px,100%);background:#fff;overflow-y:auto;box-shadow:-20px 0 55px rgba(8,24,43,.2);padding:0 17px 30px}
+.horse-panel-header{position:sticky;top:0;background:#fff;border-bottom:1px solid #dce3ea;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px 0;z-index:2}
+.horse-panel-header b{font-size:17px;color:#102c44}
+.horse-panel-header button{width:44px;height:44px;background:#eef4f7;border:0;border-radius:11px;font-size:22px;cursor:pointer;color:#102c44}
+.horse-panel .source{font-size:13px;line-height:1.7}
+.horse-panel .horse-title{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:1000;color:#102c44}
+.horse-panel .horse-note{color:#5f7083;font-size:12px;line-height:1.5;margin:9px 0 15px}
+.mobile-race-tip{font-size:11px;color:#6d8194;line-height:1.5}
+@media(max-width:760px){
+.top .wrap{padding:10px 11px}.brand-mark{width:37px;height:37px}.top .title{font-size:18px}.public-chip{font-size:9px;padding:6px}
+.controls{padding:10px;grid-template-columns:1fr 1fr}.controls button{grid-column:1/-1}
+#status{padding:0 10px 9px}.grid{padding:0 10px 22px}
+.screen-nav{padding:7px 10px}.screen-nav a{padding:8px 10px}
+.page-header{align-items:flex-start;flex-direction:column}
+.jornada-command{padding:13px;gap:8px}.jornada-command-title{font-size:17px}.jornada-command-mark{width:40px;height:40px;font-size:17px}.jornada-count{font-size:10px}
+.xray-grid{grid-template-columns:1fr}.xray-core{min-height:155px;padding:15px}
+.radiography{padding:13px}.radiography h2{font-size:22px}
+.match-grid{grid-template-columns:1fr}.day-pulse{padding:12px}
+.race-page .race-core{padding:10px 0}.race-page .race-core>section{padding:12px}
+.original-field{grid-template-columns:1fr}
+.horse-modal{background:#fff}.horse-panel{width:100vw;box-shadow:none}
+}
+
 </style>
 </head>
 <body>
-<header class="top"><div class="wrap"><div class="brand">PlayersHype · Definiendo el estándar</div><div class="title">HypePredict</div><div class="sub">Track Hub · análisis público de jornada</div></div></header>
+<header class="top"><div class="wrap"><div class="brand-mark">PH</div><div class="brand-copy"><div class="brand">PLAYERSHYPE · DEFINIENDO EL ESTÁNDAR</div><div class="title">HypePredict</div><div class="sub">Race Intelligence · Track Hub</div></div><div class="public-chip">● PUBLICADO</div></div></header>
 <section class="controls"><select id="track" aria-label="Hipódromo"><option>Cargando hipódromos…</option></select><select id="date" aria-label="Fecha"><option>Cargando fechas…</option></select><button id="refresh">Actualizar</button></section>
-<div class="status" id="status">Conectando con la data publicada…</div>
-<main class="grid" id="app"></main>
+<nav id="raceNav"></nav><div class="status" id="status">Conectando con la data publicada…</div>
+<main class="grid" id="app"></main><aside id="horseModal" class="horse-modal" aria-live="polite"></aside>
 <footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
 <script>
 const CONFIG_URL='../app/config.json'; let DATA=null, SELECTED_DATE='';
@@ -223,19 +354,107 @@ function syncDates(preferredDate=""){
  render();
 }
 
-function render(){
- const id=$("#track").value, t=tracks().find(x=>x.id===id), selected=$("#date").value||SELECTED_DATE, d=day(id,selected);
- if(!t||!d||!d.date){
-  $("#app").innerHTML=`<div class="empty"><b>No hay jornada publicada</b><span>${esc(t?.name||id)} no tiene jornada disponible para la fecha seleccionada.</span></div>`;
-  $("#status").textContent="Sin jornada publicada";return;
- }
- const races=Array.isArray(d.races)?d.races:[];
- const published=races.filter(r=>{const a=analysisFor(r);return a?.status==="published"&&a.trackId===id&&a.raceId===r.id}).length;
- const anchors=races.map(r=>`<a href="#race-${esc(r.number)}" aria-label="Ir a carrera ${esc(r.number)}">${esc(r.number)}</a>`).join("");
- $("#app").innerHTML=`<section class="hero"><div class="kicker">HypePredict · Race Intelligence</div><h2>${esc(t.name)}</h2><div class="meta">${esc(d.date)} · ${races.length} carreras · ${published} análisis disponibles</div><div class="daynotice">Lectura táctica, HypeBoard, riesgos y estrategia por carrera. El checklist y el reporte original se pueden expandir.</div></section><nav class="race-index" aria-label="Navegación de carreras"><b>IR A CARRERA</b>${anchors}</nav><section class="races">${races.map(r=>raceCard(r,id,d.date)).join("")}</section>`;
- $("#status").textContent=`Config ${DATA.revision||""} · ${t.name} · ${published}/${races.length} análisis`;
- try{const u=new URL(location.href);u.searchParams.set("track",id);u.searchParams.set("date",d.date);history.replaceState(null,"",u.pathname+u.search+u.hash)}catch(e){}
+
+/* Navegación publicada: cada carrera es una pantalla y no una sección en una página larga. */
+function hpScreen(){var h=String(location.hash||"");var m=h.match(/^#race-([1-9][0-9]*)$/);return m?Number(m[1]):0}
+function hpEsc(v){return esc(v===null||v===undefined?"":v)}
+function hpSaddle(n){
+ var colors={1:["#ed1c24","#fff"],2:["#fff","#111"],3:["#0057b7","#fff"],4:["#ffd200","#111"],5:["#00843d","#fff"],6:["#111","#ffd200"],7:["#ff791d","#111"],8:["#ef80af","#111"],9:["#00a6a6","#111"],10:["#7b2a90","#fff"],11:["#adb5bd","#111"],12:["#a6dc27","#111"],13:["#6b2c22","#fff"],14:["#741a1a","#fff"]};
+ var c=colors[Number(n)]||["#102946","#fff"];
+ return '<span class="saddle" style="--saddle-bg:'+c[0]+';--saddle-color:'+c[1]+'">'+hpEsc(n)+'</span>';
 }
+function hpMeta(r){return r&&r.raceMeta||{}}
+function hpQ(r){return r&&r.quickHits||{}}
+function hpScore(h){return h&&h.hypeScore!==null&&h.hypeScore!==undefined?hpEsc(h.hypeScore):"—"}
+function hpRaceNav(races,n){
+ var items='<a class="nav-home '+(!n?'active':'')+'" href="#jornada">JORNADA</a>';
+ items+=races.map(function(r){return '<a class="'+(Number(r.number)===n?'active':'')+'" href="#race-'+hpEsc(r.number)+'">R'+hpEsc(r.number)+'</a>'}).join("");
+ return '<nav class="screen-nav" aria-label="Pantallas HypePredict">'+items+'</nav>';
+}
+function hpMatchCard(r,a){
+ var q=hpQ(a),s=q.select||{},rv=q.rival||{},risk=q.risk||"No disponible";
+ return '<a class="match-card" href="#race-'+hpEsc(r.number)+'"><div class="match-head">R'+hpEsc(r.number)+' · '+hpEsc(hpMeta(a).distance||"")+'<span>'+hpEsc(risk)+'</span></div>'+
+ '<div class="match-body"><div class="match-fighter"><div class="match-tag">SELECT</div><div class="match-name">#'+hpEsc(s.programNumber)+' '+hpEsc(s.name||"Sin dato")+'</div><div class="match-score">'+hpScore(s)+'</div></div>'+
+ '<div class="match-vs">VS</div><div class="match-fighter right"><div class="match-tag">RIVAL</div><div class="match-name">#'+hpEsc(rv.programNumber)+' '+hpEsc(rv.name||"Sin dato")+'</div><div class="match-score">'+hpScore(rv)+'</div></div></div>'+
+ '<div class="match-footer"><span>Gap '+hpEsc(q.gap||"—")+' · '+hpEsc(q.decision||"")+'</span><strong>ABRIR CARRERA ›</strong></div></a>';
+}
+function hpDayView(track,dayData){
+ var races=dayData.races||[],list=races.map(function(r){return {race:r,analysis:analysisFor(r)}}).filter(function(x){return x.analysis&&x.analysis.status==="published"&&x.analysis.trackId===track.id&&x.analysis.raceId===x.race.id});
+ var sorted=list.slice().filter(function(x){return Number.isFinite(parseFloat(hpQ(x.analysis).gap))}).sort(function(x,y){return parseFloat(hpQ(x.analysis).gap)-parseFloat(hpQ(y.analysis).gap)});
+ var tight=sorted[0],risks=list.filter(function(x){return /alto/i.test(String(hpQ(x.analysis).risk||""))});
+ var fixed=list.filter(function(x){return /^(fijo|fijo estratégico)$/i.test(String(hpQ(x.analysis).decision||"").trim())});
+ var chosen=fixed[0],best=list.filter(function(x){return hpQ(x.analysis).select}).sort(function(x,y){return Number(hpQ(y.analysis).select.hypeScore||0)-Number(hpQ(x.analysis).select.hypeScore||0)})[0];
+ var signal=function(label,val,note,kind,num){
+  return '<'+(num?'a href="#race-'+hpEsc(num)+'"':'div')+' class="xray-signal '+kind+'"><div class="cap">'+hpEsc(label)+'</div><div class="main">'+hpEsc(val)+'</div><div class="sub">'+hpEsc(note)+'</div></'+(num?'a':'div')+'>';
+ };
+ var core=chosen?'<div class="val">R'+hpEsc(chosen.race.number)+' · #'+hpEsc(hpQ(chosen.analysis).select.programNumber)+'</div><div class="note">'+hpEsc(hpQ(chosen.analysis).select.name)+' · HypeScore '+hpScore(hpQ(chosen.analysis).select)+'</div>':
+ '<div class="val">SIN FIJO</div><div class="note">No hay una decisión explícita de fijo en los análisis publicados. No se asigna ninguno por inferencia.</div>';
+ var pulse=list.map(function(x){var q=hpQ(x.analysis),s=q.select||{},sc=Number(s.hypeScore);var meter=Number.isFinite(sc)?Math.max(8,Math.min(100,sc*10)):0;return '<a class="pulse-tile" href="#race-'+hpEsc(x.race.number)+'"><div class="pulse-id">R'+hpEsc(x.race.number)+'</div><div class="pulse-risk">'+hpEsc(q.risk||"Riesgo no disponible")+'</div><div class="pulse-meter"><i style="--meter:'+meter+'%"></i></div><div class="pulse-pick">#'+hpEsc(s.programNumber||"—")+' '+hpEsc(s.name||"Sin Select")+'</div><div class="pulse-risk">HS '+hpScore(s)+' · '+hpEsc(q.decision||"—")+'</div></a>'}).join("");
+ return '<div class="dashboard-shell"><section class="jornada-command"><div class="jornada-brand"><div class="jornada-command-mark">HP</div><div><div class="jornada-command-kicker">PLAYERSHYPE · CARD COMMAND</div><div class="jornada-command-title">JORNADA HYPEPREDICT</div><div class="jornada-command-sub">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+'</div></div></div><div class="jornada-count">'+list.length+'/'+races.length+' ANÁLISIS</div></section>'+
+ '<section class="radiography"><div class="radiography-kicker">PLAYERSHYPE · RACE INTELLIGENCE</div><h2>Radiografía de la Jornada</h2><div class="radiography-sub">Lectura general de la cartelera. Cada carrera tiene su propia pantalla con el análisis completo.</div><div class="xray-grid">'+
+ '<div class="xray-core"><div class="cap">FIJO ESTRATÉGICO</div><div class="mark">'+(chosen?'★':'Ø')+'</div>'+core+'</div>'+
+ '<div class="xray-signals">'+
+ signal("MAYOR HYPESCORE",best?'R'+best.race.number+' · #'+hpQ(best.analysis).select.programNumber:'—',best?hpQ(best.analysis).select.name+' · HS '+hpScore(hpQ(best.analysis).select):'No disponible',"base",best&&best.race.number)+
+ signal("CARRERAS CON RIESGO ALTO",String(risks.length),risks.length?risks.map(function(x){return 'R'+x.race.number}).join(" · "):"Ninguna identificada en los reportes","risk",risks[0]&&risks[0].race.number)+
+ signal("MAYOR COMPRESIÓN",tight?'R'+tight.race.number+' · '+hpQ(tight.analysis).gap:'—',tight?'Select vs Rival · '+hpEsc(hpQ(tight.analysis).decision||""):'Sin gap registrado',"tight",tight&&tight.race.number)+
+ signal("ANÁLISIS DE LA JORNADA",list.length+' / '+races.length,"Cada carrera conserva su propia lectura, HypeBoard y checklist","",null)+
+ '</div></div></section>'+
+ '<section class="day-pulse"><div class="day-pulse-title">PULSO DE LA JORNADA · RACE DAY PULSE</div><p class="radiography-sub" style="margin:5px 0 0">HypeScore del Select publicado por carrera. La escala no representa probabilidad de victoria.</p><div class="pulse-row">'+pulse+'</div></section>'+
+ '<section class="section-card"><h3 class="section-heading">HYPEMATCH · SELECT VS RIVAL</h3><div class="match-grid">'+list.map(function(x){return hpMatchCard(x.race,x.analysis)}).join("")+'</div></section>'+
+ '<p class="mobile-race-tip">Selecciona cualquier carrera para abrir exclusivamente su análisis.</p></div>';
+}
+function hpHorseReading(h){
+ var txt=String(h.sourceText||"");
+ var m=txt.match(/LECTURA:\s*([\s\S]*?)(?=\nUSO:|$)/i);
+ return m?m[1].trim():"Lectura individual no disponible.";
+}
+function hpHorseProfileCards(a){
+ return '<section class="section-card"><h3 class="section-heading">FULL FIELD · TODO EL CAMPO</h3><div class="original-field">'+(a.horses||[]).map(function(h,i){
+  return '<button type="button" class="original-horse" data-horse-index="'+i+'"><div class="original-horse-head"><span>'+hpSaddle(h.programNumber)+'</span><span class="original-horse-score">'+hpScore(h)+'</span></div><div class="original-horse-name" style="margin-top:8px">#'+hpEsc(h.programNumber)+' '+hpEsc(h.name)+'</div><div class="original-horse-role">'+hpEsc(h.role||"")+" · "+hpEsc(h.reliability||"")+'</div><div class="original-horse-read">'+hpEsc(hpHorseReading(h))+'</div><div class="original-horse-cta">ABRIR PERFIL COMPLETO ›</div></button>';
+ }).join("")+'</div></section>';
+}
+function hpOpenHorse(i){
+ var n=hpScreen(),id=document.querySelector("#track").value,d=day(id,document.querySelector("#date").value),r=(d&&d.races||[]).find(function(x){return Number(x.number)===n}),a=r&&analysisFor(r),h=a&&a.horses&&a.horses[i];
+ if(!h)return;
+ var modal=document.getElementById("horseModal");if(!modal)return;
+ modal.innerHTML='<div class="horse-panel" role="dialog" aria-modal="true" aria-label="Perfil completo del ejemplar"><div class="horse-panel-header"><b>PERFIL COMPLETO DEL EJEMPLAR</b><button id="closeHorse" aria-label="Cerrar">×</button></div><div class="horse-title" style="margin-top:16px">'+hpSaddle(h.programNumber)+'<span>'+hpEsc(h.name)+'</span></div><div class="horse-note">R'+n+' · '+hpEsc(h.role||"")+" · HypeScore "+hpScore(h)+" · "+hpEsc(h.reliability||"")+'</div><pre class="source">'+hpEsc(h.sourceText||"Perfil detallado no publicado.")+'</pre></div>';
+ modal.classList.add("open");document.body.style.overflow="hidden";
+ var closer=document.getElementById("closeHorse");if(closer)closer.onclick=hpCloseHorse;
+}
+function hpCloseHorse(){var el=document.getElementById("horseModal");if(el)el.classList.remove("open");document.body.style.overflow=""}
+function hpRaceView(track,dayData,race){
+ var a=analysisFor(race),races=dayData.races||[],idx=races.findIndex(function(x){return x.id===race.id}),prev=races[idx-1],next=races[idx+1];
+ var buttons='<a class="primary" href="#jornada">← VOLVER A JORNADA</a>'+(prev?'<a href="#race-'+hpEsc(prev.number)+'">← R'+hpEsc(prev.number)+'</a>':'')+(next?'<a href="#race-'+hpEsc(next.number)+'">R'+hpEsc(next.number)+' →</a>':'');
+ return '<div class="race-screen"><div class="race-controls">'+buttons+'</div>'+
+ '<div class="page-header"><div><div class="page-kicker">PLAYERSHYPE · HYPEPREDICT V1</div><h2 class="page-heading">Carrera '+hpEsc(race.number)+' · Análisis completo</h2><div class="page-desc">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+' · pantalla individual</div></div></div>'+
+ '<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
+ (a&&a.status==="published"?hpHorseProfileCards(a):"")+
+ '<div class="race-controls">'+buttons+'</div></div>';
+}
+function render(){
+ var id=document.querySelector("#track").value;
+ var track=tracks().find(function(x){return x.id===id});
+ var selected=document.querySelector("#date").value||SELECTED_DATE;
+ var d=day(id,selected),n=hpScreen();
+ if(!track||!d||!d.date){
+  document.querySelector("#app").innerHTML='<div class="empty"><b>No hay jornada publicada</b><span>No existen datos para el hipódromo y la fecha seleccionados.</span></div>';
+  document.querySelector("#status").textContent="Sin jornada publicada";
+  var nav=document.getElementById("raceNav");if(nav)nav.innerHTML="";
+  return;
+ }
+ var races=Array.isArray(d.races)?d.races:[],r=races.find(function(x){return Number(x.number)===n});
+ var nav=document.getElementById("raceNav");if(nav)nav.innerHTML=hpRaceNav(races,r?n:0);
+ document.querySelector("#app").innerHTML=r?hpRaceView(track,d,r):hpDayView(track,d);
+ var published=races.filter(function(x){var a=analysisFor(x);return a&&a.status==="published"&&a.trackId===id&&a.raceId===x.id}).length;
+ document.querySelector("#status").textContent="Config "+(DATA.revision||"")+" · "+track.name+" · "+published+"/"+races.length+" análisis · "+(r?"R"+r.number:"Jornada");
+ document.querySelectorAll("[data-horse-index]").forEach(function(el){el.addEventListener("click",function(){hpOpenHorse(Number(el.dataset.horseIndex))})});
+}
+function hpNavigate(){
+ hpCloseHorse();
+ if(document.querySelector("#app"))render();
+ window.scrollTo(0,0);
+}
+
 
 async function load(){
  const oldTrack=$("#track").value, oldDate=$("#date").value||SELECTED_DATE;
@@ -257,6 +476,6 @@ async function load(){
   $("#app").innerHTML=`<div class="empty"><b>No se pudo conectar con HypePredict</b><span>${esc(e.message)}</span></div>`;
  }
 }
-$('#track').addEventListener('change',()=>syncDates());$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;render()});$('#refresh').addEventListener('click',load);load();
+$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape')hpCloseHorse()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
 </script>
 </body></html>
