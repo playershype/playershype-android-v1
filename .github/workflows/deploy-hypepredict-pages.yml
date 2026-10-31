@@ -1,0 +1,54 @@
+name: Deploy public HypePredict to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-hypepredict-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-playershype-public
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the published branch
+        uses: actions/checkout@v4
+      - name: Verify HypePredict website and content
+        run: |
+          set -euo pipefail
+          test -s docs/index.html
+          test -s docs/hypepredict/index.html
+          test -s docs/app/config.json
+          python3 - <<'PY'
+          import json
+          with open("docs/app/config.json",encoding="utf8") as f:
+              data=json.load(f)
+          assert data["schemaVersion"] == 2
+          assert "hypepredict" in data and "raceDays" in data
+          assert data["raceDays"]["camarero"]["date"] == "2026-10-30"
+          print("Web data validated:",data["revision"])
+          PY
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload public site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: './docs'
+      - name: Deploy public site
+        id: deployment
+        uses: actions/deploy-pages@v4
