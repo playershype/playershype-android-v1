@@ -1,7 +1,10 @@
-name: Build PlayersHype Android Ecosystem V1.3.1 RC
+name: Build PlayersHype Android Ecosystem V1.3.2 RC
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - main
@@ -13,46 +16,39 @@ permissions:
   contents: read
 
 concurrency:
-  group: playershype-v1-3-1-rc-${{ github.ref }}
+  group: playershype-v1-3-2-rc-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     env:
-      SRC_DIR: .v131/PlayersHype-Ecosystem-V1.3.1-RC
+      SRC_DIR: .v132/PlayersHype-Ecosystem-V1.3.2-RC
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Expand PlayersHype V1.3.1 RC source package
+      - name: Expand PlayersHype V1.3.2 RC source package
         shell: bash
         run: |
-          rm -rf .v131
-          mkdir -p .v131
-          unzip -q PlayersHype-Ecosystem-V1.3.1-RC-SOURCE.zip -d .v131
-
+          rm -rf .v132
+          mkdir -p .v132
+          unzip -q PlayersHype-Ecosystem-V1.3.2-RC-SOURCE.zip -d .v132
           test -f "$SRC_DIR/settings.gradle"
           test -f "$SRC_DIR/app-user/build.gradle"
           test -f "$SRC_DIR/app-admin/build.gradle"
           test -f "$SRC_DIR/shared/src/main/java/com/playershype/shared/PublishController.java"
-
           chmod +x "$SRC_DIR/gradlew"
 
-      - name: Security and V1.3.1 audits
+      - name: Security and V1.3.2 audits
         shell: bash
         run: |
           cd "$SRC_DIR"
           mkdir -p artifacts
-
-          python3 scripts/security_audit.py \
-            | tee artifacts/security-audit.txt
-
-          python3 scripts/v131_static_audit.py \
-            | tee artifacts/v131-static-audit.txt
+          python3 scripts/security_audit.py | tee artifacts/security-audit.txt
+          python3 scripts/v132_static_audit.py | tee artifacts/v132-static-audit.txt
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -74,13 +70,8 @@ jobs:
         shell: bash
         run: |
           cd "$SRC_DIR"
-
-          pnpm --dir scripts/ui-tests install \
-            --frozen-lockfile \
-            --ignore-scripts
-
-          node scripts/ui-tests/test.cjs \
-            | tee artifacts/ui-tests.txt
+          pnpm --dir scripts/ui-tests install --frozen-lockfile --ignore-scripts
+          node scripts/ui-tests/test.cjs | tee artifacts/ui-tests.txt
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -91,32 +82,19 @@ jobs:
 
       - name: Install Android API 36
         shell: bash
-        run: |
-          sdkmanager \
-            "platforms;android-36" \
-            "build-tools;36.0.0"
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
       - name: Unit tests
         shell: bash
         run: |
           cd "$SRC_DIR"
-
-          ./gradlew \
-            :shared:testDebugUnitTest \
-            :app-user:testDebugUnitTest \
-            :app-user:testPreviewUnitTest \
-            :app-admin:testPreviewUnitTest \
-            --no-daemon
+          ./gradlew :shared:testDebugUnitTest :app-user:testDebugUnitTest :app-user:testPreviewUnitTest :app-admin:testPreviewUnitTest --no-daemon
 
       - name: Android lint
         shell: bash
         run: |
           cd "$SRC_DIR"
-
-          ./gradlew \
-            :app-user:lintPreview \
-            :app-admin:lintPreview \
-            --no-daemon
+          ./gradlew :app-user:lintPreview :app-admin:lintPreview --no-daemon
 
       - name: Prepare QA signing
         shell: bash
@@ -129,34 +107,22 @@ jobs:
           cd "$SRC_DIR"
           python3 scripts/prepare_ci_signing.py
 
-      - name: Build both V1.3.1 RC Preview APKs
+      - name: Build both V1.3.2 RC Preview APKs
         shell: bash
         run: |
           cd "$SRC_DIR"
-
-          ./gradlew \
-            :app-user:assemblePreview \
-            :app-admin:assemblePreview \
-            --no-daemon
+          ./gradlew :app-user:assemblePreview :app-admin:assemblePreview --no-daemon
 
       - name: Verify signatures and package artifacts
         shell: bash
         run: |
           cd "$SRC_DIR"
-
           mkdir -p artifacts
+          cp app-user/build/outputs/apk/preview/app-user-preview.apk artifacts/PlayersHype-App-V1.3.2-RC-PREVIEW.apk
+          cp app-admin/build/outputs/apk/preview/app-admin-preview.apk artifacts/PlayersHype-Admin-V1.3.2-RC-PREVIEW.apk
 
-          cp \
-            app-user/build/outputs/apk/preview/app-user-preview.apk \
-            artifacts/PlayersHype-App-V1.3.1-RC-PREVIEW.apk
-
-          cp \
-            app-admin/build/outputs/apk/preview/app-admin-preview.apk \
-            artifacts/PlayersHype-Admin-V1.3.1-RC-PREVIEW.apk
-
-          for role in App Admin
-          do
-            APK="artifacts/PlayersHype-$role-V1.3.1-RC-PREVIEW.apk"
+          for role in App Admin; do
+            APK="artifacts/PlayersHype-$role-V1.3.2-RC-PREVIEW.apk"
 
             "$ANDROID_HOME/build-tools/36.0.0/apksigner" \
               verify \
@@ -170,73 +136,64 @@ jobs:
               "$APK" \
               > "artifacts/$role-metadata.txt"
 
-            if grep -q application-debuggable "artifacts/$role-metadata.txt"
-            then
-              echo "ERROR: $APK is debuggable"
+            if grep -q application-debuggable "artifacts/$role-metadata.txt"; then
               exit 1
             fi
           done
 
           python3 scripts/package_artifacts.py
 
-      - name: Upload V1.3.1 RC Android artifacts
+      - name: Upload V1.3.2 RC Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
-          path: .v131/PlayersHype-Ecosystem-V1.3.1-RC/artifacts/
+          name: PlayersHype-Ecosystem-V1.3.2-RC-Android
+          path: .v132/PlayersHype-Ecosystem-V1.3.2-RC/artifacts/
           if-no-files-found: error
 
       - name: Upload test and lint evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PlayersHype-V1.3.1-RC-verification
+          name: PlayersHype-V1.3.2-RC-verification
           path: |
-            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/reports/tests/
-            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/test-results/
-            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-user/build/reports/lint-results-preview.*
-            .v131/PlayersHype-Ecosystem-V1.3.1-RC/app-admin/build/reports/lint-results-preview.*
-            .v131/PlayersHype-Ecosystem-V1.3.1-RC/shared/build/test-results/
+            .v132/PlayersHype-Ecosystem-V1.3.2-RC/app-user/build/reports/tests/
+            .v132/PlayersHype-Ecosystem-V1.3.2-RC/app-user/build/test-results/
+            .v132/PlayersHype-Ecosystem-V1.3.2-RC/app-user/build/reports/lint-results-preview.*
+            .v132/PlayersHype-Ecosystem-V1.3.2-RC/app-admin/build/reports/lint-results-preview.*
+            .v132/PlayersHype-Ecosystem-V1.3.2-RC/shared/build/test-results/
           if-no-files-found: warn
 
       - name: Remove runner QA key
         if: always()
-        shell: bash
-        run: |
-          rm -f "$RUNNER_TEMP/playershype-qa.jks"
+        run: rm -f "$RUNNER_TEMP/playershype-qa.jks"
 
   emulator:
     needs: android
     runs-on: ubuntu-latest
     timeout-minutes: 25
-
     env:
-      SRC_DIR: .v131/PlayersHype-Ecosystem-V1.3.1-RC
+      SRC_DIR: .v132/PlayersHype-Ecosystem-V1.3.2-RC
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Expand PlayersHype V1.3.1 RC source package
+      - name: Expand PlayersHype V1.3.2 RC source package
         shell: bash
         run: |
-          rm -rf .v131
-          mkdir -p .v131
-
-          unzip -q PlayersHype-Ecosystem-V1.3.1-RC-SOURCE.zip -d .v131
+          rm -rf .v132
+          mkdir -p .v132
+          unzip -q PlayersHype-Ecosystem-V1.3.2-RC-SOURCE.zip -d .v132
 
       - name: Download built APKs
         uses: actions/download-artifact@v4
         with:
-          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
-          path: .v131/PlayersHype-Ecosystem-V1.3.1-RC/artifacts
+          name: PlayersHype-Ecosystem-V1.3.2-RC-Android
+          path: .v132/PlayersHype-Ecosystem-V1.3.2-RC/artifacts
 
       - name: Enable emulator acceleration
-        shell: bash
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
-            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
@@ -248,18 +205,14 @@ jobs:
           target: google_apis
           profile: pixel_2
           disable-animations: true
-          emulator-options: >-
-            -no-window
-            -gpu swiftshader_indirect
-            -noaudio
-            -no-boot-anim
-            -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: cd "$SRC_DIR" && python3 scripts/emulator_smoke.py
 
       - name: Upload emulator evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PlayersHype-V1.3.1-RC-emulator-evidence
-          path: .v131/PlayersHype-Ecosystem-V1.3.1-RC/emulator-evidence/
+          name: PlayersHype-V1.3.2-RC-emulator-evidence
+          path: .v132/PlayersHype-Ecosystem-V1.3.2-RC/emulator-evidence/
           if-no-files-found: warn
+
