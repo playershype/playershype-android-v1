@@ -225,6 +225,21 @@ html,body{background:#eef2f6;color:#111827;scroll-behavior:auto}
 .horse-modal{background:#fff}.horse-panel{width:100vw;box-shadow:none}
 }
 
+
+/* V1 HUB: six-status race strip and HypeBoard identifiers */
+.race-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:0}
+.strip-cell{background:#fff;border:1px solid #dce3ea;border-radius:12px;padding:12px;min-width:0}
+.strip-cell.good{border-top:4px solid #caff00}.strip-cell.warn{border-top:4px solid #ff8a34}.strip-cell.danger{border-top:4px solid #e24a4a}
+.strip-label{font-size:10px;font-weight:1000;letter-spacing:.1em;text-transform:uppercase;color:#758399}
+.strip-value{font-size:15px;font-weight:1000;color:#173049;overflow-wrap:anywhere;margin-top:5px}
+.race-page .quick-cell .horse{display:flex;align-items:center;gap:7px}
+.race-page .quick-cell .horse .saddle{width:35px;height:35px}
+.scorebar{height:6px;border-radius:99px;background:#e8edf1;overflow:hidden;margin-top:5px}
+.scorebar i{height:100%;display:block;background:linear-gradient(90deg,#25c5df,#caff00);border-radius:inherit}
+.board-id{display:inline-flex;align-items:center;gap:8px}
+@media(max-width:1000px){.race-strip{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:570px){.race-strip{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.strip-cell{padding:10px}.strip-value{font-size:14px}}
+
 </style>
 </head>
 <body>
@@ -266,10 +281,12 @@ function detailField(label,val) {
  return `<span class="stat">${esc(label)}: <strong>${esc(val)}</strong></span>`;
 }
 
+
 function quickPick(label,h,variant="") {
  if(!h||!h.name)return "";
- return `<div class="quick-cell ${variant}"><div class="slot">${esc(label)}</div><div class="horse">#${esc(h.programNumber)} ${esc(h.name)}</div><div class="score">${h.hypeScore==null?"—":esc(h.hypeScore)} <span style="font-size:10px;font-weight:800;color:#536f7f">/ 10</span></div></div>`;
+ return '<div class="quick-cell '+hpEsc(variant)+'"><div class="slot">'+hpEsc(label)+'</div><div class="horse">'+hpSaddle(h.programNumber)+'<span>'+hpEsc(h.name)+'</span></div><div class="score">'+(h.hypeScore==null?"—":hpEsc(h.hypeScore))+' <span style="font-size:10px;font-weight:800;color:#536f7f">/ 10</span></div></div>';
 }
+
 
 function lineNames(items) {
  return (Array.isArray(items)?items:[]).map(e=>`#${esc(e.programNumber)} ${esc(e.name||"")}`).join(" · ")||"Sin datos";
@@ -292,12 +309,17 @@ function sourceHypeBet(a){
  return txt.slice(at+"🎯 HYPEBET".length).replace(/\n[─—-]{3,}[\s\S]*$/,"").trim();
 }
 
+
 function roleAndBoard(a) {
- const horses=Array.isArray(a?.horses)?a.horses:[];
- if(!horses.length)return `<p class="missing-field">No se recibió el HypeBoard de esta carrera.</p>`;
- const rows=horses.map((h,i)=>`<tr><td>${i+1}</td><td><span class="name">#${esc(h.programNumber)} ${esc(h.name)}</span><span class="role">${esc(h.role||"")}</span></td><td class="score-num">${h.hypeScore==null?"—":esc(h.hypeScore)}</td><td>${esc(h.reliability||"No disponible")}</td></tr>`).join("");
- return `<div class="board-wrap"><table class="board-table"><thead><tr><th>Pos.</th><th>Ejemplar</th><th>HypeScore</th><th>Confiabilidad</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+ var horses=Array.isArray(a&&a.horses)?a.horses:[];
+ if(!horses.length)return '<p class="missing-field">No se recibió el HypeBoard de esta carrera.</p>';
+ var rows=horses.map(function(h,i){
+  var s=Number(h.hypeScore),width=Number.isFinite(s)?Math.max(0,Math.min(100,s*10)):0;
+  return '<tr><td>'+(i+1)+'</td><td><span class="board-id">'+hpSaddle(h.programNumber)+'<span class="name">'+hpEsc(h.name)+'</span></span><span class="role">'+hpEsc(h.role||"")+'</span></td><td class="score-num">'+(h.hypeScore==null?"—":hpEsc(h.hypeScore))+'<div class="scorebar"><i style="width:'+width+'%"></i></div></td><td>'+hpEsc(h.reliability||"No disponible")+'</td></tr>';
+ }).join("");
+ return '<div class="board-wrap"><table class="board-table"><thead><tr><th>Pos.</th><th>Ejemplar</th><th>HypeScore</th><th>Confiabilidad</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
+
 
 function fullCheckList(a){
  const horses=Array.isArray(a?.horses)?a.horses:[];
@@ -422,12 +444,26 @@ function hpOpenHorse(i){
  var closer=document.getElementById("closeHorse");if(closer)closer.onclick=hpCloseHorse;
 }
 function hpCloseHorse(){var el=document.getElementById("horseModal");if(el)el.classList.remove("open");document.body.style.overflow=""}
+
+function hpDecisionStrip(a){
+ var q=a&&a.quickHits||{},risk=a&&a.riskControl||{};
+ var fields=[
+  ["DECISIÓN",q.decision||risk.decision||"—","good"],
+  ["RIESGO",q.risk||risk.risk||"—",/alto/i.test(String(q.risk||risk.risk||""))?"danger":"warn"],
+  ["CONFIANZA",q.selectConfidence||"No disponible",""],
+  ["CONFIABILIDAD",q.selectReliability||risk.selectReliability||"No disponible",""],
+  ["GAP SELLADO",q.gap||risk.gap||"No disponible",""],
+  ["ESTADO DEL POOL",String(q.poolStatus||"No disponible").replace(/\s*👉\s*$/,""),""]
+ ];
+ return '<div class="race-strip">'+fields.map(function(f){return '<div class="strip-cell '+f[2]+'"><div class="strip-label">'+hpEsc(f[0])+'</div><div class="strip-value">'+hpEsc(f[1])+'</div></div>'}).join("")+'</div>';
+}
+
 function hpRaceView(track,dayData,race){
  var a=analysisFor(race),races=dayData.races||[],idx=races.findIndex(function(x){return x.id===race.id}),prev=races[idx-1],next=races[idx+1];
  var buttons='<a class="primary" href="#jornada">← VOLVER A JORNADA</a>'+(prev?'<a href="#race-'+hpEsc(prev.number)+'">← R'+hpEsc(prev.number)+'</a>':'')+(next?'<a href="#race-'+hpEsc(next.number)+'">R'+hpEsc(next.number)+' →</a>':'');
  return '<div class="race-screen"><div class="race-controls">'+buttons+'</div>'+
  '<div class="page-header"><div><div class="page-kicker">PLAYERSHYPE · HYPEPREDICT V1</div><h2 class="page-heading">Carrera '+hpEsc(race.number)+' · Análisis completo</h2><div class="page-desc">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+' · pantalla individual</div></div></div>'+
- '<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
+ hpDecisionStrip(a)+'<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
  (a&&a.status==="published"?hpHorseProfileCards(a):"")+
  '<div class="race-controls">'+buttons+'</div></div>';
 }
