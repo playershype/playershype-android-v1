@@ -402,15 +402,12 @@ function hpPublishedCount(id,date){
  return Array.isArray(d?.races)?d.races.filter(r=>hpIsPublished(id,d,r)).length:0;
 }
 function hpAllPublishedDates(){
- const dates=new Set([hpTodayInPuertoRico()]);
- for(const t of tracks()){
-  const raw=DATA?.raceDays?.[t.id];
-  const days=Array.isArray(raw)?raw:Array.isArray(raw?.days)?raw.days:(raw?[raw]:[]);
-  for(const d of days)if(d?.date&&Array.isArray(d.races)&&d.races.some(r=>hpIsPublished(t.id,d,r)))dates.add(d.date);
- }
- return [...dates].sort().reverse();
+ // Public view: only the current Puerto Rico racing date.
+ // Never delete or rewrite raceDayHistory; previous reports remain archived.
+ return [hpTodayInPuertoRico()];
 }
 function hpTracksForDate(date){
+ if(date!==hpTodayInPuertoRico())return [];
  return tracks().filter(t=>hpPublishedCount(t.id,date)>0);
 }
 function datesFor(id){
