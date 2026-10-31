@@ -256,6 +256,18 @@ html,body{background:#eef2f6;color:#111827;scroll-behavior:auto}
 .hm-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}.hm-actions button,.hm-profile{min-height:42px;padding:10px 12px;border-radius:10px;border:1px solid #c8d7e2;background:#fff;color:#102946;font-size:11px;font-weight:1000;cursor:pointer}.hm-actions .primary{background:#102946;color:#caff00}.hm-profile{margin-top:10px}
 @media(max-width:700px){.hm-modal{padding:0;align-items:flex-end}.hm-dialog{width:100%;max-height:96dvh;border-radius:20px 20px 0 0}.hm-top{padding:13px}.hm-title{font-size:20px}.hm-body{padding:9px;gap:9px}.hm-selectors{grid-template-columns:minmax(0,1fr) 33px minmax(0,1fr);gap:5px}.hm-choice{padding:7px}.hm-choice select{font-size:11px}.hm-vs{width:32px;height:32px;font-size:11px}.hm-fighters{grid-template-columns:minmax(0,1fr) 76px minmax(0,1fr);gap:5px}.hm-fighter{padding:9px 7px}.hm-horse{font-size:13px}.hm-score{font-size:29px}.hm-center b{font-size:22px}.hm-center small{font-size:9px}.hm-row{grid-template-columns:minmax(0,1fr) 86px minmax(0,1fr)}.hm-cell{font-size:11px;padding:8px 5px}.hm-cell b{font-size:11px}.hm-cell.metric{font-size:9px}.hm-readings{grid-template-columns:1fr}}
 
+
+.wx-card{background:linear-gradient(135deg,#071827,#0b2942 65%,#0b3545);color:#fff;border:1px solid #21465e;box-shadow:0 13px 36px rgba(8,24,43,.16);border-radius:18px;padding:16px}
+.wx-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.wx-kicker{font-size:10px;color:#caff00;font-weight:1000;letter-spacing:.14em}.wx-title{font-size:21px;font-weight:1000;letter-spacing:-.025em;margin:5px 0 3px}.wx-place{font-size:11px;color:#a6b9c9;line-height:1.6}.wx-state{border:1px solid rgba(202,255,0,.4);color:#eaffb5;border-radius:99px;padding:6px 9px;font-size:10px;font-weight:1000;white-space:nowrap}.wx-state.error{border-color:#ff9f77;color:#ffd0b9}
+.wx-content{margin-top:12px;display:grid;gap:10px}
+.wx-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:10px}
+.wx-now{border:1px solid rgba(255,255,255,.14);border-radius:13px;background:rgba(255,255,255,.055);padding:14px}.wx-now-main{display:flex;gap:10px;align-items:center}.wx-emoji{font-size:36px}.wx-temp{font-size:34px;font-weight:1000;line-height:1}.wx-condition{font-size:12px;font-weight:900;color:#dce9f2;margin-top:6px}
+.wx-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.wx-metric{border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.04);padding:9px;border-radius:10px}.wx-metric small{display:block;font-size:10px;color:#a6bbc9}.wx-metric b{display:block;margin-top:5px;font-size:14px;overflow-wrap:anywhere}
+.wx-hours{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.wx-hour{border:1px solid rgba(255,255,255,.12);border-radius:11px;background:rgba(255,255,255,.045);padding:10px 4px;text-align:center}.wx-hour-time{font-size:10px;color:#b9cbd8;font-weight:850}.wx-hour-icon{font-size:22px;margin:5px 0}.wx-hour-temp{font-size:16px;font-weight:1000}.wx-hour-rain{font-size:10px;color:#b9cbd8;margin-top:4px}
+.wx-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:11px;color:#a9bfd0;font-size:11px;line-height:1.5}.wx-refresh{background:#caff00;color:#08182b;border:0;border-radius:9px;padding:9px 12px;min-height:40px;font-weight:1000;font-size:11px;cursor:pointer}
+.wx-watch{font-size:11px;font-weight:900;color:#ffb17e}
+@media(max-width:700px){.wx-card{padding:13px}.wx-title{font-size:18px}.wx-overview{grid-template-columns:1fr}.wx-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.wx-temp{font-size:31px}.wx-hour{padding:8px 2px}.wx-hour-time,.wx-hour-rain{font-size:9px}.wx-hour-icon{font-size:19px}.wx-hour-temp{font-size:14px}.wx-footer{align-items:flex-start}}@media(max-width:365px){.wx-header{display:block}.wx-state{display:inline-block;margin-top:7px}.wx-hours{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -395,6 +407,84 @@ function syncDates(preferredDate=""){
 
 /* Navegación publicada: cada carrera es una pantalla y no una sección en una página larga. */
 
+
+/* Live track weather: original HUB behavior, but never guess a racetrack location. */
+const hpWxPositions={
+ camarero:{lat:18.3667,lon:-65.90668,place:"Canóvanas, Puerto Rico",tz:"America/Puerto_Rico"},
+ keeneland:{lat:38.04556,lon:-84.61056,place:"Lexington, Kentucky",tz:"America/New_York"},
+ belmont:{lat:40.7151,lon:-73.7222,place:"Elmont, New York",tz:"America/New_York"},
+ gulfstream:{lat:25.9792582,lon:-80.1378232,place:"Hallandale Beach, Florida",tz:"America/New_York"},
+ churchill:{lat:38.20306,lon:-85.77000,place:"Louisville, Kentucky",tz:"America/New_York"},
+ "horseshoe-indianapolis":{lat:39.5847,lon:-85.8250,place:"Shelbyville, Indiana",tz:"America/Indiana/Indianapolis"},
+ "parx-racing":{lat:40.1186,lon:-74.953,place:"Bensalem, Pennsylvania",tz:"America/New_York"}
+};
+const hpWxCache=new Map();let hpWxSeq=0,hpWxTimer=null;
+function hpWxCard(track,date){
+ const pos=hpWxPositions[track.id];
+ return '<section class="wx-card" id="hpWeather" data-track-id="'+esc(track.id)+'"><div class="wx-header"><div><div class="wx-kicker">PLAYERSHYPE · LIVE TRACK WEATHER</div><h3 class="wx-title">CLIMA EN '+esc(track.name.toUpperCase())+'</h3><div class="wx-place">'+esc(pos?.place||"Ubicación no registrada")+' · clima actual, no histórico de '+esc(date)+'</div></div><span class="wx-state" id="hpWxState">CONECTANDO</span></div><div id="hpWxContent" class="wx-content"><div class="wx-place">Consultando condiciones actuales de la pista…</div></div><div class="wx-footer"><span>Fuente: Open-Meteo · información meteorológica, no condición oficial de pista. HypeScore sin cambios.</span><button type="button" class="wx-refresh" id="hpWxRefresh">↻ ACTUALIZAR</button></div></section>';
+}
+function hpWxCode(value){
+ const n=Number(value);
+ if(n===0)return ["☀️","Despejado"];if(n===1)return ["🌤️","Mayormente despejado"];
+ if(n===2)return ["⛅","Parcialmente nublado"];if(n===3)return ["☁️","Nublado"];
+ if(n===45||n===48)return ["🌫️","Neblina"];if(n>=51&&n<=57)return ["🌦️","Llovizna"];
+ if(n>=61&&n<=67)return ["🌧️","Lluvia"];if(n>=71&&n<=77)return ["❄️","Nieve"];
+ if(n>=80&&n<=82)return ["🌦️","Chubascos"];if(n>=95)return ["⛈️","Tormentas"];
+ return ["🌤️","Variable"];
+}
+function hpWxNumber(v){return v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v))?Number(v):null}
+function hpWxFormat(v,unit,prec=0){const n=hpWxNumber(v);return n===null?"—":n.toFixed(prec)+unit}
+function hpWxHour(iso){const m=String(iso||"").match(/T(\d{2})/);if(!m)return"—";const h=Number(m[1]);return (h%12||12)+(h>=12?" PM":" AM")}
+function hpWxMetric(label,value){return '<div class="wx-metric"><small>'+esc(label)+'</small><b>'+esc(value)+'</b></div>'}
+function hpWxDraw(id,data,stale=false){
+ const root=document.getElementById("hpWeather");if(!root||root.dataset.trackId!==id)return;
+ const status=root.querySelector("#hpWxState"),content=root.querySelector("#hpWxContent");
+ if(!status||!content)return;
+ const c=data?.current;
+ if(!c||hpWxNumber(c.temperature_2m)===null){
+  status.className="wx-state error";status.textContent="SIN DATOS";
+  content.innerHTML='<div class="wx-place">Clima no disponible para esta pista. No se utilizan datos meteorológicos de otros hipódromos.</div>';return;
+ }
+ const [icon,cond]=hpWxCode(c.weather_code),h=data.hourly||{},times=h.time||[];
+ const hour=String(c.time||"").slice(0,13);
+ let start=times.findIndex(v=>String(v).slice(0,13)>=hour);if(start<0)start=0;
+ const nextRain=hpWxNumber(h.precipitation_probability?.[start]);
+ const precip=hpWxNumber(c.precipitation),watch=(precip!==null&&precip>0)||(nextRain!==null&&nextRain>=50);
+ status.className="wx-state"+(stale?" error":"");
+ status.textContent=stale?"ÚLTIMA LECTURA":watch?"⚠ WEATHER WATCH":"LIVE · 5 MIN";
+ const hours=times.slice(start,start+5).map((t,j)=>{
+  const i=start+j,ico=hpWxCode(h.weather_code?.[i])[0];
+  return '<div class="wx-hour"><div class="wx-hour-time">'+esc(hpWxHour(t))+'</div><div class="wx-hour-icon">'+ico+'</div><div class="wx-hour-temp">'+esc(hpWxFormat(h.temperature_2m?.[i],"°F"))+'</div><div class="wx-hour-rain">'+esc(hpWxFormat(h.precipitation_probability?.[i],"% lluvia"))+'</div></div>';
+ }).join("");
+ content.innerHTML='<div class="wx-overview"><div class="wx-now"><div class="wx-now-main"><span class="wx-emoji">'+icon+'</span><span class="wx-temp">'+esc(hpWxFormat(c.temperature_2m,"°F"))+'</span></div><div class="wx-condition">'+esc(cond)+'</div><div class="wx-place">Medición: '+esc(String(c.time||"—").slice(11,16))+' (hora local de pista)</div></div>'+
+ '<div class="wx-metrics">'+hpWxMetric("Sensación",hpWxFormat(c.apparent_temperature,"°F"))+hpWxMetric("Humedad",hpWxFormat(c.relative_humidity_2m,"%"))+hpWxMetric("Viento",hpWxFormat(c.wind_speed_10m," mph"))+hpWxMetric("Ráfagas",hpWxFormat(c.wind_gusts_10m," mph"))+hpWxMetric("Precipitación",hpWxFormat(c.precipitation," in",2))+hpWxMetric("Prob. lluvia",hpWxFormat(nextRain,"%"))+'</div></div>'+
+ (hours?'<div class="wx-hours">'+hours+'</div>':"")+(watch?'<div class="wx-watch">⚠ Monitorear lluvia y confirmar los cambios oficiales de superficie por separado.</div>':"");
+}
+async function hpWxLoad(id,force=false){
+ const root=document.getElementById("hpWeather");if(!root||root.dataset.trackId!==id)return;
+ const seq=++hpWxSeq,pos=hpWxPositions[id],cached=hpWxCache.get(id),now=Date.now();
+ const refresh=root.querySelector("#hpWxRefresh");if(refresh)refresh.onclick=()=>hpWxLoad(id,true);
+ if(!pos){hpWxDraw(id,null);return}
+ if(cached&&!force&&now-cached.fetched<300000){hpWxDraw(id,cached.data);return}
+ if(cached)hpWxDraw(id,cached.data,true);
+ const state=root.querySelector("#hpWxState");if(state)state.textContent="ACTUALIZANDO";
+ try{
+  const url=new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude",String(pos.lat));url.searchParams.set("longitude",String(pos.lon));
+  url.searchParams.set("current","temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m");
+  url.searchParams.set("hourly","temperature_2m,precipitation_probability,weather_code");
+  url.searchParams.set("temperature_unit","fahrenheit");
+  url.searchParams.set("wind_speed_unit","mph");
+  url.searchParams.set("precipitation_unit","inch");
+  url.searchParams.set("timezone",pos.tz);
+  url.searchParams.set("forecast_days","2");
+  const res=await fetch(url.href,{cache:"no-store"});if(!res.ok)throw Error("Weather HTTP "+res.status);
+  const data=await res.json();if(!data?.current||hpWxNumber(data.current.temperature_2m)===null)throw Error("Weather data incomplete");
+  hpWxCache.set(id,{fetched:Date.now(),data});
+  if(seq===hpWxSeq)hpWxDraw(id,data);
+ }catch(e){if(seq===hpWxSeq)hpWxDraw(id,cached?.data||null,!!cached)}
+}
+
 let hpMatchContext=null,hpPendingProfile=null;
 function hpMatchField(h,label){
  const src=String(h?.sourceText||"");
@@ -516,7 +606,7 @@ function hpDayView(track,dayData){
  '<div class="val">SIN FIJO</div><div class="note">No hay una decisión explícita de fijo en los análisis publicados. No se asigna ninguno por inferencia.</div>';
  var pulse=list.map(function(x){var q=hpQ(x.analysis),s=q.select||{},sc=Number(s.hypeScore);var meter=Number.isFinite(sc)?Math.max(8,Math.min(100,sc*10)):0;return '<a class="pulse-tile" href="#race-'+hpEsc(x.race.number)+'"><div class="pulse-id">R'+hpEsc(x.race.number)+'</div><div class="pulse-risk">'+hpEsc(q.risk||"Riesgo no disponible")+'</div><div class="pulse-meter"><i style="--meter:'+meter+'%"></i></div><div class="pulse-pick">#'+hpEsc(s.programNumber||"—")+' '+hpEsc(s.name||"Sin Select")+'</div><div class="pulse-risk">HS '+hpScore(s)+' · '+hpEsc(q.decision||"—")+'</div></a>'}).join("");
  return '<div class="dashboard-shell"><section class="jornada-command"><div class="jornada-brand"><div class="jornada-command-mark">HP</div><div><div class="jornada-command-kicker">PLAYERSHYPE · CARD COMMAND</div><div class="jornada-command-title">JORNADA HYPEPREDICT</div><div class="jornada-command-sub">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+'</div></div></div><div class="jornada-count">'+list.length+'/'+races.length+' ANÁLISIS</div></section>'+
- '<section class="radiography"><div class="radiography-kicker">PLAYERSHYPE · RACE INTELLIGENCE</div><h2>Radiografía de la Jornada</h2><div class="radiography-sub">Lectura general de la cartelera. Cada carrera tiene su propia pantalla con el análisis completo.</div><div class="xray-grid">'+
+ hpWxCard(track,dayData.date)+'<section class="radiography"><div class="radiography-kicker">PLAYERSHYPE · RACE INTELLIGENCE</div><h2>Radiografía de la Jornada</h2><div class="radiography-sub">Lectura general de la cartelera. Cada carrera tiene su propia pantalla con el análisis completo.</div><div class="xray-grid">'+
  '<div class="xray-core"><div class="cap">FIJO ESTRATÉGICO</div><div class="mark">'+(chosen?'★':'Ø')+'</div>'+core+'</div>'+
  '<div class="xray-signals">'+
  signal("SELECT CON MAYOR HYPESCORE",best?'R'+best.race.number+' · #'+hpQ(best.analysis).select.programNumber:'—',best?hpQ(best.analysis).select.name+' · HS '+hpScore(hpQ(best.analysis).select):'No disponible',"base",best&&best.race.number)+
@@ -566,7 +656,7 @@ function hpRaceView(track,dayData,race){
  var buttons='<button class="hm-open" data-match-race="'+hpEsc(race.number)+'" type="button">⚔ HYPEMATCH · HEAD TO HEAD</button><a class="primary" href="#jornada">← VOLVER A JORNADA</a>'+(prev?'<a href="#race-'+hpEsc(prev.number)+'">← R'+hpEsc(prev.number)+'</a>':'')+(next?'<a href="#race-'+hpEsc(next.number)+'">R'+hpEsc(next.number)+' →</a>':'');
  return '<div class="race-screen"><div class="race-controls">'+buttons+'</div>'+
  '<div class="page-header"><div><div class="page-kicker">PLAYERSHYPE · HYPEPREDICT V1</div><h2 class="page-heading">Carrera '+hpEsc(race.number)+' · Análisis completo</h2><div class="page-desc">'+hpEsc(track.name)+' · '+hpEsc(dayData.date)+' · pantalla individual</div></div></div>'+
- hpDecisionStrip(a)+'<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
+ hpDecisionStrip(a)+hpWxCard(track,dayData.date)+'<div class="race-page">'+raceCard(race,track.id,dayData.date)+'</div>'+
  (a&&a.status==="published"?hpHorseProfileCards(a):"")+
  '<div class="race-controls">'+buttons+'</div></div>';
 }
@@ -588,6 +678,7 @@ function render(){
  document.querySelector("#status").textContent="Config "+(DATA.revision||"")+" · "+track.name+" · "+published+"/"+races.length+" análisis · "+(r?"R"+r.number:"Jornada");
  document.querySelectorAll("[data-horse-index]").forEach(function(el){el.addEventListener("click",function(){hpOpenHorse(Number(el.dataset.horseIndex))})});
  document.querySelectorAll("[data-match-race]").forEach(el=>el.addEventListener("click",()=>hpMatchOpen(Number(el.dataset.matchRace))));
+ hpWxLoad(id);
 }
 function hpNavigate(){
  hpMatchClose();
@@ -618,6 +709,6 @@ async function load(){
   $("#app").innerHTML=`<div class="empty"><b>No se pudo conectar con HypePredict</b><span>${esc(e.message)}</span></div>`;
  }
 }
-$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape'){hpMatchClose();hpCloseHorse()}});document.getElementById('matchModal').addEventListener('click',e=>{if(e.target.id==='matchModal')hpMatchClose()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
+$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape'){hpMatchClose();hpCloseHorse()}});hpWxTimer=setInterval(()=>{const w=document.getElementById('hpWeather');if(w)hpWxLoad(w.dataset.trackId)},300000);document.getElementById('matchModal').addEventListener('click',e=>{if(e.target.id==='matchModal')hpMatchClose()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
 </script>
 </body></html>
