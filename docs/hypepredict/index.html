@@ -416,8 +416,8 @@ function hpDayView(track,dayData){
  '<section class="radiography"><div class="radiography-kicker">PLAYERSHYPE · RACE INTELLIGENCE</div><h2>Radiografía de la Jornada</h2><div class="radiography-sub">Lectura general de la cartelera. Cada carrera tiene su propia pantalla con el análisis completo.</div><div class="xray-grid">'+
  '<div class="xray-core"><div class="cap">FIJO ESTRATÉGICO</div><div class="mark">'+(chosen?'★':'Ø')+'</div>'+core+'</div>'+
  '<div class="xray-signals">'+
- signal("MAYOR HYPESCORE",best?'R'+best.race.number+' · #'+hpQ(best.analysis).select.programNumber:'—',best?hpQ(best.analysis).select.name+' · HS '+hpScore(hpQ(best.analysis).select):'No disponible',"base",best&&best.race.number)+
- signal("CARRERAS CON RIESGO ALTO",String(risks.length),risks.length?risks.map(function(x){return 'R'+x.race.number}).join(" · "):"Ninguna identificada en los reportes","risk",risks[0]&&risks[0].race.number)+
+ signal("SELECT CON MAYOR HYPESCORE",best?'R'+best.race.number+' · #'+hpQ(best.analysis).select.programNumber:'—',best?hpQ(best.analysis).select.name+' · HS '+hpScore(hpQ(best.analysis).select):'No disponible',"base",best&&best.race.number)+
+ signal("RIESGO ALTO / MEDIO-ALTO",String(risks.length),risks.length?risks.map(function(x){return 'R'+x.race.number}).join(" · "):"Ninguna identificada en los reportes","risk",risks[0]&&risks[0].race.number)+
  signal("MAYOR COMPRESIÓN",tight?'R'+tight.race.number+' · '+hpQ(tight.analysis).gap:'—',tight?'Select vs Rival · '+hpEsc(hpQ(tight.analysis).decision||""):'Sin gap registrado',"tight",tight&&tight.race.number)+
  signal("ANÁLISIS DE LA JORNADA",list.length+' / '+races.length,"Cada carrera conserva su propia lectura, HypeBoard y checklist","",null)+
  '</div></div></section>'+
