@@ -272,7 +272,7 @@ html,body{background:#eef2f6;color:#111827;scroll-behavior:auto}
 </head>
 <body>
 <header class="top"><div class="wrap"><div class="brand-mark">PH</div><div class="brand-copy"><div class="brand">PLAYERSHYPE · DEFINIENDO EL ESTÁNDAR</div><div class="title">HypePredict</div><div class="sub">Race Intelligence · Track Hub</div></div><div class="public-chip">● PUBLICADO</div></div></header>
-<section class="controls"><select id="track" aria-label="Hipódromo"><option>Cargando hipódromos…</option></select><select id="date" aria-label="Fecha"><option>Cargando fechas…</option></select><button id="refresh">Actualizar</button></section>
+<section class="controls"><select id="date" aria-label="Fecha de análisis"><option>Cargando fechas…</option></select><select id="track" aria-label="Hipódromo con análisis publicado"><option>Cargando hipódromos…</option></select><button id="refresh">Actualizar</button></section>
 <nav id="raceNav"></nav><div class="status" id="status">Conectando con la data publicada…</div>
 <main class="grid" id="app"></main><aside id="horseModal" class="horse-modal" aria-live="polite"></aside><aside id="matchModal" class="hm-modal" aria-live="polite"></aside>
 <footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
@@ -388,8 +388,39 @@ function raceCard(r,trackId,date) {
  <div class="footer-action">Análisis publicado · HypeScore no equivale a probabilidad de victoria.</div>
  </article>`;
 }
-function datesFor(t){const raw=DATA?.raceDays?.[t]||null,days=Array.isArray(raw)?raw:(Array.isArray(raw?.days)?raw.days:(raw?[raw]:[]));return [...new Set(days.map(d=>d?.date).filter(Boolean))].sort().reverse()}
-function latestPublishedTrack(ts){let best=null;for(const t of ts){const d=datesFor(t.id)[0]||'';if(d&&(!best||d>best.date))best={id:t.id,date:d}}return best?.id||ts[0]?.id||''}
+function hpTodayInPuertoRico(){
+ const parts=new Intl.DateTimeFormat("en-US",{timeZone:"America/Puerto_Rico",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+ const values=Object.fromEntries(parts.map(p=>[p.type,p.value]));
+ return values.year+"-"+values.month+"-"+values.day;
+}
+function hpIsPublished(id,d,r){
+ const a=DATA?.hypepredict?.analyses?.[r?.id];
+ return !!(a&&a.status==="published"&&a.trackId===id&&a.raceId===r.id&&d?.date);
+}
+function hpPublishedCount(id,date){
+ const d=day(id,date);
+ return Array.isArray(d?.races)?d.races.filter(r=>hpIsPublished(id,d,r)).length:0;
+}
+function hpAllPublishedDates(){
+ const dates=new Set([hpTodayInPuertoRico()]);
+ for(const t of tracks()){
+  const raw=DATA?.raceDays?.[t.id];
+  const days=Array.isArray(raw)?raw:Array.isArray(raw?.days)?raw.days:(raw?[raw]:[]);
+  for(const d of days)if(d?.date&&Array.isArray(d.races)&&d.races.some(r=>hpIsPublished(t.id,d,r)))dates.add(d.date);
+ }
+ return [...dates].sort().reverse();
+}
+function hpTracksForDate(date){
+ return tracks().filter(t=>hpPublishedCount(t.id,date)>0);
+}
+function datesFor(id){
+ // Dates for an individual track may exist without published analysis;
+ // use the cross-track calendar for navigation instead.
+ return hpAllPublishedDates().filter(d=>hpPublishedCount(id,d)>0);
+}
+function latestPublishedTrack(ts,date){
+ return ts.find(t=>hpPublishedCount(t.id,date)>0)?.id||"";
+}
 function day(id,date){
  const raw=DATA?.raceDays?.[id]||null;
  if(!raw)return null;
@@ -397,11 +428,33 @@ function day(id,date){
  return date?days.find(d=>d?.date===date)||null:days[days.length-1]||null;
 }
 
-function syncDates(preferredDate=""){
- const t=$("#track").value, dates=datesFor(t);
- SELECTED_DATE=(preferredDate&&dates.includes(preferredDate)?preferredDate:dates[0])||"";
- $("#date").innerHTML=dates.length?dates.map(x=>`<option value="${esc(x)}"${x===SELECTED_DATE?" selected":""}>${esc(x)}</option>`).join(""):"<option value=''>Sin jornada publicada</option>";
+function syncDateTracks(preferredDate="",preferredTrack=""){
+ const dates=hpAllPublishedDates();
+ const selected=preferredDate&&dates.includes(preferredDate)?preferredDate:hpTodayInPuertoRico();
+ SELECTED_DATE=dates.includes(selected)?selected:dates[0]||"";
+ $("#date").innerHTML=dates.length?dates.map(x=>'<option value="'+esc(x)+'"'+(x===SELECTED_DATE?' selected':'')+'>'+esc(x)+'</option>').join(""):"<option value=''>Sin fechas</option>";
+ const eligible=hpTracksForDate(SELECTED_DATE);
+ $("#track").innerHTML=eligible.length?eligible.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(""):"<option value=''>Sin análisis publicados para esta fecha</option>";
+ const choice=eligible.find(t=>t.id===preferredTrack)?.id||eligible[0]?.id||"";
+ $("#track").value=choice;
  render();
+}
+function hpSyncUrl(){
+ try{
+  const url=new URL(location.href);
+  const date=$("#date").value||SELECTED_DATE,track=$("#track").value;
+  if(date)url.searchParams.set("date",date);else url.searchParams.delete("date");
+  if(track)url.searchParams.set("track",track);else url.searchParams.delete("track");
+  history.replaceState(null,"",url.pathname+url.search+location.hash);
+ }catch(e){/* Navigation continues even if history is unavailable */ }
+}
+function hpGoToJornada(){
+ if(location.hash!=="#jornada"){
+  try{
+   const url=new URL(location.href);
+   history.replaceState(null,"",url.pathname+url.search+"#jornada");
+  }catch(e){location.hash="jornada"}
+ }
 }
 
 
@@ -662,13 +715,14 @@ function hpRaceView(track,dayData,race){
 }
 function render(){
  var id=document.querySelector("#track").value;
- var track=tracks().find(function(x){return x.id===id});
+ var track=hpTracksForDate(document.querySelector("#date").value||SELECTED_DATE).find(function(x){return x.id===id});
  var selected=document.querySelector("#date").value||SELECTED_DATE;
  var d=day(id,selected),n=hpScreen();
  if(!track||!d||!d.date){
-  document.querySelector("#app").innerHTML='<div class="empty"><b>No hay jornada publicada</b><span>No existen datos para el hipódromo y la fecha seleccionados.</span></div>';
-  document.querySelector("#status").textContent="Sin jornada publicada";
+  document.querySelector("#app").innerHTML='<div class="empty"><b>Sin análisis publicados</b><span>No hay hipódromos con análisis HypePredict publicados para '+esc(selected)+'. Escoge otra fecha para consultar el archivo.</span></div>';
+  document.querySelector("#status").textContent="Sin análisis publicados · "+selected;
   var nav=document.getElementById("raceNav");if(nav)nav.innerHTML="";
+  hpSyncUrl();
   return;
  }
  var races=Array.isArray(d.races)?d.races:[],r=races.find(function(x){return Number(x.number)===n});
@@ -676,6 +730,7 @@ function render(){
  document.querySelector("#app").innerHTML=r?hpRaceView(track,d,r):hpDayView(track,d);
  var published=races.filter(function(x){var a=analysisFor(x);return a&&a.status==="published"&&a.trackId===id&&a.raceId===x.id}).length;
  document.querySelector("#status").textContent="Config "+(DATA.revision||"")+" · "+track.name+" · "+published+"/"+races.length+" análisis · "+(r?"R"+r.number:"Jornada");
+ hpSyncUrl();
  document.querySelectorAll("[data-horse-index]").forEach(function(el){el.addEventListener("click",function(){hpOpenHorse(Number(el.dataset.horseIndex))})});
  document.querySelectorAll("[data-match-race]").forEach(el=>el.addEventListener("click",()=>hpMatchOpen(Number(el.dataset.matchRace))));
  hpWxLoad(id);
@@ -690,7 +745,7 @@ function hpNavigate(){
 
 
 async function load(){
- const oldTrack=$("#track").value, oldDate=$("#date").value||SELECTED_DATE;
+ const oldTrack=$("#track").value, oldDate=SELECTED_DATE||"";
  try{
   $("#status").textContent="Actualizando información pública…";
   const url=new URL(CONFIG_URL,location.href);url.searchParams.set("v",Date.now());
@@ -699,16 +754,14 @@ async function load(){
   const next=await res.json();
   if(!next||!next.raceDays||!next.hypepredict)throw new Error("Configuración incompleta");
   DATA=next;
-  const ts=tracks();
-  $("#track").innerHTML=ts.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");
-  const keep=ts.find(t=>t.id===oldTrack);const requested=ts.find(t=>t.id===REQUESTED_TRACK);
-  $("#track").value=keep?.id||requested?.id||latestPublishedTrack(ts);
-  syncDates(keep?.id?oldDate:(requested?.id?REQUESTED_DATE:""));
+  const date=oldDate||REQUESTED_DATE||hpTodayInPuertoRico();
+  const track=oldTrack||REQUESTED_TRACK;
+  syncDateTracks(date,track);
  }catch(e){
   $("#status").textContent="No se pudo cargar la información pública";
   $("#app").innerHTML=`<div class="empty"><b>No se pudo conectar con HypePredict</b><span>${esc(e.message)}</span></div>`;
  }
 }
-$('#track').addEventListener('change',()=>{if(location.hash!=='#jornada')location.hash='jornada';syncDates()});$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;if(location.hash!=='#jornada')location.hash='jornada';render()});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape'){hpMatchClose();hpCloseHorse()}});hpWxTimer=setInterval(()=>{const w=document.getElementById('hpWeather');if(w)hpWxLoad(w.dataset.trackId)},300000);document.getElementById('matchModal').addEventListener('click',e=>{if(e.target.id==='matchModal')hpMatchClose()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
+$('#track').addEventListener('change',()=>{hpGoToJornada();render()});$('#date').addEventListener('change',()=>{hpGoToJornada();syncDateTracks($('#date').value,$('#track').value)});$('#refresh').addEventListener('click',load);window.addEventListener('hashchange',hpNavigate);document.addEventListener('keydown',e=>{if(e.key==='Escape'){hpMatchClose();hpCloseHorse()}});hpWxTimer=setInterval(()=>{const w=document.getElementById('hpWeather');if(w)hpWxLoad(w.dataset.trackId)},300000);document.getElementById('matchModal').addEventListener('click',e=>{if(e.target.id==='matchModal')hpMatchClose()});document.getElementById('horseModal').addEventListener('click',e=>{if(e.target.id==='horseModal')hpCloseHorse()});load();
 </script>
 </body></html>
