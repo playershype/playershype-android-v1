@@ -23,6 +23,77 @@ footer{text-align:center;color:#8091a2;font-size:11px;font-weight:800;padding:18
 /* HypePredict: authentic uniform colors, separate from saddlecloth */
 .ph-silk{width:60px;height:60px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;flex:none}.ph-silk svg{width:100%;height:100%;overflow:visible}.ph-silk-unknown{color:#64748b;font-size:11px;font-weight:800}
 .ph-horse{display:flex;align-items:center;gap:10px;margin-top:8px}.ph-horse-name{font-size:13px;font-weight:850}.ph-uniform-description{display:block;font-size:10px;color:#60758a;font-weight:650;margin-top:2px}
+
+/* HypePredict — lectura editorial completa, responsive y sin datos inventados */
+html{scroll-behavior:smooth}
+body{background:#eaf0f5}
+.grid{gap:16px}
+.hero{border-radius:20px;background:#081626;color:#f4f7fc;border-color:#263c52;box-shadow:0 12px 30px rgba(8,24,43,.12)}
+.hero .kicker{color:#caff00}.hero .meta{color:#bccbdd;line-height:1.6}
+.hero h2{font-size:clamp(26px,5vw,38px)}
+.daynotice{font-size:12px;color:#9fb6ca;margin-top:9px}
+.race-index{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:0 2px}
+.race-index a{display:grid;place-items:center;min-width:40px;min-height:40px;border:1px solid #aac3d5;border-radius:12px;background:white;color:#102c44;font-weight:900;text-decoration:none}
+.race-index a:hover,.race-index a:focus{background:#102c44;color:#caff00}
+.race-index b{font-size:12px;color:#47627a;margin-right:6px}
+.races{grid-template-columns:1fr;gap:18px}
+.race{padding:0;border-radius:20px;box-shadow:0 8px 26px rgba(8,24,43,.08);scroll-margin-top:15px}
+.race-banner{background:linear-gradient(115deg,#07182b,#143750);padding:18px 20px;color:#fff}
+.race-head{display:flex;align-items:center;gap:12px}
+.race-no{width:54px;height:54px;flex:none;display:grid;place-items:center;background:#caff00;color:#07182b;border-radius:14px;font-size:24px;font-weight:1000}
+.race-title{min-width:0}.race-title h3{margin:0;font-size:clamp(18px,3.6vw,23px);line-height:1.25}.race-title small{display:block;color:#bad1e1;font-size:12px;font-weight:800;margin-bottom:4px}
+.race-subtitle{color:#d1e2ec;font-size:13px;line-height:1.6;margin:12px 0 0}
+.race-core{padding:18px 20px;display:grid;gap:18px}
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:950;color:#506c82;margin:0 0 10px}
+.quick-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.quick-cell{background:#f0f5f8;border:1px solid #d6e2eb;border-radius:14px;padding:12px;min-width:0}
+.quick-cell.select{background:#e9f4cb;border-color:#bad579}
+.quick-cell .slot{font-size:10px;text-transform:uppercase;letter-spacing:.07em;font-weight:900;color:#47627a}
+.quick-cell .horse{font-size:14px;line-height:1.3;font-weight:1000;overflow-wrap:anywhere;margin-top:6px}
+.quick-cell .score{font-size:22px;font-weight:950;margin-top:5px;letter-spacing:-.02em}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.stat{display:inline-flex;align-items:center;gap:5px;background:#eef3f7;color:#233f54;padding:8px 10px;border-radius:100px;font-size:11px;font-weight:850;line-height:1.3}
+.stat.warn{background:#fff1d7;color:#7d4b06}.stat.good{background:#e5f8ee;color:#12633a}
+.decision{border-left:4px solid #b7e600;background:#f6f9ee;padding:13px 15px;color:#223a49;border-radius:0 12px 12px 0;font-size:13px;line-height:1.65}
+.decision b{font-size:15px}
+.read{background:#f0f6fa;border:1px solid #d9e7ee;border-radius:16px;padding:15px 17px}
+.read p,.pace-scenario,.risk-text,.strategy{margin:0;font-size:14px;line-height:1.75;color:#223e54}
+.block-title{margin:0 0 10px;color:#0b2940;font-size:17px;letter-spacing:-.02em}
+.pace-lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:11px}
+.pace-lane{border:1px solid #dce7ee;border-radius:12px;background:#f6f9fb;padding:10px;font-size:12px;line-height:1.6}
+.pace-lane b{display:block;color:#506b80;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.board-wrap{overflow-x:auto;border-radius:13px;border:1px solid #d9e4ed}
+.board-table{width:100%;border-collapse:collapse;text-align:left;font-size:13px}
+.board-table th{background:#102c44;color:#f4f7fc;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:11px}
+.board-table td{border-bottom:1px solid #e4ebef;padding:11px;vertical-align:top}
+.board-table tr:last-child td{border-bottom:0}
+.board-table tbody tr:first-child{background:#f1f8e5}
+.board-table .name{font-weight:900;color:#0d2d44}
+.board-table .role{display:block;font-size:10px;color:#667e90;margin-top:4px}
+.score-num{font-weight:1000;font-size:17px;color:#122f45}
+.pool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pool-item{background:#f4f7fa;border:1px solid #dce6ed;border-radius:10px;padding:11px}
+.pool-item small{display:block;text-transform:uppercase;font-size:10px;letter-spacing:.06em;color:#657e91;font-weight:900;margin-bottom:5px}
+.pool-item strong{font-size:14px;color:#173a51;overflow-wrap:anywhere}
+.risk{border:1px solid #eadab6;background:#fff9ed;border-radius:14px;padding:14px}
+.risk .block-title{color:#7a510d}.risk .risk-text{color:#6a4b1b}
+.wager{border:1px solid #c4e5ea;background:#eefbfe;border-radius:14px;padding:14px}
+.wager pre{color:#193c4c;font-family:inherit;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0;line-height:1.7}
+.more{border-top:1px solid #dce6ee;padding:0 20px}
+.more summary{cursor:pointer;list-style:none;padding:17px 0;font-weight:950;color:#112f48;font-size:14px}
+.more summary::-webkit-details-marker{display:none}
+.more summary:before{content:'+';display:inline-grid;place-items:center;margin-right:10px;width:24px;height:24px;color:#102c44;background:#caff00;border-radius:7px}
+.more[open] summary:before{content:'−'}
+.more .inside{padding:0 0 18px}
+.horse-detail{border:1px solid #dce6ed;background:#f8fbfd;border-radius:12px;margin:10px 0;padding:14px}
+.horse-detail h5{margin:0 0 10px;font-size:15px;color:#0c2e48}
+.source{font-family:inherit;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;font-size:13px;line-height:1.75;color:#2b485e;margin:0}
+.empty-race{padding:22px;color:#7d3e11;background:#fff5e9;border:1px solid #edd5b7;border-radius:12px}
+.missing-field{font-size:12px;color:#637f91}
+.footer-action{padding:0 20px 16px;font-size:11px;color:#698095}
+@media(max-width:760px){.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.pace-lanes{grid-template-columns:repeat(2,minmax(0,1fr))}.pool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.race-core{padding:15px;gap:16px}.race-banner{padding:15px}.race-no{width:45px;height:45px;font-size:20px}.race-title h3{font-size:18px}.quick-cell{padding:10px}.quick-cell .horse{font-size:13px}.quick-cell .score{font-size:20px}.read p,.pace-scenario,.risk-text,.strategy{font-size:13px}.board-table td,.board-table th{padding:9px 7px}.more{padding:0 15px}.race-index a{min-width:37px;min-height:37px}}
+
 </style>
 </head>
 <body>
@@ -51,17 +122,141 @@ function tracks(){
  }
  return [...byId.values()]
 }
-function day(id,date){const raw=DATA?.raceDays?.[id]||null;if(!raw)return null;if(Array.isArray(raw))return date?raw.find(d=>d?.date===date)||raw[raw.length-1]:raw[raw.length-1];if(Array.isArray(raw.days))return date?raw.days.find(d=>d?.date===date)||raw.days[raw.days.length-1]:raw.days[raw.days.length-1];return raw}
+function day(id,date){
+ const raw=DATA?.raceDays?.[id]||null;
+ if(!raw)return null;
+ const days=Array.isArray(raw)?raw:(Array.isArray(raw.days)?raw.days:[raw]);
+ return date?days.find(d=>d?.date===date)||null:days[days.length-1]||null;
+}
 function analyses(){return DATA?.hypepredict?.analyses||{}}
 function analysisFor(race){return analyses()[race.id]||null}
-function roles(a){const out={};for(const h of a?.horses||[]){const role=String(h.role||'').toUpperCase();if(!out[role])out[role]=h}return out}
-function pickRow(label,h){return h?'<div class="pick"><span class="tag">'+esc(label)+'</span><div class="ph-horse">'+phSilk(h.uniform)+'<div><strong class="ph-horse-name">#'+esc(h.programNumber)+' '+esc(h.name)+(h.hypeScore!=null?' · '+esc(h.hypeScore):'')+'</strong><span class="ph-uniform-description">'+esc(h.uniform||'Uniforme no disponible')+'</span></div></div></div>':''}
-function raceCard(r){const a=analysisFor(r), rr=roles(a);let rows=pickRow('Select',rr.SELECT)+pickRow('Rival',rr.RIVAL)+pickRow('Tapada',rr.TAPADA)+pickRow('Huevazo',rr.HUEVAZO);if(!rows&&a?.horses?.length)rows=a.horses.slice(0,6).map(h=>pickRow(h.role||'HypeBoard',h)).join('');if(!rows)rows='<div class="pick"><span class="tag">Estado</span><strong>Sin análisis publicado</strong></div>';return '<article class="race"><div class="racehead"><div class="rnum">'+esc(r.number)+'</div><div class="rtitle"><b>Carrera '+esc(r.number)+'</b><span>'+esc(a?.status||'programada')+' · '+(r.entries?.length||0)+' ejemplares</span></div></div><div class="picks">'+rows+'</div></article>'}
+function detailField(label,val) {
+ if(val===undefined||val===null||String(val).trim()==="")return "";
+ return `<span class="stat">${esc(label)}: <strong>${esc(val)}</strong></span>`;
+}
+
+function quickPick(label,h,variant="") {
+ if(!h||!h.name)return "";
+ return `<div class="quick-cell ${variant}"><div class="slot">${esc(label)}</div><div class="horse">#${esc(h.programNumber)} ${esc(h.name)}</div><div class="score">${h.hypeScore==null?"—":esc(h.hypeScore)} <span style="font-size:10px;font-weight:800;color:#536f7f">/ 10</span></div></div>`;
+}
+
+function lineNames(items) {
+ return (Array.isArray(items)?items:[]).map(e=>`#${esc(e.programNumber)} ${esc(e.name||"")}`).join(" · ")||"Sin datos";
+}
+
+function paceLane(label,items) {
+ return `<div class="pace-lane"><b>${esc(label)}</b>${lineNames(items)}</div>`;
+}
+
+function poolCell(label,value) {
+ if(value===undefined||value===null||String(value).trim()==="")return "";
+ return `<div class="pool-item"><small>${esc(label)}</small><strong>${esc(value)}</strong></div>`;
+}
+
+function sourceHypeBet(a){
+ if(typeof a?.hypeBet==="string"&&a.hypeBet.trim())return a.hypeBet.trim();
+ const txt=String(a?.sourceText||"");
+ const at=txt.lastIndexOf("🎯 HYPEBET");
+ if(at<0)return "";
+ return txt.slice(at+"🎯 HYPEBET".length).replace(/\n[─—-]{3,}[\s\S]*$/,"").trim();
+}
+
+function roleAndBoard(a) {
+ const horses=Array.isArray(a?.horses)?a.horses:[];
+ if(!horses.length)return `<p class="missing-field">No se recibió el HypeBoard de esta carrera.</p>`;
+ const rows=horses.map((h,i)=>`<tr><td>${i+1}</td><td><span class="name">#${esc(h.programNumber)} ${esc(h.name)}</span><span class="role">${esc(h.role||"")}</span></td><td class="score-num">${h.hypeScore==null?"—":esc(h.hypeScore)}</td><td>${esc(h.reliability||"No disponible")}</td></tr>`).join("");
+ return `<div class="board-wrap"><table class="board-table"><thead><tr><th>Pos.</th><th>Ejemplar</th><th>HypeScore</th><th>Confiabilidad</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function fullCheckList(a){
+ const horses=Array.isArray(a?.horses)?a.horses:[];
+ if(!horses.length)return `<p class="missing-field">Checklist no recibido.</p>`;
+ return horses.map(h=>`<section class="horse-detail"><h5>#${esc(h.programNumber)} ${esc(h.name)} · ${esc(h.role||"HypeBoard")}</h5><pre class="source">${esc(h.sourceText||"Detalle no disponible en la fuente publicada.")}</pre></section>`).join("");
+}
+
+function raceCard(r,trackId,date) {
+ const a=analysisFor(r);
+ if(!a||a.status!=="published"||a.trackId!==trackId||a.raceId!==r.id||!String(r.id).startsWith(trackId+"-"+date+"-")){
+  return `<article class="race" id="race-${esc(r.number)}"><div class="race-banner"><div class="race-head"><div class="race-no">${esc(r.number)}</div><div class="race-title"><h3>Carrera ${esc(r.number)}</h3></div></div></div><div class="race-core"><div class="empty-race">No hay análisis válido para este hipódromo y fecha. No se mostrará información de otra jornada.</div></div></article>`;
+ }
+ const q=a.quickHits||{},m=a.raceMeta||{},pace=a.paceProjection||{},risk=a.riskControl||{},pool=a.poolIntelligence||{};
+ const h=q.valuePlay;
+ const meta=[m.condition,m.claiming&&m.claiming!=="No aplica"?"Reclamo "+m.claiming:"",m.purse?"Premio "+m.purse:""].filter(Boolean).join(" · ");
+ const picks=[quickPick("SELECT",q.select,"select"),quickPick("RIVAL",q.rival),quickPick("TAPADA",q.sleeper),quickPick("HUEVAZO / VALUE",h)].filter(Boolean).join("");
+ const stats=[detailField("Gap",q.gap||risk.gap),detailField("Riesgo",q.risk||risk.risk),detailField("Confianza",q.selectConfidence),detailField("Confiabilidad",q.selectReliability||risk.selectReliability),detailField("Valor",q.value),detailField("Pick 6",String(q.poolStatus||"").replace(/\s*👉\s*$/,""))].filter(Boolean).join("");
+ const wager=sourceHypeBet(a);
+ const poolParts=[poolCell("Fijo",pool.fixed),poolCell("Base",pool.base),poolCell("Defensa",pool.defense),poolCell("Cobertura",pool.coverage),poolCell("Primer corte",pool.firstCut),poolCell("Outsider",pool.outsider)].join("");
+ const list=Array.isArray(a.horses)?a.horses:[];
+ return `<article class="race" id="race-${esc(r.number)}">
+ <header class="race-banner">
+   <div class="race-head"><div class="race-no">${esc(r.number)}</div><div class="race-title"><small>CARRERA ${esc(r.number)} · ${esc(m.distance||"Distancia no disponible")} · ${esc(m.surface||"")}</small><h3>${esc(m.title||"HypePredict — Carrera "+r.number)}</h3></div></div>
+   ${meta?`<p class="race-subtitle">${esc(meta)}</p>`:""}
+ </header>
+ <div class="race-core">
+  <section><h4 class="section-label">⚡ QUICK HITS</h4><div class="quick-grid">${picks||`<p class="missing-field">Selecciones no disponibles.</p>`}</div><div class="stats">${stats}</div></section>
+  <section class="decision"><b>Veredicto: ${esc(q.decision||risk.decision||"No disponible")}</b>${q.decisionReason?`<div>${esc(q.decisionReason)}</div>`:""}</section>
+  <section class="read"><h4 class="block-title">🧠 Lectura de la carrera</h4><p>${esc(a.raceRead||"No hay lectura general disponible.")}</p></section>
+  <section><h4 class="block-title">⚡ Pace Projection</h4><div class="pace-lanes">${paceLane("Speed",pace.speed)}${paceLane("Presser",pace.presser)}${paceLane("Stalker",pace.stalker)}${paceLane("Closer",pace.closer)}</div>${pace.scenario?`<p class="pace-scenario"><b>Escenario:</b> ${esc(pace.scenario)}</p>`:""}</section>
+  <section><h4 class="block-title">🏆 HypeBoard · Campo completo</h4>${roleAndBoard(a)}</section>
+  <section class="risk"><h4 class="block-title">⚖️ Control de Riesgo</h4><p class="risk-text"><b>${esc(risk.decision||q.decision||"Sin decisión")}</b>${risk.factors?" · "+esc(risk.factors):""}</p></section>
+  <section><h4 class="block-title">🎯 Pool Intelligence</h4>${poolParts?`<div class="pool-grid">${poolParts}</div>`:""}${pool.strategy?`<p class="strategy" style="margin-top:12px">${esc(pool.strategy)}</p>`:""}${pool.budgetCut?`<p class="strategy" style="margin-top:8px"><b>Corte de presupuesto:</b> ${esc(pool.budgetCut)}</p>`:""}</section>
+  ${wager?`<section class="wager"><h4 class="block-title">🎯 HypeBet</h4><pre>${esc(wager)}</pre></section>`:""}
+ </div>
+ <details class="more"><summary>Checklist completo · ${list.length} ejemplares</summary><div class="inside">${fullCheckList(a)}</div></details>
+ <details class="more"><summary>Leer el análisis original íntegro</summary><div class="inside"><pre class="source">${esc(a.sourceText||"El texto original no está incluido en esta publicación.")}</pre></div></details>
+ <div class="footer-action">Análisis publicado · HypeScore no equivale a probabilidad de victoria.</div>
+ </article>`;
+}
 function datesFor(t){const raw=DATA?.raceDays?.[t]||null,days=Array.isArray(raw)?raw:(Array.isArray(raw?.days)?raw.days:(raw?[raw]:[]));return [...new Set(days.map(d=>d?.date).filter(Boolean))].sort().reverse()}
 function latestPublishedTrack(ts){let best=null;for(const t of ts){const d=datesFor(t.id)[0]||'';if(d&&(!best||d>best.date))best={id:t.id,date:d}}return best?.id||ts[0]?.id||''}
-function syncDates(preferredDate=''){const t=$('#track').value,dates=datesFor(t);SELECTED_DATE=(preferredDate&&dates.includes(preferredDate)?preferredDate:dates[0])||'';$('#date').innerHTML=dates.length?dates.map(x=>'<option value="'+esc(x)+'"'+(x===SELECTED_DATE?' selected':'')+'>'+esc(x)+'</option>').join(''):'<option>Sin jornada publicada</option>';render()}
-function render(){const id=$('#track').value,t=tracks().find(x=>x.id===id),selected=$('#date').value||SELECTED_DATE,d=day(id,selected);if(!t||!d||!d.date){$('#app').innerHTML='<div class="empty"><b>No hay jornada publicada</b><span>'+esc(t?.name||id)+' todavía no tiene una fecha/jornada disponible.</span></div>';return}const races=d.races||[],published=races.filter(r=>analysisFor(r)?.status==='published').length;$('#app').innerHTML='<section class="hero"><div class="kicker">Jornada publicada</div><h2>'+esc(t.name)+'</h2><div class="meta">'+esc(d.date)+' · '+races.length+' carreras · '+published+' análisis HypePredict publicados</div></section><section class="races">'+races.map(raceCard).join('')+'</section>';$('#status').textContent='Config '+esc(DATA.revision||'')+' · '+t.name+' · '+published+'/'+races.length+' análisis'}
-async function load(){try{$('#status').textContent='Actualizando data pública…';const url=new URL(CONFIG_URL,location.href);url.searchParams.set('v',Date.now());const res=await fetch(url.href,{cache:'no-store',headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}});if(!res.ok)throw new Error('HTTP '+res.status);DATA=await res.json();const ts=tracks();$('#track').innerHTML=ts.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('');const requested=ts.find(t=>t.id===REQUESTED_TRACK);$('#track').value=requested?.id||latestPublishedTrack(ts);syncDates(requested?REQUESTED_DATE:'')}catch(e){$('#status').textContent='No se pudo cargar la data publicada';$('#app').innerHTML='<div class="empty"><b>HypePredict no pudo conectar</b><span>'+esc(e.message)+'</span></div>'}}
+function day(id,date){
+ const raw=DATA?.raceDays?.[id]||null;
+ if(!raw)return null;
+ const days=Array.isArray(raw)?raw:(Array.isArray(raw.days)?raw.days:[raw]);
+ return date?days.find(d=>d?.date===date)||null:days[days.length-1]||null;
+}
+
+function syncDates(preferredDate=""){
+ const t=$("#track").value, dates=datesFor(t);
+ SELECTED_DATE=(preferredDate&&dates.includes(preferredDate)?preferredDate:dates[0])||"";
+ $("#date").innerHTML=dates.length?dates.map(x=>`<option value="${esc(x)}"${x===SELECTED_DATE?" selected":""}>${esc(x)}</option>`).join(""):"<option value=''>Sin jornada publicada</option>";
+ render();
+}
+
+function render(){
+ const id=$("#track").value, t=tracks().find(x=>x.id===id), selected=$("#date").value||SELECTED_DATE, d=day(id,selected);
+ if(!t||!d||!d.date){
+  $("#app").innerHTML=`<div class="empty"><b>No hay jornada publicada</b><span>${esc(t?.name||id)} no tiene jornada disponible para la fecha seleccionada.</span></div>`;
+  $("#status").textContent="Sin jornada publicada";return;
+ }
+ const races=Array.isArray(d.races)?d.races:[];
+ const published=races.filter(r=>{const a=analysisFor(r);return a?.status==="published"&&a.trackId===id&&a.raceId===r.id}).length;
+ const anchors=races.map(r=>`<a href="#race-${esc(r.number)}" aria-label="Ir a carrera ${esc(r.number)}">${esc(r.number)}</a>`).join("");
+ $("#app").innerHTML=`<section class="hero"><div class="kicker">HypePredict · Race Intelligence</div><h2>${esc(t.name)}</h2><div class="meta">${esc(d.date)} · ${races.length} carreras · ${published} análisis disponibles</div><div class="daynotice">Lectura táctica, HypeBoard, riesgos y estrategia por carrera. El checklist y el reporte original se pueden expandir.</div></section><nav class="race-index" aria-label="Navegación de carreras"><b>IR A CARRERA</b>${anchors}</nav><section class="races">${races.map(r=>raceCard(r,id,d.date)).join("")}</section>`;
+ $("#status").textContent=`Config ${DATA.revision||""} · ${t.name} · ${published}/${races.length} análisis`;
+ try{const u=new URL(location.href);u.searchParams.set("track",id);u.searchParams.set("date",d.date);history.replaceState(null,"",u.pathname+u.search+u.hash)}catch(e){}
+}
+
+async function load(){
+ const oldTrack=$("#track").value, oldDate=$("#date").value||SELECTED_DATE;
+ try{
+  $("#status").textContent="Actualizando información pública…";
+  const url=new URL(CONFIG_URL,location.href);url.searchParams.set("v",Date.now());
+  const res=await fetch(url.href,{cache:"no-store",headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const next=await res.json();
+  if(!next||!next.raceDays||!next.hypepredict)throw new Error("Configuración incompleta");
+  DATA=next;
+  const ts=tracks();
+  $("#track").innerHTML=ts.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");
+  const keep=ts.find(t=>t.id===oldTrack);const requested=ts.find(t=>t.id===REQUESTED_TRACK);
+  $("#track").value=keep?.id||requested?.id||latestPublishedTrack(ts);
+  syncDates(keep?.id?oldDate:(requested?.id?REQUESTED_DATE:""));
+ }catch(e){
+  $("#status").textContent="No se pudo cargar la información pública";
+  $("#app").innerHTML=`<div class="empty"><b>No se pudo conectar con HypePredict</b><span>${esc(e.message)}</span></div>`;
+ }
+}
 $('#track').addEventListener('change',()=>syncDates());$('#date').addEventListener('change',()=>{SELECTED_DATE=$('#date').value;render()});$('#refresh').addEventListener('click',load);load();
 </script>
 </body></html>
