@@ -27,7 +27,7 @@ def color(value, dark_shell=False):
         return IVORY if dark_shell or raw != 'ffffff' else '#FFF9ED'
     # Lime was the old brand accent. Keep semantic red/amber/green and silks intact.
     if 63 <= hue <= 85 and sat > .5:
-        return CORAL
+        return ABYSS if light < .35 else CORAL
     if raw in ('25c5df', '22d3ee', '21bfd7', '29aec6'):
         return TURQUOISE
     if 175 <= hue <= 245 and sat > .06:
