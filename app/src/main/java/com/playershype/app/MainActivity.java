@@ -34,10 +34,10 @@ public final class MainActivity extends ComponentActivity {
       @Override public void handleOnBackPressed(){if(web!=null&&web.canGoBack())web.goBack();}
     };
     getOnBackPressedDispatcher().addCallback(this,backCallback);
-    getWindow().setStatusBarColor(Color.rgb(7,17,29));getWindow().setNavigationBarColor(Color.rgb(7,17,29));
+    getWindow().setStatusBarColor(Color.rgb(6,46,68));getWindow().setNavigationBarColor(Color.rgb(6,46,68));
     WebView.setWebContentsDebuggingEnabled(false);
     loader=new WebViewAssetLoader.Builder().setDomain(UrlPolicy.INTERNAL_HOST).addPathHandler("/assets/",new WebViewAssetLoader.AssetsPathHandler(this)).build();
-    web=new WebView(this);web.setBackgroundColor(Color.rgb(7,17,29));harden(web);setContentView(web);
+    web=new WebView(this);web.setBackgroundColor(Color.rgb(6,46,68));harden(web);setContentView(web);
     if(state==null)web.loadUrl(START);else web.restoreState(state);
   }
   private void harden(WebView v){
