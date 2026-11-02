@@ -1,0 +1,44 @@
+name: Verify built dual-route APKs
+on:
+  push:
+    branches: [sync-apk-verification]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SRC_DIR: verification-runtime
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download unchanged signed APKs
+        uses: actions/download-artifact@v4
+        with:
+          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
+          path: verification-runtime/artifacts
+          run-id: 41366873332
+          github-token: ${{ github.token }}
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify installation, real download and offline restart
+        uses: ReactiveCircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: cd "$SRC_DIR" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_launch.py" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_sync.py"
+      - name: Save device evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-V1.4.0-sync-device-evidence
+          path: verification-runtime/emulator-evidence/

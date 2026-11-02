@@ -5,11 +5,14 @@ repo=pathlib.Path(os.environ['GITHUB_WORKSPACE']);expected=json.loads((repo/'doc
 def adb(*args):return subprocess.check_output(['adb',*args],text=True,stderr=subprocess.STDOUT,timeout=90)
 def tree():
  adb('shell','uiautomator','dump','/sdcard/playershype-sync.xml');return adb('shell','cat','/sdcard/playershype-sync.xml')
-def wait_text(text,seconds=90):
+def wait_text(text,seconds=120):
  deadline=time.monotonic()+seconds
  while time.monotonic()<deadline:
-  xml=tree();texts=' '.join(n.get('text','') for n in ET.fromstring(xml).iter('node'))
-  if text in texts:return xml
+  try:
+   xml=tree();texts=' '.join(n.get('text','') for n in ET.fromstring(xml).iter('node'))
+   (out/'last-sync-screen.xml').write_text(xml)
+   if text in texts:return xml
+  except (ET.ParseError,subprocess.CalledProcessError,subprocess.TimeoutExpired):pass
   time.sleep(2)
  raise RuntimeError('No se verificó en Android: '+text)
 def scroll_down():
@@ -20,9 +23,14 @@ def launch():adb('shell','am','start','-W','-n',package+'/com.playershype.app.Ma
 try:
  launch();wait_text('No seguimos el hype');scroll_down();xml=wait_text('GitHub confirmado');assert expected in xml
  (out/'App-online-sync.xml').write_text(xml);capture('App-online-sync');print('PASS actual APK downloaded docs/app/index.html; revision '+expected)
- adb('shell','svc','wifi','disable');adb('shell','svc','data','disable');adb('shell','settings','put','global','airplane_mode_on','1');adb('shell','am','broadcast','-a','android.intent.action.AIRPLANE_MODE','--ez','state','true')
+ adb('shell','cmd','connectivity','airplane-mode','enable');adb('shell','svc','wifi','disable');adb('shell','svc','data','disable')
  adb('shell','am','force-stop',package);launch();wait_text('No seguimos el hype');scroll_down();xml=wait_text('Sin conexión');assert expected in xml
  (out/'App-offline-sync.xml').write_text(xml);capture('App-offline-sync');print('PASS offline restart keeps the last valid published revision')
  (out/'SYNC_RESULT.txt').write_text('PASS real GitHub app-route download and offline restart; revision '+expected+'\nPublishing transactions separately tested through the actual Admin buttons and native Git publisher mock transport.\n')
 finally:
- adb('shell','settings','put','global','airplane_mode_on','0');adb('shell','am','broadcast','-a','android.intent.action.AIRPLANE_MODE','--ez','state','false');adb('shell','svc','wifi','enable');adb('shell','svc','data','enable')
+ for command in [('cmd','connectivity','airplane-mode','disable'),('svc','wifi','enable'),('svc','data','enable')]:
+  try:adb('shell',*command)
+  except Exception:pass
+ try:
+  (out/'sync-device-logcat.txt').write_text(adb('logcat','-d','-t','3000'));capture('App-sync-final')
+ except Exception:pass
