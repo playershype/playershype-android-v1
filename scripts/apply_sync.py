@@ -50,6 +50,7 @@ def main():
  $('appStatus').addEventListener('click',()=>PlayersHypeSync.refresh());document.addEventListener('visibilitychange',()=>{if(!document.hidden)PlayersHypeSync.refresh()});if(window.HypeAndroid)PlayersHypeSync.refresh();
 }
 ''' +s[end:];s=s.replace("$('appStatus').addEventListener('click',()=>toast('PlayersHype Ecosystem V1.3.1 RC · Home modular'));",'').replace("?'LIVE':'V1.3'","?'LIVE':'V1.4'");home.write_text(s)
+ patch(r/'app-user/src/main/assets/index.html','<script src="/assets/home.js">','<script src="/assets/native/bridge.js"></script><script src="/assets/home.js">')
  # Admin's public config can exceed 6 MB because it retains archived race days.
  contract=r/'app-admin/src/main/assets/config-contract.js';patch(contract,'6*1024*1024','24*1024*1024')
  control=r/'app-admin/src/main/assets/control.js';s=control.read_text()

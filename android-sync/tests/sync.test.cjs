@@ -14,6 +14,14 @@ w.HypeLive={workspace:()=>({cards:[],tracks:[]}),status:async()=>JSON.parse(awai
 for(const f of [path.join(src,'app-admin/src/main/assets/config-contract.js'),path.join(repo,'android-sync/assets/publication.js'),path.join(repo,'android-sync/assets/sync.js')])w.eval(fs.readFileSync(f,'utf8'));
 async function until(fn){for(let i=0;i<100;i++){if(fn())return;await new Promise(r=>setTimeout(r,20))}throw Error('Timed out waiting for UI')}
 (async()=>{
+ const user=new JSDOM(fs.readFileSync(path.join(src,'app-user/src/main/assets/index.html'),'utf8'),{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'outside-only'}),u=user.window;
+ let nativeCalls=0,origin='bundled',nativeOffline=false;u.scrollTo=()=>{};u.URL.createObjectURL=()=> 'blob:fixture';u.URL.revokeObjectURL=()=>{};
+ u.fetch=async url=>String(url).includes('/core/app-config')?new Response(JSON.stringify({...original,__sync:{origin}})):new Response(fs.readFileSync(path.join(src,'app-user/src/main/assets/default-app-config.json')));
+ u.HypeNative={postMessage(raw){const m=JSON.parse(raw);assert.equal(m.action,'sync');nativeCalls++;if(!nativeOffline)origin='github';queueMicrotask(()=>u.HypeNative.onmessage({data:JSON.stringify({id:m.id,ok:!nativeOffline,value:'{}',error:'offline'})}))}};
+ for(const tag of u.document.querySelectorAll('script[src]')){const name=tag.getAttribute('src').replace('/assets/','');const root=name.startsWith('native/')?'shared':'app-user';u.eval(fs.readFileSync(path.join(src,root,'src/main/assets',name),'utf8'))}
+ await until(()=>u.document.getElementById('footerMode').textContent.includes('GitHub confirmado'));assert(nativeCalls>0);
+ nativeOffline=true;await u.PlayersHypeSync.refresh();assert(u.document.getElementById('footerMode').textContent.includes('Sin conexión'));u.close();
+ console.log('PASS actual home HTML loads native bridge, requests sync and reports offline recovery');
  assert.equal(w.PHPublication.validate(original).revision,original.revision);console.log('PASS real 8.9 MB config validates without dropping history');
  const privateConfig=structuredClone(original);privateConfig.promptMaestro='private';assert.throws(()=>w.PHPublication.validate(privateConfig));
  const initial=await w.PHSync.initial();assert.equal(initial.revision,original.revision);assert(w.localStorage.getItem('playershype.publisher.base.v2').length<200);assert.deepEqual(records.get('base').raceDayHistory.camarero,original.raceDayHistory.camarero);console.log('PASS large data uses IndexedDB; localStorage contains metadata only');
