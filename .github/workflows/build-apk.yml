@@ -45,6 +45,9 @@ jobs:
       - name: Apply Laguna and Glaciar palette to app, Dashboard and exports
         run: python3 scripts/apply_theme.py "$SRC_DIR"
 
+      - name: Connect dual-route publishing and cached app reader
+        run: python3 scripts/apply_sync.py "$SRC_DIR"
+
       - name: Security and V1.3.1 audits
         shell: bash
         run: |
@@ -84,6 +87,9 @@ jobs:
 
           node scripts/ui-tests/test.cjs \
             | tee artifacts/ui-tests.txt
+
+      - name: Verify Admin publishing, both destinations and failure recovery
+        run: node android-sync/tests/sync.test.cjs "$SRC_DIR"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -257,7 +263,7 @@ jobs:
             -noaudio
             -no-boot-anim
             -camera-back none
-          script: cd "$SRC_DIR" && python3 scripts/emulator_smoke.py
+          script: cd "$SRC_DIR" && python3 scripts/emulator_smoke.py && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_sync.py"
 
       - name: Upload emulator evidence
         if: always()
