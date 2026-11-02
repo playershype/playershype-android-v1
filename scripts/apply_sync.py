@@ -31,7 +31,13 @@ def main():
  (assets/'sync/dashboard-export.html').write_text(exported)
  # Native webviews expose only cached public config and admin-gated publication.
  java=shared/'java/com/playershype/shared/SecureActivity.java'
+ patch(java,'private PublicFeedStore feed;', 'private volatile FutureTask<PublicFeedStore> feed;')
+ patch(java,'if(!isAdmin())try{feed=new PublicFeedStore(this);}catch(Exception e){toast("No se pudo validar la copia de HypePredict");}', 'if(!isAdmin()){feed=new FutureTask<>(()->new PublicFeedStore(this));io.execute(feed);}')
+ patch(java,'feed.refresh()', 'feed.get().refresh()')
+ patch(java,'feed.document()', 'feed.get().document()')
+ patch(java,'feed.snapshot()', 'feed.get().snapshot()')
  patch(java,'if("/core/feed".equals(path)&&feed!=null)', 'if("/core/app-config".equals(path)&&feed!=null)return response("application/json",200,PublishedConfig.safeJson(feed.configuration().toString()));\n          if("/core/feed".equals(path)&&feed!=null)')
+ patch(java,'feed.configuration()', 'feed.get().configuration()')
  patch(java,'  private void navigate(String route,', '  @Override protected void onResume(){super.onResume();if(web!=null)web.evaluateJavascript("window.PlayersHypeSync&&window.PlayersHypeSync.refresh()",null);}\n  private void navigate(String route,')
  # Home consumes the app-route snapshot, never a mismatched copy from the dashboard route.
  home=r/'app-user/src/main/assets/home.js';s=home.read_text();start=s.index('async function boot(){');end=s.index('\nwindow.PlayersHypeRouter',start)
