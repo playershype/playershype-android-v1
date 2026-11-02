@@ -25,17 +25,27 @@ public final class PublicFeedStore {
   private String configOrigin="bundled",checkedAt="";
   private final AtomicFile configCache;
   private final String dashboardTemplate;
+  private final Context appContext;
+  private boolean configLoaded;
 
   public PublicFeedStore(Context context)throws Exception{
+    appContext=context.getApplicationContext();
     projection=new PublicProjection(new JSONObject(read(context.getAssets().open("public-projection.json"),LIMIT)));
     template=read(context.getAssets().open("hypepredict/public-template.html"),LIMIT);
     dashboardTemplate=read(context.getAssets().open("sync/dashboard.html"),LIMIT);
     configCache=new AtomicFile(new File(context.getFilesDir(),"published-config-v2.json"));
-    try{publishedConfig=PublishedConfig.validate(new JSONObject(read(configCache.openRead(),PublishedConfig.LIMIT)));configOrigin="cached";}
-    catch(Exception ignored){try{publishedConfig=PublishedConfig.validate(new JSONObject(read(context.getAssets().open("sync/published-seed.json"),PublishedConfig.LIMIT)));}catch(Exception absent){publishedConfig=null;}}
     cache=new AtomicFile(new File(context.getFilesDir(),"public-feed-v1.json"));
     try{current=normalize(new JSONObject(read(cache.openRead(),LIMIT)),"cached");}
     catch(Exception ignored){current=normalize(new JSONObject(read(context.getAssets().open("hypepredict/public-seed.json"),LIMIT)),"bundled");}
+  }
+
+  // Called only by the background WebView resource handler or sync executor.
+  // Parsing a full archive during Activity.onCreate delays the first frame.
+  private void ensureConfig()throws Exception{
+    if(configLoaded)return;
+    try{publishedConfig=PublishedConfig.validate(new JSONObject(read(configCache.openRead(),PublishedConfig.LIMIT)));configOrigin="cached";}
+    catch(Exception ignored){try{publishedConfig=PublishedConfig.validate(new JSONObject(read(appContext.getAssets().open("sync/published-seed.json"),PublishedConfig.LIMIT)));}catch(Exception absent){publishedConfig=null;}}
+    configLoaded=true;
   }
 
   private JSONObject normalize(JSONObject input,String origin)throws Exception{
@@ -45,19 +55,22 @@ public final class PublicFeedStore {
     return out.put("revision",hash).put("contentHash",hash).put("latestDate",latest).put("origin",origin).put("checkedAt",input.optString("checkedAt","")).put("sourceUrl",input.optString("sourceUrl",""));
   }
 
-  public synchronized JSONObject configuration()throws Exception{return publishedConfig==null?new JSONObject():new JSONObject(publishedConfig.toString()).put("__sync",new JSONObject().put("origin",configOrigin).put("checkedAt",checkedAt));}
+  public synchronized JSONObject configuration()throws Exception{ensureConfig();return publishedConfig==null?new JSONObject():new JSONObject(publishedConfig.toString()).put("__sync",new JSONObject().put("origin",configOrigin).put("checkedAt",checkedAt));}
   public synchronized JSONObject snapshot()throws Exception{
+    ensureConfig();
     if(publishedConfig!=null)return new JSONObject().put("schemaVersion",2).put("revision",publishedConfig.getString("revision")).put("origin","published-app").put("cards",new JSONArray()).put("tracks",publishedConfig.getJSONArray("tracks"));
     return new JSONObject(current.toString());
   }
 
   public synchronized String document()throws Exception{
+    ensureConfig();
     if(publishedConfig!=null)return dashboardTemplate;
     JSONObject meta=snapshot();meta.remove("cards");meta.remove("tracks");
     return template.replace("__HP_PUBLIC_CARDS__",safe(current.getJSONArray("cards"))).replace("__HP_PUBLIC_TRACKS__",safe(current.getJSONArray("tracks"))).replace("__HP_PUBLIC_META__",safe(meta));
   }
 
   public synchronized JSONObject refresh()throws Exception{
+    ensureConfig();
     // Cache-buster avoids a stale CDN edge immediately after an Admin publication.
     String source=SOURCE_URL+"?v="+System.currentTimeMillis();
     String html=get(source,LIMIT);

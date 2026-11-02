@@ -9,15 +9,17 @@ import java.util.zip.GZIPInputStream;
 /** Bounded decoder for a public V2 snapshot embedded in the separate app HTML. */
 public final class PublishedConfig {
  public static final int LIMIT=24*1024*1024;
+ private static final Pattern PRIVATE_FIELD=Pattern.compile("(?i).*(token|password|secret|authorization|promptMaestro|hypeScoreWeights|postRaceCalibration|rawSources|operationalNotes|baseScore|tacticalAdjustment).*");
+ private static final Pattern EXECUTABLE=Pattern.compile("<\\s*/?\\s*(script|iframe|object)\\b|javascript:",Pattern.CASE_INSENSITIVE);
  public static JSONObject validate(JSONObject c)throws Exception{
   if(c.optInt("schemaVersion")!=2||c.optJSONObject("home")==null||c.optJSONArray("tracks")==null||c.optJSONObject("raceDays")==null||c.optJSONObject("hypepredict")==null||c.optString("revision").isEmpty())throw new IOException("Configuración V2 incompleta");
   inspect(c,0);return c;
  }
  private static void inspect(Object v,int depth)throws Exception{
   if(depth>28)throw new IOException("Configuración demasiado profunda");
-  if(v instanceof JSONObject){JSONObject o=(JSONObject)v;for(Iterator<String> i=o.keys();i.hasNext();){String k=i.next();if(k.matches("(?i).*(token|password|secret|authorization|promptMaestro|hypeScoreWeights|postRaceCalibration|rawSources|operationalNotes|baseScore|tacticalAdjustment).*"))throw new IOException("Campo privado bloqueado");inspect(o.get(k),depth+1);}}
+  if(v instanceof JSONObject){JSONObject o=(JSONObject)v;for(Iterator<String> i=o.keys();i.hasNext();){String k=i.next();if(PRIVATE_FIELD.matcher(k).matches())throw new IOException("Campo privado bloqueado");inspect(o.get(k),depth+1);}}
   else if(v instanceof JSONArray){JSONArray a=(JSONArray)v;for(int i=0;i<a.length();i++)inspect(a.get(i),depth+1);}
-  else if(v instanceof String&&Pattern.compile("<\\s*/?\\s*(script|iframe|object)\\b|javascript:",Pattern.CASE_INSENSITIVE).matcher((String)v).find())throw new IOException("Contenido ejecutable bloqueado");
+  else if(v instanceof String&&EXECUTABLE.matcher((String)v).find())throw new IOException("Contenido ejecutable bloqueado");
  }
  public static JSONObject decode(String html)throws Exception{
   Matcher m=Pattern.compile("<script\\b[^>]*\\bid=['\"]phPublishedConfig['\"][^>]*>(.*?)</script\\s*>",Pattern.CASE_INSENSITIVE|Pattern.DOTALL).matcher(html);
