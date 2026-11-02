@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Expand PlayersHype V1.3.1 RC source package
         shell: bash
@@ -47,6 +49,14 @@ jobs:
 
       - name: Connect dual-route publishing and cached app reader
         run: python3 scripts/apply_sync.py "$SRC_DIR"
+
+      - name: Apply verified security baseline and pinned PDF runtime
+        run: python3 scripts/apply_security.py "$SRC_DIR"
+
+      - name: Redacted source and history secret scan
+        run: |
+          mkdir -p "$SRC_DIR/artifacts"
+          python3 scripts/scan_secrets.py --history --output "$SRC_DIR/artifacts/secrets-history.json"
 
       - name: Security and V1.3.1 audits
         shell: bash
@@ -90,6 +100,11 @@ jobs:
 
       - name: Verify Admin publishing, both destinations and failure recovery
         run: node android-sync/tests/sync.test.cjs "$SRC_DIR"
+
+      - name: PDF import and hostile-input regression checks
+        run: |
+          npm ci --prefix security-tests --ignore-scripts --no-audit --no-fund
+          node security-tests/security.test.mjs "$SRC_DIR"
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -186,6 +201,11 @@ jobs:
             fi
           done
 
+          python3 "$GITHUB_WORKSPACE/scripts/scan_secrets.py" \
+            --apk artifacts/PlayersHype-App-V1.3.1-RC-PREVIEW.apk \
+            --apk artifacts/PlayersHype-Admin-V1.3.1-RC-PREVIEW.apk \
+            --output artifacts/secrets-apks.json
+
           python3 scripts/package_artifacts.py
 
       - name: Upload V1.3.1 RC Android artifacts
@@ -225,6 +245,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Expand PlayersHype V1.3.1 RC source package
         shell: bash
