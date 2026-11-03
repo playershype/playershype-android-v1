@@ -36,7 +36,7 @@ def main():
  patch(java,'feed.refresh()', 'feed.get().refresh()')
  patch(java,'feed.document()', 'feed.get().document()')
  patch(java,'feed.snapshot()', 'feed.get().snapshot()')
- patch(java,'if("/core/feed".equals(path)&&feed!=null)', 'if("/core/home-config".equals(path)&&feed!=null)return response("application/json",200,feed.homeConfiguration());\n          if("/core/app-config".equals(path)&&feed!=null)return response("application/json",200,feed.configuration());\n          if("/core/feed".equals(path)&&feed!=null)')
+ patch(java,'if("/core/feed".equals(path)&&feed!=null)', 'if("/core/home-config".equals(path)&&feed!=null)return response("application/json",200,feed.get().homeConfiguration());\n          if("/core/app-config".equals(path)&&feed!=null)return response("application/json",200,feed.configuration());\n          if("/core/feed".equals(path)&&feed!=null)')
  patch(java,'feed.configuration()', 'feed.get().configuration()')
  patch(java,'  private void navigate(String route,', '  @Override protected void onResume(){super.onResume();if(web!=null)web.evaluateJavascript("window.PlayersHypeSync&&window.PlayersHypeSync.refresh()",null);}\n  private void navigate(String route,')
  # Home consumes the app-route snapshot, never a mismatched copy from the dashboard route.
