@@ -7,6 +7,8 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.regex.*;
 import org.json.*;
@@ -27,6 +29,11 @@ public final class PublicFeedStore {
   private final String dashboardTemplate;
   private final Context appContext;
   private boolean configLoaded;
+  private final Object refreshLock = new Object();
+  private String publicationEtag;
+  private static final ZoneId PUERTO_RICO = ZoneId.of("America/Puerto_Rico");
+  private static final String[] HOME_FIELDS = {"schemaVersion", "revision", "home", "live", "channels", "tv", "latest"};
+  private static final String[] PREDICT_FIELDS = {"title", "description", "image", "version"};
 
   public PublicFeedStore(Context context)throws Exception{
     appContext=context.getApplicationContext();
@@ -41,7 +48,7 @@ public final class PublicFeedStore {
 
   // Called only by the background WebView resource handler or sync executor.
   // Parsing a full archive during Activity.onCreate delays the first frame.
-  private void ensureConfig()throws Exception{
+  private synchronized void ensureConfig()throws Exception{
     if(configLoaded)return;
     try{publishedConfig=PublishedConfig.validate(new JSONObject(read(configCache.openRead(),PublishedConfig.LIMIT)));configOrigin="cached";}
     catch(Exception ignored){try{publishedConfig=PublishedConfig.validate(new JSONObject(read(appContext.getAssets().open("sync/published-seed.json"),PublishedConfig.LIMIT)));}catch(Exception absent){publishedConfig=null;}}
@@ -55,7 +62,67 @@ public final class PublicFeedStore {
     return out.put("revision",hash).put("contentHash",hash).put("latestDate",latest).put("origin",origin).put("checkedAt",input.optString("checkedAt","")).put("sourceUrl",input.optString("sourceUrl",""));
   }
 
-  public synchronized JSONObject configuration()throws Exception{ensureConfig();return publishedConfig==null?new JSONObject():new JSONObject(publishedConfig.toString()).put("__sync",new JSONObject().put("origin",configOrigin).put("checkedAt",checkedAt));}
+  private JSONObject syncMetadata() throws JSONException {
+    return new JSONObject().put("origin", configOrigin).put("checkedAt", checkedAt);
+  }
+
+  public synchronized String configuration() throws Exception {
+    ensureConfig();
+    if (publishedConfig == null) return "{}";
+    JSONObject response = new JSONObject();
+    for (Iterator<String> names = publishedConfig.keys(); names.hasNext();) {
+      String name = names.next();
+      response.put(name, publishedConfig.get(name));
+    }
+    return PublishedConfig.safeJson(response.put("__sync", syncMetadata()).toString());
+  }
+
+  public synchronized String homeConfiguration() throws Exception {
+    ensureConfig();
+    if (publishedConfig == null) return "{}";
+    JSONObject home = homeProjection(publishedConfig, LocalDate.now(PUERTO_RICO).toString());
+    return PublishedConfig.safeJson(home.put("__sync", syncMetadata()).toString());
+  }
+
+  static JSONObject homeProjection(JSONObject config, String date) throws JSONException {
+    JSONObject home = new JSONObject(config, HOME_FIELDS);
+    JSONObject predict = config.optJSONObject("hypepredict");
+    home.put("hypepredict", predict == null ? new JSONObject() : new JSONObject(predict, PREDICT_FIELDS));
+    JSONObject analyses = predict == null ? null : predict.optJSONObject("analyses");
+    JSONObject daysByTrack = config.optJSONObject("raceDays");
+    JSONArray tracks = config.optJSONArray("tracks");
+    JSONArray visible = new JSONArray();
+    if (tracks != null && daysByTrack != null && analyses != null) {
+      for (int i = 0; i < tracks.length(); i++) {
+        JSONObject track = tracks.optJSONObject(i);
+        if (track != null && hasPublishedRace(daysByTrack.opt(track.optString("id")), analyses, date)) {
+          visible.put(track);
+        }
+      }
+    }
+    return home.put("tracks", visible);
+  }
+
+  private static boolean hasPublishedRace(Object history, JSONObject analyses, String date) {
+    JSONArray days = history instanceof JSONArray ? (JSONArray) history
+        : history instanceof JSONObject ? ((JSONObject) history).optJSONArray("days") : null;
+    if (days == null && history instanceof JSONObject) days = new JSONArray().put(history);
+    if (days == null) return false;
+    for (int i = 0; i < days.length(); i++) {
+      JSONObject day = days.optJSONObject(i);
+      if (day == null || !date.equals(day.optString("date"))) continue;
+      JSONArray races = day.optJSONArray("races");
+      if (races == null) return false;
+      for (int j = 0; j < races.length(); j++) {
+        JSONObject race = races.optJSONObject(j);
+        JSONObject analysis = race == null ? null : analyses.optJSONObject(race.optString("id"));
+        if (analysis != null && "published".equals(analysis.optString("status"))) return true;
+      }
+      return false;
+    }
+    return false;
+  }
+
   public synchronized JSONObject snapshot()throws Exception{
     ensureConfig();
     if(publishedConfig!=null)return new JSONObject().put("schemaVersion",2).put("revision",publishedConfig.getString("revision")).put("origin","published-app").put("cards",new JSONArray()).put("tracks",publishedConfig.getJSONArray("tracks"));
@@ -69,27 +136,62 @@ public final class PublicFeedStore {
     return template.replace("__HP_PUBLIC_CARDS__",safe(current.getJSONArray("cards"))).replace("__HP_PUBLIC_TRACKS__",safe(current.getJSONArray("tracks"))).replace("__HP_PUBLIC_META__",safe(meta));
   }
 
-  public synchronized JSONObject refresh()throws Exception{
-    ensureConfig();
-    // Cache-buster avoids a stale CDN edge immediately after an Admin publication.
-    String source=SOURCE_URL+"?v="+System.currentTimeMillis();
-    String html=get(source,LIMIT);
-    if(html.contains("id=\"phPublishedConfig\"")){
-      JSONObject next=PublishedConfig.decode(html);byte[] bytes=PublishedConfig.safeJson(next.toString()).getBytes(StandardCharsets.UTF_8);
-      FileOutputStream out=null;try{out=configCache.startWrite();out.write(bytes);configCache.finishWrite(out);publishedConfig=next;configOrigin="github";checkedAt=Instant.now().toString();}catch(Exception e){if(out!=null)configCache.failWrite(out);throw e;}
+  public JSONObject refresh() throws Exception {
+    synchronized (refreshLock) {
+      ensureConfig();
+      PublicationResponse response = get(SOURCE_URL, LIMIT, publicationEtag);
+      if (response.html == null) return snapshot();
+
+      String html = response.html;
+      if (html.contains("id=\"phPublishedConfig\"")) {
+        JSONObject next = PublishedConfig.decode(html);
+        byte[] bytes = PublishedConfig.safeJson(next.toString()).getBytes(StandardCharsets.UTF_8);
+        write(configCache, bytes);
+        synchronized (this) {
+          publishedConfig = next;
+          configOrigin = "github";
+          checkedAt = Instant.now().toString();
+        }
+      } else {
+        JSONObject input = new JSONObject()
+            .put("cards", new JSONArray(jsonScript(html, "embeddedData")))
+            .put("tracks", new JSONArray(jsonScript(html, "embeddedTrackRegistry")))
+            .put("checkedAt", Instant.now().toString())
+            .put("sourceUrl", SOURCE_URL);
+        JSONObject verified = projection.feed(input);
+        input.put("cards", FeedHistory.merge(current.getJSONArray("cards"), verified.getJSONArray("cards")));
+        JSONObject next = normalize(input, "github");
+        byte[] data = next.toString().getBytes(StandardCharsets.UTF_8);
+        if (data.length > LIMIT) throw new IOException("Publication too large");
+        write(cache, data);
+        synchronized (this) {
+          current = next;
+        }
+      }
+      publicationEtag = response.etag;
       return snapshot();
     }
-    JSONObject input=new JSONObject()
-      .put("cards",new JSONArray(jsonScript(html,"embeddedData")))
-      .put("tracks",new JSONArray(jsonScript(html,"embeddedTrackRegistry")))
-      .put("checkedAt",Instant.now().toString())
-      .put("sourceUrl",SOURCE_URL);
-    JSONObject verified=projection.feed(input);
-    input.put("cards",FeedHistory.merge(current.getJSONArray("cards"),verified.getJSONArray("cards")));
-    JSONObject next=normalize(input,"github");
-    byte[] data=next.toString().getBytes(StandardCharsets.UTF_8);if(data.length>LIMIT)throw new IOException("Publication too large");
-    FileOutputStream out=null;try{out=cache.startWrite();out.write(data);cache.finishWrite(out);current=next;}catch(Exception e){if(out!=null)cache.failWrite(out);throw e;}
-    return snapshot();
+  }
+
+  private static void write(AtomicFile destination, byte[] bytes) throws IOException {
+    FileOutputStream output = destination.startWrite();
+    try {
+      output.write(bytes);
+      destination.finishWrite(output);
+    } catch (IOException error) {
+      destination.failWrite(output);
+      throw error;
+    }
+  }
+
+  private static final class PublicationResponse {
+    final String html;
+    final String etag;
+
+    PublicationResponse(String html, String etag) {
+      this.html = html;
+      this.etag = etag;
+    }
   }
 
   static String jsonScript(String html,String id)throws Exception{
@@ -97,11 +199,26 @@ public final class PublicFeedStore {
     if(!m.find())throw new IOException("Missing published JSON");return m.group(1);
   }
 
-  private static String get(String raw,int limit)throws Exception{
+  private static PublicationResponse get(String raw, int limit, String etag) throws Exception {
     URI uri=new URI(raw);String host=uri.getHost();
     if(!"https".equals(uri.getScheme())||uri.getUserInfo()!=null||uri.getPort()!=-1||!SOURCE_HOST.equalsIgnoreCase(host)||!SOURCE_PATH.equals(uri.getPath()))throw new IOException("Source blocked");
     HttpURLConnection c=(HttpURLConnection)uri.toURL().openConnection();c.setInstanceFollowRedirects(false);c.setConnectTimeout(15000);c.setReadTimeout(20000);c.setUseCaches(false);c.setRequestProperty("Accept","text/html");c.setRequestProperty("Cache-Control","no-cache");
-    try{if(c.getResponseCode()!=200)throw new IOException("Publication unavailable");String mime=c.getContentType();if(mime==null||!(mime.toLowerCase(Locale.ROOT).startsWith("text/plain")||mime.toLowerCase(Locale.ROOT).startsWith("text/html")))throw new IOException("Unexpected content type");return read(c.getInputStream(),limit);}finally{c.disconnect();}
+    if (etag != null) c.setRequestProperty("If-None-Match", etag);
+    try {
+      int status = c.getResponseCode();
+      if (status == 304 && etag != null) return new PublicationResponse(null, etag);
+      if (status != 200) throw new IOException("Publication unavailable");
+      String mime = c.getContentType();
+      if (mime == null || !(mime.toLowerCase(Locale.ROOT).startsWith("text/plain")
+          || mime.toLowerCase(Locale.ROOT).startsWith("text/html"))) {
+        throw new IOException("Unexpected content type");
+      }
+      String nextEtag = c.getHeaderField("ETag");
+      if (nextEtag != null && nextEtag.length() > 256) nextEtag = null;
+      return new PublicationResponse(read(c.getInputStream(), limit), nextEtag);
+    } finally {
+      c.disconnect();
+    }
   }
 
   static String read(InputStream in,int limit)throws IOException{try(InputStream source=in;ByteArrayOutputStream out=new ByteArrayOutputStream()){byte[] b=new byte[8192];int n,total=0;while((n=source.read(b))!=-1){total+=n;if(total>limit)throw new IOException("Size limit");out.write(b,0,n);}return out.toString("UTF-8");}}

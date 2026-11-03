@@ -1,16 +1,48 @@
 /* One snapshot, two routes, one non-forced Git ref update. Credentials stay native. */
 (()=>{'use strict';
 const CONFIG_URL='https://raw.githubusercontent.com/playershype/playershype-android-v1/main/docs/app/config.json',BASE_KEY='playershype.publisher.base.v2',DRAFT='playershype.admin.app-config.v1.2';
-let baseHash='',busy=false,dbPromise;
+let baseHash='',busy=false,dbPromise,pendingRemote;
 function database(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const q=indexedDB.open('playershype-publication-v2',1);q.onupgradeneeded=()=>q.result.createObjectStore('snapshots');q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(Error('No se pudo abrir el almacenamiento local'))});return dbPromise}
 async function storage(key,value){const db=await database();return new Promise((resolve,reject)=>{const tx=db.transaction('snapshots',value===undefined?'readonly':'readwrite'),store=tx.objectStore('snapshots');if(value===undefined){const q=store.get(key);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)}else{store.put(value,key);tx.oncomplete=()=>resolve(value);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(Error('No se guardó el borrador'))}})}
 async function draft(){const value=await storage('draft');if(value)return value;try{return JSON.parse(localStorage.getItem(DRAFT)||'null')}catch{return null}}
 async function saveDraft(c){await storage('draft',c);localStorage.removeItem(DRAFT);return c}
 
 const digest=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text)))).map(x=>x.toString(16).padStart(2,'0')).join('');
-async function remote(){const r=await fetch(CONFIG_URL+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('No pude leer la configuración publicada: HTTP '+r.status);const text=await r.text(),config=PHPublication.validate(JSON.parse(text));baseHash=await digest(text);await storage('base',config);localStorage.setItem(BASE_KEY,JSON.stringify({hash:baseHash}));return config}
+function remote(){
+ if(!pendingRemote)pendingRemote=readRemote().finally(()=>{pendingRemote=null});
+ return pendingRemote;
+}
+async function readRemote(){
+ const controller=new AbortController();
+ const timeout=setTimeout(()=>controller.abort(),15000);
+ try{
+  const response=await fetch(CONFIG_URL,{cache:'no-cache',signal:controller.signal});
+  if(!response.ok)throw Error('No pude leer la configuración publicada: HTTP '+response.status);
+  const text=await response.text();
+  const config=PHPublication.validate(JSON.parse(text));
+  const hash=await digest(text);
+  await storage('base',config);
+  localStorage.setItem(BASE_KEY,JSON.stringify({hash}));
+  baseHash=hash;
+  return config;
+ }catch(error){
+  if(controller.signal.aborted)throw Error('GitHub tardó demasiado en responder. Intenta actualizar de nuevo.');
+  throw error;
+ }finally{clearTimeout(timeout)}
+}
 async function saved(){try{const meta=JSON.parse(localStorage.getItem(BASE_KEY)||'null');return meta?{...meta,config:await storage('base')}:null}catch{return null}}
-async function initial(){const previous=await saved(),hasDraft=!!(await draft());try{const latest=await remote();if(hasDraft&&previous?.hash){baseHash=previous.hash;localStorage.setItem(BASE_KEY,JSON.stringify({hash:previous.hash}))}return latest}catch(e){const s=previous;if(!s?.config)throw e;baseHash=s.hash;return s.config}}
+async function initial(draftPromise=draft()){
+ const [previous,localDraft]=await Promise.all([saved(),draftPromise]);
+ if(localDraft&&previous?.config&&previous.hash){
+  baseHash=previous.hash;
+  return previous.config;
+ }
+ try{return await remote()}catch(error){
+  if(!previous?.config)throw error;
+  baseHash=previous.hash;
+  return previous.config;
+ }
+}
 async function snapshot(cards,tracks,explicit){
  let c=explicit||(await draft())||(await saved())?.config;
  if(!baseHash){const s=await saved();if(s?.hash)baseHash=s.hash;else {const published=await remote();c=c||published}}

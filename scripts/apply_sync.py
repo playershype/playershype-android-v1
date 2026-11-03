@@ -36,26 +36,71 @@ def main():
  patch(java,'feed.refresh()', 'feed.get().refresh()')
  patch(java,'feed.document()', 'feed.get().document()')
  patch(java,'feed.snapshot()', 'feed.get().snapshot()')
- patch(java,'if("/core/feed".equals(path)&&feed!=null)', 'if("/core/app-config".equals(path)&&feed!=null)return response("application/json",200,PublishedConfig.safeJson(feed.configuration().toString()));\n          if("/core/feed".equals(path)&&feed!=null)')
+ patch(java,'if("/core/feed".equals(path)&&feed!=null)', 'if("/core/home-config".equals(path)&&feed!=null)return response("application/json",200,feed.homeConfiguration());\n          if("/core/app-config".equals(path)&&feed!=null)return response("application/json",200,feed.configuration());\n          if("/core/feed".equals(path)&&feed!=null)')
  patch(java,'feed.configuration()', 'feed.get().configuration()')
  patch(java,'  private void navigate(String route,', '  @Override protected void onResume(){super.onResume();if(web!=null)web.evaluateJavascript("window.PlayersHypeSync&&window.PlayersHypeSync.refresh()",null);}\n  private void navigate(String route,')
  # Home consumes the app-route snapshot, never a mismatched copy from the dashboard route.
  home=r/'app-user/src/main/assets/home.js';s=home.read_text();start=s.index('async function boot(){');end=s.index('\nwindow.PlayersHypeRouter',start)
  s=s[:start]+'''async function boot(){
- const packaged=await loadPackagedConfig();
- async function read(){try{const r=await fetch('/core/app-config',{cache:'no-store'});if(r.ok){const c=await r.json();if(c.schemaVersion===2&&c.revision)return c}}catch{}return packaged}
- function draw(c,offline=false){if(c.raceDays&&c.hypepredict?.analyses){const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Puerto_Rico',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());c=JSON.parse(JSON.stringify(c));c.tracks=(c.tracks||[]).filter(t=>{const raw=c.raceDays[t.id],days=Array.isArray(raw)?raw:(Array.isArray(raw?.days)?raw.days:[raw]),d=days.find(x=>x?.date===today);return !!d&&(d.races||[]).some(r=>c.hypepredict.analyses[r.id]?.status==='published')});}render(c,null,'local');$('footerMode').textContent=(offline?'Sin conexión · copia válida · ':c.__sync?.origin==='github'?'GitHub confirmado · ':'Copia local · ')+(c.revision||'local');}
- draw(await read());let pending=null;
- window.PlayersHypeSync={refresh(){if(!pending)pending=(async()=>{try{if(window.HypeAndroid)await HypeAndroid.request('sync');draw(await read())}catch{draw(await read(),true)}})().finally(()=>pending=null);return pending}};
- $('appStatus').addEventListener('click',()=>PlayersHypeSync.refresh());document.addEventListener('visibilitychange',()=>{if(!document.hidden)PlayersHypeSync.refresh()});if(window.HypeAndroid)PlayersHypeSync.refresh();
+ const packaged=loadPackagedConfig();
+ async function read(){
+  try{
+   const response=await fetch('/core/home-config',{cache:'no-store'});
+   if(response.ok){
+    const config=await response.json();
+    if(config.schemaVersion===2&&config.revision)return config;
+   }
+  }catch{}
+  return packaged;
+ }
+ let lastHome=null;
+ function draw(config,offline=false){
+  const {__sync:sync,...home}=config;
+  const fingerprint=JSON.stringify(home);
+  if(fingerprint!==lastHome){
+   render(home,null,'local');
+   lastHome=fingerprint;
+   $('home').removeAttribute('aria-busy');
+  }
+  const source=offline?'Sin conexión · copia válida · ':sync?.origin==='github'?'GitHub confirmado · ':'Copia local · ';
+  $('footerMode').textContent=source+(config.revision||'local');
+ }
+ draw(await read());
+ let pending=null;
+ window.PlayersHypeSync=Object.freeze({
+  refresh(){
+   if(!pending)pending=(async()=>{
+    let offline=false;
+    try{if(window.HypeAndroid)await HypeAndroid.request('sync')}catch{offline=true}
+    draw(await read(),offline);
+   })().finally(()=>pending=null);
+   return pending;
+  }
+ });
+ $('appStatus').addEventListener('click',()=>PlayersHypeSync.refresh());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)PlayersHypeSync.refresh()});
+ if(window.HypeAndroid)PlayersHypeSync.refresh();
 }
-''' +s[end:];s=s.replace("$('appStatus').addEventListener('click',()=>toast('PlayersHype Ecosystem V1.3.1 RC · Home modular'));",'').replace("?'LIVE':'V1.3'","?'LIVE':'V1.4'");home.write_text(s)
- patch(r/'app-user/src/main/assets/index.html','<script src="/assets/home.js">','<script src="/assets/native/bridge.js"></script><script src="/assets/home.js">')
+''' +s[end:]
+ s=s.replace("<img src=",'<img loading="lazy" decoding="async" src=')
+ s=s.replace("$('appStatus').addEventListener('click',()=>toast('PlayersHype Ecosystem V1.3.1 RC · Home modular'));",'').replace("?'LIVE':'V1.3'","?'LIVE':'V1.4'")
+ home.write_text(s)
+ user_index=r/'app-user/src/main/assets/index.html'
+ patch(user_index,'<script src="/assets/home.js">','<script src="/assets/native/bridge.js"></script><script src="/assets/home.js">')
+ patch(user_index,'id="heroImage"','id="heroImage" fetchpriority="high" decoding="async"')
+ for image_id in ['liveImage','hpImage','tvChannelImage']:
+  patch(user_index,f'id="{image_id}"',f'id="{image_id}" loading="lazy" decoding="async"')
+ patch(user_index,'id="home"','id="home" aria-busy="true"')
+ patch(user_index,'</style>', '''
+  #home[aria-busy="true"] #heroTitle:empty{width:min(80%,580px);height:1.1em;border-radius:8px;background:rgba(255,255,255,.14)}
+  #home[aria-busy="true"] #heroSubtitle:empty{width:min(62%,430px);height:1.2em;border-radius:6px;background:rgba(255,255,255,.10)}
+ </style>''')
  # Admin's public config can exceed 6 MB because it retains archived race days.
  contract=r/'app-admin/src/main/assets/config-contract.js';patch(contract,'6*1024*1024','24*1024*1024')
  control=r/'app-admin/src/main/assets/control.js';s=control.read_text()
  old="state=saved?.schemaVersion===2?saved:clone(base)"
- s=s.replace("base=await r.json();try{", "base=await r.json();const published=await PHSync.initial();base={...base,...published};try{")
+ s=s.replace("const r=await fetch('/assets/default-app-config.json',{cache:'no-store'});base=await r.json();try{", """msg('Cargando configuración…');const defaults=fetch('/assets/default-app-config.json',{cache:'no-store'}).then(r=>r.json());const savedPromise=PHSync.draft().catch(()=>null);const [packaged,published]=await Promise.all([defaults,PHSync.initial(savedPromise)]);base={...packaged,...published};try{""")
+ s=s.replace('renderAll();await initLiveCenter()', "renderAll();msg('');await initLiveCenter()")
  s=s.replace(old,"state=saved?.schemaVersion===2?{...clone(base),...saved,hypepredict:{...base.hypepredict,...saved.hypepredict},raceDays:saved.raceDays||base.raceDays,horseData:saved.horseData||base.horseData,raceDayHistory:saved.raceDayHistory||base.raceDayHistory}:clone(base)")
  s=s.replace("if(a&&a.startsWith('live-'))", "if(a==='sync-reload'){if(!dirty||confirm('¿Cargar la publicación actual? Exporta el borrador si necesitas conservarlo.'))PHSync.remote().then(c=>{state=c;localStorage.setItem(KEY,JSON.stringify(c));dirty=false;renderAll();msg('Publicación actual cargada.')}).catch(e=>msg(e.message,true));return}if(a&&a.startsWith('live-'))")
  start=s.index('function publish(){');end=s.index('\ndocument.addEventListener',start)
@@ -65,12 +110,15 @@ def main():
  s=s.replace("const r=await HypeLive.updateApp();", "const w=HypeLive.workspace();const r=await PHSync.publish('app',w.cards,w.tracks,ConfigContract.validate(state));")
  s=s.replace("const r=await HypeLive.updateLive();", "const w=HypeLive.workspace();const r=await PHSync.publish('dashboard',w.cards,w.tracks,ConfigContract.validate(state));")
  s=s.replace('APP ACTUALIZADA','APP PUBLICADA').replace('LIVE ACTUALIZADO','DASHBOARD PUBLICADO')
- s=s.replace("JSON.parse(localStorage.getItem(KEY)||'null')", "await PHSync.draft()")
+ s=s.replace("JSON.parse(localStorage.getItem(KEY)||'null')", "await savedPromise")
  s=s.replace('function persist(){','async function persist(){').replace('localStorage.setItem(KEY,JSON.stringify(valid));','await PHSync.saveDraft(valid);')
  s=s.replace('const valid=persist();', 'const valid=await persist();').replace('state=JSON.parse(localStorage.getItem(KEY));','state=await PHSync.draft();')
  s=s.replace("else if(a==='save'){try{persist()}catch(err){msg(err.message,true)}}", "else if(a==='save'){persist().catch(err=>msg(err.message,true))}")
  s=s.replace("PHSync.remote().then(c=>{state=c;localStorage.setItem(KEY,JSON.stringify(c));", "PHSync.remote().then(async c=>{state=c;await PHSync.saveDraft(c);")
  s=s.replace('state=clone(base);localStorage.removeItem(KEY);', 'state=clone(base);PHSync.saveDraft(state).catch(e=>msg(e.message,true));localStorage.removeItem(KEY);')
+ s=s.replace('<img class="item-thumb"', '<img class="item-thumb" loading="lazy" decoding="async"')
+ s=s.replace("let out=canvas.toDataURL('image/jpeg',.78);", "const webp=canvas.toDataURL('image/webp',.78);const format=webp.startsWith('data:image/webp;')?'image/webp':'image/jpeg';let out=format==='image/webp'?webp:canvas.toDataURL(format,.78);")
+ s=s.replace("canvas.toDataURL('image/jpeg',.7)","canvas.toDataURL(format,.7)")
  control.write_text(s)
  index=r/'app-admin/src/main/assets/index.html';s=index.read_text().replace('☁ Publicar</button>','☁ Publicar Dashboard + App</button>').replace('ACTUALIZAR LIVE','ACTUALIZAR DASHBOARD').replace('Ruta del Live','Ruta antigua del Live (HTML)').replace('Ningún botón publica ambos destinos.','Publica por separado o usa Publicar Dashboard + App para actualizar ambos destinos en un commit.')
  s=s.replace('El index se genera desde las jornadas guardadas en HypePredict. Publicar crea además un respaldo interno automático.','Dashboard: docs/app/config.json · App: docs/app/index.html. La publicación conjunta conserva la misma revisión y crea un respaldo local.')

@@ -30,7 +30,20 @@ public final class PublishedConfig {
   byte[] json=out.toByteArray();if(!sha256(json).equals(e.getString("sha256")))throw new IOException("Integridad de la publicación inválida");
   JSONObject c=validate(new JSONObject(new String(json,StandardCharsets.UTF_8)));if(!c.getString("revision").equals(e.getString("revision")))throw new IOException("Revisiones diferentes");return c;
  }
- public static String safeJson(String json){StringBuilder out=new StringBuilder();for(int i=0;i<json.length();i++){char c=json.charAt(i);if(Character.isSurrogate(c))out.append(String.format(Locale.ROOT,"\\u%04x",(int)c));else out.append(c);}return out.toString();}
+ public static String safeJson(String json) {
+  StringBuilder escaped = null;
+  String hexDigits = "0123456789abcdef";
+  int start = 0;
+  for (int i = 0; i < json.length(); i++) {
+   char c = json.charAt(i);
+   if (!Character.isSurrogate(c)) continue;
+   if (escaped == null) escaped = new StringBuilder(json.length());
+   escaped.append(json, start, i).append("\\u");
+   for (int shift = 12; shift >= 0; shift -= 4) escaped.append(hexDigits.charAt((c >> shift) & 15));
+   start = i + 1;
+  }
+  return escaped == null ? json : escaped.append(json, start, json.length()).toString();
+ }
  public static String sha256(byte[] data)throws Exception{return hex(MessageDigest.getInstance("SHA-256").digest(data));}
  public static String blobSha(byte[] data)throws Exception{MessageDigest d=MessageDigest.getInstance("SHA-1");d.update(("blob "+data.length+"\0").getBytes(StandardCharsets.UTF_8));return hex(d.digest(data));}
  private static String hex(byte[] b){StringBuilder s=new StringBuilder();for(byte v:b)s.append(String.format(Locale.ROOT,"%02x",v));return s.toString();}
