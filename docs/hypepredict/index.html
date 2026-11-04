@@ -364,10 +364,12 @@ function sourceHypeBet(a){
 
 
 function roleAndBoard(a) {
- var horses=Array.isArray(a&&a.horses)?a.horses:[];
+ var base=Array.isArray(a&&a.horses)?a.horses:[];
+  var board=Array.isArray(a&&a.hypeBoard)?a.hypeBoard:[];
+  var horses=board.length?board.slice().sort((x,y)=>Number(x.rank)-Number(y.rank)).map(b=>Object.assign({},base.find(h=>String(h.programNumber)===String(b.programNumber))||{},b)):base;
  if(!horses.length)return '<p class="missing-field">No se recibió el HypeBoard de esta carrera.</p>';
  var rows=horses.map(function(h,i){
-  var s=Number(h.hypeScore),width=Number.isFinite(s)?Math.max(0,Math.min(100,s*10)):0;
+  var s=h.hypeScore==null?NaN:Number(h.hypeScore),width=Number.isFinite(s)?Math.max(0,Math.min(100,s*10)):0;
   return '<tr><td>'+(i+1)+'</td><td><span class="board-id">'+hpSaddle(h.programNumber)+'<span class="name">'+hpEsc(h.name)+'</span></span><span class="role">'+hpEsc(h.role||"")+'</span></td><td class="score-num">'+(h.hypeScore==null?"—":hpEsc(h.hypeScore))+'<div class="scorebar"><i style="width:'+width+'%"></i></div></td><td>'+hpEsc(h.reliability||"No disponible")+'</td></tr>';
  }).join("");
  return '<div class="board-wrap"><table class="board-table"><thead><tr><th>Pos.</th><th>Ejemplar</th><th>HypeScore</th><th>Confiabilidad</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
@@ -386,9 +388,9 @@ function raceCard(r,trackId,date) {
   return `<article class="race" id="race-${esc(r.number)}"><div class="race-banner"><div class="race-head"><div class="race-no">${esc(r.number)}</div><div class="race-title"><h3>Carrera ${esc(r.number)}</h3></div></div></div><div class="race-core"><div class="empty-race">No hay análisis válido para este hipódromo y fecha. No se mostrará información de otra jornada.</div></div></article>`;
  }
  const q=a.quickHits||{},m=a.raceMeta||{},pace=a.paceProjection||{},risk=a.riskControl||{},pool=a.poolIntelligence||{};
- const h=q.valuePlay;
+ const h=q.huevazo;
  const meta=[m.condition,m.claiming&&m.claiming!=="No aplica"?"Reclamo "+m.claiming:"",m.purse?"Premio "+m.purse:""].filter(Boolean).join(" · ");
- const picks=[quickPick("SELECT",q.select,"select"),quickPick("RIVAL",q.rival),quickPick("TAPADA",q.sleeper),quickPick("HUEVAZO / VALUE",h)].filter(Boolean).join("");
+ const picks=[quickPick("SELECT",q.select,"select"),quickPick("RIVAL",q.rival),quickPick("TAPADA",q.sleeper),quickPick("HUEVAZO",h),quickPick("VALUE PLAY",q.valuePlay)].filter(Boolean).join("");
  const stats=[detailField("Gap",q.gap||risk.gap),detailField("Riesgo",q.risk||risk.risk),detailField("Confianza",q.selectConfidence),detailField("Confiabilidad",q.selectReliability||risk.selectReliability),detailField("Valor",q.value),detailField("Pick 6",String(q.poolStatus||"").replace(/\s*👉\s*$/,""))].filter(Boolean).join("");
  const wager=sourceHypeBet(a);
  const poolParts=[poolCell("Fijo",pool.fixed),poolCell("Base",pool.base),poolCell("Defensa",pool.defense),poolCell("Cobertura",pool.coverage),poolCell("Primer corte",pool.firstCut),poolCell("Outsider",pool.outsider)].join("");
@@ -429,10 +431,15 @@ function hpPublishedCount(id,date){
 function hpAllPublishedDates(){
  // Public view: only the current Puerto Rico racing date.
  // Never delete or rewrite raceDayHistory; previous reports remain archived.
- return [hpTodayInPuertoRico()];
+ const available=new Set([hpTodayInPuertoRico()]);
+  for(const t of tracks()){
+    const days=DATA?.raceDays?.[t.id];
+    const entries=Array.isArray(days)?days:Array.isArray(days?.days)?days.days:days?[days]:[];
+    for(const x of entries)if(x?.date&&hpPublishedCount(t.id,x.date)>0)available.add(x.date);
+  }
+  return [...available].sort((a,b)=>b.localeCompare(a));
 }
 function hpTracksForDate(date){
- if(date!==hpTodayInPuertoRico())return [];
  return tracks().filter(t=>hpPublishedCount(t.id,date)>0);
 }
 function datesFor(id){
