@@ -429,7 +429,7 @@ function hpPublishedCount(id,date){
  return Array.isArray(d?.races)?d.races.filter(r=>hpIsPublished(id,d,r)).length:0;
 }
 function hpAllPublishedDates(){
- // Public view: only the current Puerto Rico racing date.
+ // Show current Puerto Rico date by default; also allow dates with published analyses.
  // Never delete or rewrite raceDayHistory; previous reports remain archived.
  const available=new Set([hpTodayInPuertoRico()]);
   for(const t of tracks()){
@@ -570,7 +570,7 @@ async function hpWxLoad(id,force=false){
 let hpMatchContext=null,hpPendingProfile=null;
 function hpMatchField(h,label){
  const src=String(h?.sourceText||"");
- const escaped=String(label).replace(/[.*+?^$()|[\]{}]/g,"\\function hpScreen(){");
+ const escaped=String(label).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const m=src.match(new RegExp("^"+escaped+"\\s*:\\s*([^\\r\\n]*)","im"));
  return m?.[1]?.trim()||"—";
 }
