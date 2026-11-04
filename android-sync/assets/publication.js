@@ -22,7 +22,7 @@ function mergeCards(config,cards,tracks){
    const rid=tid+'-'+date+'-r'+number,decision=r.decision||{},meta=r.distance||{};
     const ranked=(r.hypeBoard||[]).slice().sort((x,y)=>Number(x.rank)-Number(y.rank));
     if(strictV2){
-     if(e.preRaceFrozen!==true)throw Error('Sin sello pre-carrera verificable: R'+number);
+     if(e.preRaceFrozen!==true)throw Error('Falta indicador preRaceFrozen:true (la verificación temporal es externa): R'+number);
      if(!Array.isArray(r.hypeBoard)||ranked.length!==r.horses.length||ranked.length<4)throw Error('HypeBoard incompleto: R'+number);
      const byNumber=new Map(r.horses.map(h=>[String(h.programNumber),h]));
      if(byNumber.size!==r.horses.length)throw Error('Números de programa duplicados: R'+number);
@@ -38,7 +38,7 @@ function mergeCards(config,cards,tracks){
     }
    const horses=r.horses.map(h=>{
     const n=h.programNumber,hid=rid+'-h'+n,score=h.model?.hypeScore;
-    if(score==null||!Number.isFinite(Number(score))||Number(score)<0||Number(score)>10)throw Error('HypeScore inválido');
+    if(score!=null&&(!Number.isFinite(Number(score))||Number(score)<0||Number(score)>10))throw Error('HypeScore inválido');
     const con=h.connections||{},data=h.raceData||{},form=h.form||{},rel=reliability(h.model?.reliability);
     const source=['#'+n+' '+h.name+' — '+display(h.roles?.primary),'HypeScore: '+(score??'No disponible'),'Confiabilidad: '+rel,'Peso: '+(data.weight??'No disponible'),'Jinete: '+(con.jockey||'No disponible'),'Entrenador: '+(con.trainer||'No disponible'),'Establo/propietario: '+(con.stable||con.owner||'No disponible'),'Uniforme: '+(h.silks?.description||'No disponible'),'Últimas cinco: '+(form.lastFiveDisplay||'No disponible'),'Días sin correr: '+(data.daysSinceLastRace??'No disponible'),'Briseos disponibles: '+(h.works||[]).map(w=>w.raw||display(w)).join('; '),'Perfil: '+display(h.paceProfile?.display||h.paceProfile?.primary),'Power/Rating: '+(data.powerNumber??'No disponible'),'Distancia: '+display(form.distanceRecord),'Value: '+display(h.value?.gradeDisplay||h.value?.comment),'LECTURA:',h.reading||'','USO:',display(h.roles?.recommendedUse)].join('\n');
     return {entryId:hid,programNumber:n,name:h.name,role:h.roles?.primary||'',hypeScore:score??null,reliability:rel,sourceText:source};
