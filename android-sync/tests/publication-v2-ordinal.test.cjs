@@ -32,7 +32,7 @@ console.log('PASS canonical board and 4 independent ordinal roles');
 }
 {
  const invalid=card();invalid.event.preRaceFrozen=false;
- assert.throws(()=>PHPublication.mergeCards(base(),[invalid],[]),/sello pre-carrera/);
+ assert.throws(()=>PHPublication.mergeCards(base(),[invalid],[]),/preRaceFrozen/);
  console.log('PASS false pre-race seal rejected');
 }
 {
