@@ -1,0 +1,38 @@
+name: Publish Camarero 2026-11-05 to Dashboard and Android
+on:
+  push:
+    branches:
+      - publish/camarero-2026-11-05-main
+    paths:
+      - 'docs/app/imports/camarero-2026-11-05.card.json'
+      - 'scripts/publish_camarero_2026_11_05.cjs'
+      - 'docs/hypepredict/index.html'
+      - '.github/workflows/publish-camarero-2026-11-05.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Node publisher syntax
+        run: node --check scripts/publish_camarero_2026_11_05.cjs
+      - name: Validate and build both public files
+        run: node scripts/publish_camarero_2026_11_05.cjs
+      - name: Ensure only public destinations changed
+        run: |
+          git diff --exit-code -- . ':!docs/app/config.json' ':!docs/app/index.html'
+          git status --short
+      - name: Commit verified Dashboard and App publication
+        run: |
+          git config user.name 'playershype-publication-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/app/config.json docs/app/index.html
+          git diff --cached --quiet || git commit -m 'Publish Camarero Nov 5: 7 races and 40 preserved HypeScores'
+          git push origin HEAD:publish/camarero-2026-11-05-main

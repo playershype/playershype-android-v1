@@ -1,0 +1,33 @@
+name: HypePredict V2 publication safety
+on:
+  pull_request:
+    paths:
+      - 'android-sync/assets/publication.js'
+      - 'android-sync/tests/publication-v2-ordinal.test.cjs'
+      - 'docs/hypepredict/index.html'
+      - '.github/workflows/hypepredict-v2-qa.yml'
+  push:
+    branches:
+      - 'fix/hypepredict-v2-ordinal-safe-2026-11-04'
+    paths:
+      - 'android-sync/assets/publication.js'
+      - 'android-sync/tests/publication-v2-ordinal.test.cjs'
+      - 'docs/hypepredict/index.html'
+      - '.github/workflows/hypepredict-v2-qa.yml'
+permissions:
+  contents: read
+jobs:
+  publication-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check android-sync/assets/publication.js
+          node --check android-sync/tests/publication-v2-ordinal.test.cjs
+      - name: Published cards, roles and missing score regression
+        run: node android-sync/tests/publication-v2-ordinal.test.cjs

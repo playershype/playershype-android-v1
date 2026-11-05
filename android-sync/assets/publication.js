@@ -13,13 +13,29 @@ function mergeCards(config,cards,tracks){
  const c=validate(config);c.horseData=c.horseData||{};c.hypepredict.analyses=c.hypepredict.analyses||{};c.raceDayHistory=c.raceDayHistory||{};
  for(const card of cards||[]){
   if(!card.event||!/^\d{4}-\d{2}-\d{2}$/.test(card.event.date)||!Array.isArray(card.races))throw Error('Jornada incompatible');
-  const e=card.event,registry=(tracks||[]).find(t=>t.name===e.track||t.id===e.track||t.aliases?.includes(e.track));
+  const e=card.event,strictV2=e.publicationProfile==='hypepredict-v2-15equal-ordinal-v1',registry=(tracks||[]).find(t=>t.name===e.track||t.id===e.track||t.aliases?.includes(e.track));
   let track=c.tracks.find(t=>t.id===registry?.id||t.name===e.track||t.id===e.track);
   if(!track){track={id:registry?.id||id(e.track),name:registry?.name||e.track,status:'ready',races:0};c.tracks.push(track)}
   const tid=track.id,date=e.date,day={date,status:'published',races:[]};
   for(const r of card.races){
    const number=Number(r.raceNumber);if(!Number.isInteger(number)||number<1||number>99||!Array.isArray(r.horses))throw Error('Carrera incompatible');
    const rid=tid+'-'+date+'-r'+number,decision=r.decision||{},meta=r.distance||{};
+    const ranked=(r.hypeBoard||[]).slice().sort((x,y)=>Number(x.rank)-Number(y.rank));
+    if(strictV2){
+     if(e.preRaceFrozen!==true)throw Error('Falta indicador preRaceFrozen:true (la verificación temporal es externa): R'+number);
+     if(!Array.isArray(r.hypeBoard)||ranked.length!==r.horses.length||ranked.length<4)throw Error('HypeBoard incompleto: R'+number);
+     const byNumber=new Map(r.horses.map(h=>[String(h.programNumber),h]));
+     if(byNumber.size!==r.horses.length)throw Error('Números de programa duplicados: R'+number);
+     const roles=['Select','Contendiente','Tapada','Huevazo'],keys=['select','rival','sleeper','huevazo'];
+     ranked.forEach((b,i)=>{
+      const h=byNumber.get(String(b.horseNumber)),score=h?.model?.hypeScore;
+      if(b.rank!==i+1||!h)throw Error('Ranking incompleto o inconsistente: R'+number);
+      if(typeof score!=='number'||!Number.isFinite(score)||score<0||score>10||Math.abs(score*10-Math.round(score*10))>1e-8)throw Error('HypeScore faltante o no publicado a 1 decimal: R'+number+' #'+b.horseNumber);
+      if(Number(b.hypeScore)!==score)throw Error('HypeScore distinto entre caballo y HypeBoard: R'+number+' #'+b.horseNumber);
+      if(i&&score>Number(ranked[i-1].hypeScore))throw Error('HypeBoard fuera de orden: R'+number);
+      if(i<4&&(h.roles?.primary!==roles[i]||String(r.quickHits?.[keys[i]]?.horseNumber)!==String(b.horseNumber)))throw Error('Roles ordinales incompatibles: R'+number+' '+roles[i]);
+     });
+    }
    const horses=r.horses.map(h=>{
     const n=h.programNumber,hid=rid+'-h'+n,score=h.model?.hypeScore;
     if(score!=null&&(!Number.isFinite(Number(score))||Number(score)<0||Number(score)>10))throw Error('HypeScore inválido');
@@ -27,18 +43,19 @@ function mergeCards(config,cards,tracks){
     const source=['#'+n+' '+h.name+' — '+display(h.roles?.primary),'HypeScore: '+(score??'No disponible'),'Confiabilidad: '+rel,'Peso: '+(data.weight??'No disponible'),'Jinete: '+(con.jockey||'No disponible'),'Entrenador: '+(con.trainer||'No disponible'),'Establo/propietario: '+(con.stable||con.owner||'No disponible'),'Uniforme: '+(h.silks?.description||'No disponible'),'Últimas cinco: '+(form.lastFiveDisplay||'No disponible'),'Días sin correr: '+(data.daysSinceLastRace??'No disponible'),'Briseos disponibles: '+(h.works||[]).map(w=>w.raw||display(w)).join('; '),'Perfil: '+display(h.paceProfile?.display||h.paceProfile?.primary),'Power/Rating: '+(data.powerNumber??'No disponible'),'Distancia: '+display(form.distanceRecord),'Value: '+display(h.value?.gradeDisplay||h.value?.comment),'LECTURA:',h.reading||'','USO:',display(h.roles?.recommendedUse)].join('\n');
     return {entryId:hid,programNumber:n,name:h.name,role:h.roles?.primary||'',hypeScore:score??null,reliability:rel,sourceText:source};
    });
-   const ref=x=>{const h=horses.find(h=>String(h.programNumber)===String(x?.horseNumber)||h.entryId===x?.horseId);return h?{entryId:h.entryId,programNumber:h.programNumber,name:h.name,hypeScore:h.hypeScore}:null};
+   const publishedHorses=strictV2?ranked.map(b=>horses.find(h=>String(h.programNumber)===String(b.horseNumber))):horses;
+    const ref=x=>{const h=horses.find(h=>String(h.programNumber)===String(x?.horseNumber)||h.entryId===x?.horseId);return h?{entryId:h.entryId,programNumber:h.programNumber,name:h.name,hypeScore:h.hypeScore}:null};
    const refs=a=>(a||[]).map(ref).filter(Boolean),q=r.quickHits||{},pace=r.pace||{},risk=decision.risk||{};
-   const a={trackId:tid,raceId:rid,status:'published',publicContract:'dashboard-safe-v3.0',horses,
-    quickHits:{select:ref(q.select),rival:ref(q.rival),sleeper:ref(q.sleeper),valuePlay:ref(q.valuePlay),value:display(q.value||'No cuantificable'),risk:risk.display||risk.level||'',selectConfidence:decision.selectConfidence||'',selectReliability:reliability(decision.selectReliability),gap:decision.gap??'',poolStatus:decision.poolStatus||'',decision:decision.officialDecision||'',decisionReason:decision.decisionExplanation||''},
+   const a={trackId:tid,raceId:rid,status:'published',publicContract:'dashboard-safe-v3.0',horses:publishedHorses,
+    quickHits:{select:ref(q.select),rival:ref(q.rival),sleeper:ref(q.sleeper),huevazo:ref(q.huevazo),valuePlay:ref(q.valuePlay),value:display(q.value||'No cuantificable'),risk:risk.display||risk.level||'',selectConfidence:decision.selectConfidence||'',selectReliability:reliability(decision.selectReliability),gap:decision.gap??'',poolStatus:decision.poolStatus||'',decision:decision.officialDecision||'',decisionReason:decision.decisionExplanation||''},
     raceMeta:{title:meta.display||'Carrera '+number,distance:meta.display||display(meta.value),surface:r.surface||'',condition:r.conditionDisplayRaw||r.condition||'',claiming:display(r.claimingPrice),purse:display(r.purse),participants:horses.length},
     paceProjection:{speed:refs(pace.speed),presser:refs(pace.pressers),stalker:refs(pace.stalkers),closer:refs(pace.closers),scenario:pace.scenario||''},raceRead:r.generalRead||'',
-    hypeBoard:(r.hypeBoard||[]).map(b=>{const h=ref(b);return h?{...h,rank:b.rank,hypeScore:b.hypeScore,reliability:reliability(b.reliability)}:null}).filter(Boolean),
+    hypeBoard:ranked.map(b=>{const h=ref(b);return h?{...h,rank:b.rank,hypeScore:b.hypeScore,reliability:reliability(b.reliability)}:null}).filter(Boolean),
     riskControl:{decision:decision.officialDecision||'',risk:risk.display||risk.level||'',gap:decision.gap??'',selectReliability:reliability(decision.selectReliability),factors:decision.decisionExplanation||''},
     poolIntelligence:Object.fromEntries(['fixed','base','defense','coverage','firstCut','outsider','strategy','budgetCut'].map(key=>{const value=(r.poolIntelligence||{})[key==='outsider'?'outsiders':key];return [key,Array.isArray(value)?value.map(h=>h.horseNumber??h).join(','):display(value)]})),hypeBet:display(r.hypeBet),preRaceFrozen:e.preRaceFrozen===true};
-   a.sourceText=['R'+number+' — '+a.raceMeta.title,a.raceMeta.condition,a.raceRead,'QUICK HITS',JSON.stringify(a.quickHits),'PACE PROJECTION',JSON.stringify(a.paceProjection),'HYPEBOARD',JSON.stringify(a.hypeBoard),'CHECKLIST',...horses.map(h=>h.sourceText),'CONTROL DE RIESGO',JSON.stringify(a.riskControl),'POOL INTELLIGENCE',JSON.stringify(a.poolIntelligence),'HYPEBET',a.hypeBet,'HYPEPICK 6',display(card.hypePick6),'CONCLUSIÓN / VEREDICTO',display(card.finalRead)].join('\n\n');
-   c.hypepredict.analyses[rid]=a;day.races.push({id:rid,number,entries:horses.map(h=>({id:h.entryId,programNumber:h.programNumber,name:h.name}))});
-   for(const h of horses)c.horseData[h.entryId]={entryId:h.entryId,status:'published',sourceText:h.sourceText,profile:{name:h.name,programNumber:h.programNumber,role:h.role,reliability:h.reliability,reading:h.sourceText}};
+   a.sourceText=['R'+number+' — '+a.raceMeta.title,a.raceMeta.condition,a.raceRead,'QUICK HITS',JSON.stringify(a.quickHits),'PACE PROJECTION',JSON.stringify(a.paceProjection),'HYPEBOARD',JSON.stringify(a.hypeBoard),'CHECKLIST',...publishedHorses.map(h=>h.sourceText),'CONTROL DE RIESGO',JSON.stringify(a.riskControl),'POOL INTELLIGENCE',JSON.stringify(a.poolIntelligence),'HYPEBET',a.hypeBet,'HYPEPICK 6',display(card.hypePick6),'CONCLUSIÓN / VEREDICTO',display(card.finalRead)].join('\n\n');
+   c.hypepredict.analyses[rid]=a;day.races.push({id:rid,number,entries:publishedHorses.map(h=>({id:h.entryId,programNumber:h.programNumber,name:h.name}))});
+   for(const h of publishedHorses)c.horseData[h.entryId]={entryId:h.entryId,status:'published',sourceText:h.sourceText,profile:{name:h.name,programNumber:h.programNumber,role:h.role,reliability:h.reliability,reading:h.sourceText}};
   }
   const old=c.raceDays[tid],prior=Array.isArray(old)?old:(Array.isArray(old?.days)?old.days:old?[old]:[]);
   let history=c.raceDayHistory[tid];if(!history||Array.isArray(history)){const previous=history||[];history=c.raceDayHistory[tid]={};for(const d of previous)if(d.date)history[d.date]={day:clone(d),analyses:{},horseData:{}}}
