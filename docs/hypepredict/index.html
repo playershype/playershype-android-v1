@@ -293,6 +293,40 @@ html,body{background:#E8EDF2;color:#0A192F}
 .hm-vs,.match-vs{background:#20366B;color:#64FFDA}
 .wx-state{border-color:#64FFDA;color:#64FFDA}
 .hm-cell.metric{background:#E8EDF2;color:#20366B}
+/* Structured horse profile: one record, readable tables, no remote assets. */
+.horse-panel.profile-panel{width:min(780px,100%);height:100%;padding:0;background:#E0FBFC;box-shadow:-16px 0 60px rgba(10,25,47,.18);overscroll-behavior:contain;scrollbar-gutter:stable}
+.profile-panel .horse-panel-header{padding:16px 22px;background:#0A192F;color:#E0FBFC;border-bottom:3px solid #64FFDA;align-items:center;gap:12px}
+.profile-panel .horse-panel-header b{display:block;color:#E0FBFC;font-size:14px;letter-spacing:.025em;margin-top:5px}
+.profile-eyebrow{display:block;font-size:10px;font-weight:850;letter-spacing:.1em;color:#37577A;line-height:1.5}
+.profile-panel .horse-panel-header .profile-eyebrow{color:#64FFDA;font-size:9px}
+.profile-panel .horse-panel-header button{flex:none;background:rgba(224,251,252,.1);color:#E0FBFC;border:1px solid rgba(224,251,252,.25);font-size:26px}
+.profile-body{padding:22px;display:grid;gap:18px;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.profile-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.profile-identity{display:flex;align-items:center;gap:13px;min-width:0;flex:1}
+.profile-identity .saddle{flex:none;width:50px;height:54px;font-size:24px;border:1px solid rgba(32,54,107,.15)}
+.profile-hero h2{font-size:clamp(23px,4vw,30px);line-height:1.15;margin:3px 0 0;letter-spacing:-.035em;overflow-wrap:anywhere;color:#0A192F}
+.profile-role{background:#64FFDA;color:#0A192F;border:1px solid #36C8B0;border-radius:7px;padding:7px 11px;font-size:12px;font-weight:900;max-width:100%;overflow-wrap:anywhere}
+.profile-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.profile-metric{border:1px solid #BCEBF2;border-radius:12px;padding:13px 11px;background:rgba(255,255,255,.64);min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.profile-metric span{font-size:10px;font-weight:750;color:#37577A;line-height:1.4}
+.profile-metric strong{font-size:19px;line-height:1.3;color:#20366B;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.profile-metric.primary{background:#20366B;border-color:#20366B}.profile-metric.primary span{color:#E0FBFC}.profile-metric.primary strong{color:#64FFDA;font-size:28px;line-height:1}
+.profile-section{min-width:0;border:1px solid #BCEBF2;border-radius:13px;background:rgba(255,255,255,.68);overflow:hidden}
+.profile-section h3,.profile-works summary{margin:0;background:rgba(188,235,242,.36);padding:13px 15px;font-size:12px;font-weight:900;color:#20366B;letter-spacing:.025em;border-bottom:1px solid #BCEBF2}
+.profile-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;text-align:left;color:#20366B;line-height:1.55}
+.profile-table th,.profile-table td{padding:11px 15px;vertical-align:top;overflow-wrap:anywhere;white-space:pre-line;border-bottom:1px solid #D6ECEF}
+.profile-table th{width:35%;font-size:11px;font-weight:750;color:#37577A;background:rgba(224,251,252,.32)}
+.profile-table td{font-weight:650}.profile-table tr:last-child>*{border-bottom:0}.profile-table tbody tr:nth-child(even){background:rgba(224,251,252,.38)}
+.profile-form{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border-bottom:1px solid #D6ECEF;font-size:11px;color:#37577A;font-weight:750}
+.profile-results{display:flex;gap:5px;flex-wrap:wrap}.profile-result{display:grid;place-items:center;width:31px;min-height:33px;border:1px solid #BCEBF2;border-radius:7px;background:#E0FBFC;color:#20366B;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums}.profile-result.win{background:#64FFDA;border-color:#36C8B0;color:#0A192F}
+.profile-works summary{display:flex;align-items:center;gap:10px;cursor:pointer;min-height:48px;list-style:none}.profile-works summary::-webkit-details-marker{display:none}.profile-works summary:after{content:'+';font-size:21px;margin-left:auto}.profile-works[open] summary:after{content:'−'}.profile-works:not([open]) summary{border-bottom:0}.profile-count{background:#20366B;color:#E0FBFC;border-radius:5px;padding:2px 7px;font-size:10px}
+.profile-scroll{max-height:300px;overflow:auto;overscroll-behavior:contain}.profile-work-table thead{position:sticky;top:0;background:#E0FBFC;z-index:1}.profile-work-table th:first-child{width:73px}.profile-work-table thead th{font-size:10px;color:#20366B}.profile-work-table td{font-size:12px;font-weight:550}
+.profile-reading{border-left:4px solid #00B4D8}.profile-reading p,.profile-additional{font-size:14px;line-height:1.75;padding:15px;margin:0;white-space:pre-line;color:#20366B;overflow-wrap:anywhere}
+.profile-use{border-top:1px solid #BCEBF2;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;background:rgba(100,255,218,.14);font-size:12px;overflow-wrap:anywhere}.profile-use span{font-size:11px;color:#37577A}.profile-missing{padding:14px 15px;margin:0;font-size:12px;color:#37577A}
+.profile-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.profile-panel :focus-visible{outline:3px solid #00B4D8;outline-offset:2px}
+@media(max-width:520px){.profile-panel .horse-panel-header{padding:13px 16px}.profile-body{padding:18px 14px 28px;gap:14px}.profile-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.profile-table th,.profile-table td{padding:10px 12px}.profile-table th{width:36%}.profile-hero{gap:10px}.profile-role{margin-left:63px}.profile-metric strong{font-size:20px}.profile-form{align-items:flex-start}.profile-result{width:28px;min-height:31px}.profile-identity .saddle{width:47px}.profile-work-table th:first-child{width:64px}}
+
 </style>
 </head>
 <body>
@@ -710,15 +744,56 @@ function hpHorseProfileCards(a){
   return '<button type="button" class="original-horse" data-horse-index="'+i+'"><div class="original-horse-head"><span>'+hpSaddle(h.programNumber)+'</span><span class="original-horse-score">'+hpScore(h)+'</span></div><div class="original-horse-name" style="margin-top:8px">#'+hpEsc(h.programNumber)+' '+hpEsc(h.name)+'</div><div class="original-horse-role">'+hpEsc(h.role||"")+" · "+hpEsc(h.reliability||"")+'</div><div class="original-horse-read">'+hpEsc(hpHorseReading(h))+'</div><div class="original-horse-cta">ABRIR PERFIL COMPLETO ›</div></button>';
  }).join("")+'</div></section>';
 }
+function hpProfileData(h){
+ const fields=Object.create(null),extra=[];
+ const labels=['HypeScore','Confiabilidad','Peso','Jinete','Entrenador','Establo/propietario','Uniforme','Últimas cinco','Dias sin correr','Días sin correr','Briseos disponibles','Perfil','Power/Rating','Distancia','Value','LECTURA','USO'];
+ const key=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const known=new Set(labels.map(key));let active=null;
+ String(h.sourceText||'').split(/\r?\n/).forEach(line=>{
+  const match=line.match(/^\s*([^:]{1,40}):\s*(.*)$/);
+  if(match&&known.has(key(match[1]))){active=key(match[1]);fields[active]=(fields[active]?fields[active]+'\n':'')+match[2].trim();}
+  else if(active){fields[active]+='\n'+line.trim();}
+  else if(line.trim()&&!/^#\S+\s/.test(line.trim()))extra.push(line.trim());
+ });
+ Object.keys(fields).forEach(k=>fields[k]=fields[k].trim());
+ return {fields,extra,get(label,fallback){const v=fields[key(label)];return v!==undefined&&v!==''?v:(fallback!==undefined&&fallback!==null&&fallback!==''?String(fallback):'No publicado');}};
+}
+function hpProfileTable(title,rows){
+ return '<section class="profile-section"><h3>'+hpEsc(title)+'</h3><table class="profile-table"><caption class="profile-sr">'+hpEsc(title)+'</caption><tbody>'+rows.map(row=>'<tr><th scope="row">'+hpEsc(row[0])+'</th><td>'+hpEsc(row[1])+'</td></tr>').join('')+'</tbody></table></section>';
+}
+function hpHorseProfile(h,raceNo){
+ const data=hpProfileData(h),get=data.get,missing='No publicado';
+ const score=h.hypeScore??h.model?.hypeScore??get('HypeScore');
+ const reliability=h.reliability||h.model?.reliability||get('Confiabilidad');
+ const role=h.role||h.roles?.primary||'';
+ const last=get('Últimas cinco',h.form?.lastFiveDisplay);
+ const results=/^\d+(?:\s*[-–]\s*\d+)*$/.test(last)?last.split(/\s*[-–]\s*/):null;
+ const works=get('Briseos disponibles',Array.isArray(h.works)?h.works.map(w=>w.raw||'').filter(Boolean).join(' | '):undefined);
+ const workRows=works===missing?[]:works.split(/\s*\|\s*/).filter(Boolean);
+ const metrics=[['HypeScore',score],['Confiabilidad',reliability],['Peso',get('Peso',h.raceData?.weight)],['Días sin correr',get('Días sin correr',h.raceData?.daysSinceLastRace)]];
+ const reading=get('LECTURA',h.reading),use=get('USO',h.roles?.recommendedUse);
+ return '<div class="horse-panel profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileName" tabindex="-1"><div class="horse-panel-header"><div><span class="profile-eyebrow">PLAYERSHYPE · HYPEPREDICT</span><b>PERFIL DEL EJEMPLAR</b></div><button id="closeHorse" type="button" aria-label="Cerrar perfil">×</button></div>'+
+ '<div class="profile-body"><header class="profile-hero"><div class="profile-identity">'+hpSaddle(h.programNumber)+'<div><span class="profile-eyebrow">CARRERA '+hpEsc(raceNo)+'</span><h2 id="profileName">'+hpEsc(h.name)+'</h2></div></div>'+(role?'<span class="profile-role">'+hpEsc(role)+'</span>':'')+'</header>'+
+ '<div class="profile-metrics">'+metrics.map((m,i)=>'<div class="profile-metric '+(i===0?'primary':'')+'"><span>'+hpEsc(m[0])+'</span><strong>'+hpEsc(m[1])+'</strong></div>').join('')+'</div>'+
+ hpProfileTable('Conexiones', [['Jinete',get('Jinete',h.connections?.jockey)],['Entrenador',get('Entrenador',h.connections?.trainer)],['Establo / propietario',get('Establo/propietario',h.connections?.stable||h.connections?.owner)],['Uniforme',get('Uniforme',h.silks?.description)]])+
+ '<section class="profile-section"><h3>Forma y rendimiento</h3><div class="profile-form"><span>Últimas cinco</span>'+(results?'<div class="profile-results" aria-label="Últimas cinco: '+hpEsc(last)+'">'+results.map((v,i)=>'<span class="profile-result '+(v==='1'?'win':'')+'" title="Resultado '+(i+1)+'">'+hpEsc(v)+'</span>').join('')+'</div>':'<strong>'+hpEsc(last)+'</strong>')+'</div><table class="profile-table"><caption class="profile-sr">Rendimiento publicado</caption><tbody>'+[['Perfil de paso',get('Perfil',h.paceProfile?.display)],['Power / Rating',get('Power/Rating',h.raceData?.powerNumber)],['En la distancia',get('Distancia',h.form?.distanceRecord)],['Value',get('Value',h.value?.gradeDisplay)]].map(row=>'<tr><th scope="row">'+hpEsc(row[0])+'</th><td>'+hpEsc(row[1])+'</td></tr>').join('')+'</tbody></table></section>'+
+ '<details class="profile-section profile-works" open><summary><span>Briseos disponibles</span><span class="profile-count">'+(workRows.length?workRows.length:'—')+'</span></summary>'+(workRows.length?'<div class="profile-scroll" role="region" aria-label="Registros de briseos" tabindex="0"><table class="profile-table profile-work-table"><caption class="profile-sr">Briseos publicados, conservados en el orden original</caption><thead><tr><th scope="col">Registro</th><th scope="col">Detalle publicado</th></tr></thead><tbody>'+workRows.map((w,i)=>'<tr><th scope="row">'+String(i+1).padStart(2,'0')+'</th><td>'+hpEsc(w)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="profile-missing">'+missing+'</p>')+'</details>'+
+ '<section class="profile-section profile-reading"><h3>Lectura del ejemplar</h3><p>'+hpEsc(reading)+'</p><div class="profile-use"><span>Uso recomendado</span><strong>'+hpEsc(use)+'</strong></div></section>'+
+ (data.extra.length?'<section class="profile-section"><h3>Información adicional</h3><p class="profile-additional">'+hpEsc(data.extra.join('\n'))+'</p></section>':'')+'</div></div>';
+}
+
 function hpOpenHorse(i){
  var n=hpScreen(),id=document.querySelector("#track").value,d=day(id,document.querySelector("#date").value),r=(d&&d.races||[]).find(function(x){return Number(x.number)===n}),a=r&&analysisFor(r),h=a&&a.horses&&a.horses[i];
  if(!h)return;
  var modal=document.getElementById("horseModal");if(!modal)return;
- modal.innerHTML='<div class="horse-panel" role="dialog" aria-modal="true" aria-label="Perfil completo del ejemplar"><div class="horse-panel-header"><b>PERFIL COMPLETO DEL EJEMPLAR</b><button id="closeHorse" aria-label="Cerrar">×</button></div><div class="horse-title" style="margin-top:16px">'+hpSaddle(h.programNumber)+'<span>'+hpEsc(h.name)+'</span></div><div class="horse-note">R'+n+' · '+hpEsc(h.role||"")+" · HypeScore "+hpScore(h)+" · "+hpEsc(h.reliability||"")+'</div><pre class="source">'+hpEsc(h.sourceText||"Perfil detallado no publicado.")+'</pre></div>';
+ modal.innerHTML=hpHorseProfile(h,n);
  modal.classList.add("open");document.body.style.overflow="hidden";
- var closer=document.getElementById("closeHorse");if(closer)closer.onclick=hpCloseHorse;
+ hpHorseReturnFocus=document.activeElement;
+ var closer=document.getElementById("closeHorse");if(closer){closer.onclick=hpCloseHorse;closer.focus()}
+ modal.onkeydown=function(e){if(e.key!=='Tab')return;var nodes=Array.from(modal.querySelectorAll('button,summary,[tabindex="0"]')).filter(el=>el.getClientRects().length),first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}};
 }
-function hpCloseHorse(){var el=document.getElementById("horseModal");if(el)el.classList.remove("open");document.body.style.overflow=""}
+var hpHorseReturnFocus=null;
+function hpCloseHorse(){var el=document.getElementById("horseModal");if(el){el.classList.remove("open");el.onkeydown=null}document.body.style.overflow="";if(hpHorseReturnFocus?.isConnected)hpHorseReturnFocus.focus();hpHorseReturnFocus=null}
 
 function hpDecisionStrip(a){
  var q=a&&a.quickHits||{},risk=a&&a.riskControl||{};
