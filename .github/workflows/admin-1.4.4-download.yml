@@ -1,0 +1,70 @@
+name: Publish verified Admin 1.4.4 download
+
+on:
+  push:
+    branches: [delivery/admin-1.4.4-download]
+    paths: [.github/workflows/admin-1.4.4-download.yml]
+
+permissions: {}
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Download the already tested build
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: playershype/playershype-android-v1
+          run-id: 42047969930
+          name: PlayersHype-Ecosystem-V1.3.1-RC-Android
+          path: verified-build
+
+      - name: Verify exact APK and prepare release notes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root = Path('verified-build')
+          apk = root / 'PlayersHype-Admin-V1.3.1-RC-PREVIEW.apk'
+          data = apk.read_bytes()
+          expected = '382c1d65ff094dbc4662ea3bfaabb8b2ad620ab0a2e0ccf7b47e84baebde7144'
+          assert hashlib.sha256(data).hexdigest() == expected, 'APK hash does not match the tested artifact'
+          metadata = (root / 'Admin-metadata.txt').read_text()
+          assert "versionCode='12'" in metadata and "versionName='1.4.4-preview'" in metadata
+          assert 'application-debuggable' not in metadata
+          signature = (root / 'Admin-signature.txt').read_text()
+          assert '622da637f469afd52692fb911c8ca5bfa478de52dcabfbd590e0b85aefb48934' in signature
+          assert (root / 'BUILD_COMMIT.txt').read_text().strip() == '1da4f580546a8f5b35278a01da805151092681ab'
+          Path('PlayersHype-Admin-1.4.4.apk').write_bytes(data)
+          Path('release-notes.md').write_text('Vista previa del Admin 1.4.4, con firma permanente.\n\nPublica solo jornadas selladas, muestra el alcance antes de publicar y conserva los borradores locales.\n\nSe instala como actualizacion sobre Admin 1.4.3 con la misma firma. No desinstalar esa version para actualizar. La app de usuarios 1.4.3 sigue siendo compatible.\n\nAPK procedente de la compilacion y pruebas Android completadas del commit 1da4f580546a8f5b35278a01da805151092681ab.\n\nSHA-256 del APK: '+expected+'\n', encoding='utf-8')
+          print('Verified exact tested Admin APK; no signing material is uploaded.')
+          PY
+
+      - name: Publish the verified APK as a prerelease download
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: playershype/playershype-android-v1
+        run: |
+          set -euo pipefail
+          release_tag=admin-v1.4.4-preview
+          if ! gh release view "$release_tag" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$release_tag" --repo "$GH_REPO" \
+              --target 1da4f580546a8f5b35278a01da805151092681ab \
+              --title 'PlayersHype Admin 1.4.4 (Preview)' \
+              --prerelease --notes-file release-notes.md
+          fi
+          existing_digest=$(gh api "repos/$GH_REPO/releases/tags/$release_tag" --jq '.assets[] | select(.name == "PlayersHype-Admin-1.4.4.apk") | .digest')
+          if [ -z "$existing_digest" ]; then
+            gh release upload "$release_tag" PlayersHype-Admin-1.4.4.apk --repo "$GH_REPO"
+          elif [ "$existing_digest" != 'sha256:382c1d65ff094dbc4662ea3bfaabb8b2ad620ab0a2e0ccf7b47e84baebde7144' ]; then
+            echo 'Existing asset has a different digest; refusing to overwrite it.'
+            exit 1
+          fi
+          gh api "repos/$GH_REPO/releases/tags/$release_tag" --jq '.assets[] | select(.name == "PlayersHype-Admin-1.4.4.apk") | .browser_download_url' >> "$GITHUB_STEP_SUMMARY"
