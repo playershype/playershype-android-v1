@@ -76,6 +76,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Verify permanent signing and Admin snapshot contracts
+        run: |
+          python3 -m unittest discover -s scripts -p test_stable_signing.py -v
+          python3 -m unittest discover -s scripts -p test_admin_workspace_scope.py -v
+
       - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
@@ -99,7 +104,9 @@ jobs:
             | tee artifacts/ui-tests.txt
 
       - name: Verify Admin publishing, both destinations and failure recovery
-        run: node android-sync/tests/sync.test.cjs "$SRC_DIR"
+        run: |
+          node android-sync/tests/sync.test.cjs "$SRC_DIR"
+          node android-sync/tests/admin-workspace-publication.test.cjs "$SRC_DIR"
 
       - name: Verify structured horse profiles and safe imported text
         run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
@@ -145,7 +152,7 @@ jobs:
             :app-admin:lintPreview \
             --no-daemon
 
-      - name: Prepare QA signing
+      - name: Require and verify permanent signing identity
         shell: bash
         env:
           QA_KEYSTORE_BASE64: ${{ secrets.QA_KEYSTORE_BASE64 }}
