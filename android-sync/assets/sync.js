@@ -49,7 +49,7 @@ async function snapshot(cards,tracks,explicit){
  if(!c)throw Error('Carga primero una configuración publicada o importa tu respaldo');
  c=PHPublication.validate(c);
  // An empty workspace must not erase the remote configuration or historical days.
- if(Array.isArray(cards)&&cards.length){if(window.HypeExportsReady)await HypeExportsReady;const html=HypeExports.public(cards,tracks||[],false);const doc=new DOMParser().parseFromString(html,'text/html');const clean=JSON.parse(doc.getElementById('embeddedData').textContent);const registry=JSON.parse(doc.getElementById('embeddedTrackRegistry').textContent);c=PHPublication.mergeCards(c,clean,registry)}
+ if(Array.isArray(cards)&&cards.length){const ready=PHPublication.prepareCards(cards);if(window.HypeExportsReady)await HypeExportsReady;const html=HypeExports.public(ready,tracks||[],false);const doc=new DOMParser().parseFromString(html,'text/html');const clean=JSON.parse(doc.getElementById('embeddedData').textContent);const registry=JSON.parse(doc.getElementById('embeddedTrackRegistry').textContent);c=PHPublication.mergeCards(c,clean,registry)}
  c.revision='pub-'+new Date().toISOString().replace(/[:.]/g,'-')+'-'+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
  return c;
 }

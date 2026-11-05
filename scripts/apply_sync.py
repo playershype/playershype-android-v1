@@ -97,6 +97,16 @@ def main():
   #home[aria-busy="true"] #heroSubtitle:empty{width:min(62%,430px);height:1.2em;border-radius:6px;background:rgba(255,255,255,.10)}
  </style>''')
  # Admin's public config can exceed 6 MB because it retains archived race days.
+ # Keep the new public role alias and validation profile through the explicit exporter.
+ projection=r/'core-contract/public-projection.json';contract_data=json.loads(projection.read_text())
+ fields=contract_data['fields']
+ for name in ['publicationProfile']:
+  if name not in fields['cards[].event']:fields['cards[].event'].append(name)
+ qpath='cards[].races[].quickHits'
+ if 'huevazo' not in fields[qpath]:fields[qpath].append('huevazo')
+ fields[qpath+'.huevazo']=fields[qpath+'.longshot'][:]
+ projection.write_text(json.dumps(contract_data,ensure_ascii=True,indent=2))
+ shutil.copy(projection,assets/'public-projection.json')
  contract=r/'app-admin/src/main/assets/config-contract.js';patch(contract,'6*1024*1024','24*1024*1024')
  control=r/'app-admin/src/main/assets/control.js';s=control.read_text()
  old="state=saved?.schemaVersion===2?saved:clone(base)"
@@ -121,9 +131,15 @@ def main():
  s=s.replace("let out=canvas.toDataURL('image/jpeg',.78);", "const webp=canvas.toDataURL('image/webp',.78);const format=webp.startsWith('data:image/webp;')?'image/webp':'image/jpeg';let out=format==='image/webp'?webp:canvas.toDataURL(format,.78);")
  s=s.replace("canvas.toDataURL('image/jpeg',.7)","canvas.toDataURL(format,.7)")
  control.write_text(s)
+ # Preview the eligible scope without mutating or removing private draft cards.
+ s=control.read_text()
+ s="function renderPublicationScope(){const el=document.getElementById('publicationScope');if(el&&window.HypeLive&&window.PHPublication)el.textContent=PHPublication.publicationScope(HypeLive.workspace().cards).summary}\n"+s
+ s=s.replace('function renderAll(){','function renderAll(){renderPublicationScope();')
+ control.write_text(s)
  index=r/'app-admin/src/main/assets/index.html';s=index.read_text().replace('☁ Publicar</button>','☁ Publicar Dashboard + App</button>').replace('ACTUALIZAR LIVE','ACTUALIZAR DASHBOARD').replace('Ruta del Live','Ruta antigua del Live (HTML)').replace('Ningún botón publica ambos destinos.','Publica por separado o usa Publicar Dashboard + App para actualizar ambos destinos en un commit.')
  s=s.replace('El index se genera desde las jornadas guardadas en HypePredict. Publicar crea además un respaldo interno automático.','Dashboard: docs/app/config.json · App: docs/app/index.html. La publicación conjunta conserva la misma revisión y crea un respaldo local.')
  s=s.replace('<section class="publish-bar">','<button class="ghost" data-action="sync-reload">Cargar publicación actual</button><section class="publish-bar">')
+ s=s.replace('<section class="publish-bar">','<p id="publicationScope" class="live-operation" role="status"></p><section class="publish-bar">')
  # Control loads after the exporter and legacy bridge, then the synchronization adapter.
  s=s.replace('<script src="control.js">','<script src="/assets/sync/publication.js"></script><script src="/assets/sync/sync.js"></script><script src="control.js">')
  index.write_text(s)

@@ -9,6 +9,41 @@ function validate(c){
 }
 function reliability(v){return typeof v==='string'?v:(v?.display||'⭐'.repeat(Number(v?.rating)||0))}
 function display(v){return typeof v==='string'?v:(v==null?'':JSON.stringify(v))}
+function pick6Issue(card){
+ const p=card.hypePick6;if(!p||p.status!=='available')return '';
+ const legs=p.poolLegs||card.event?.poolLegs;
+ if(!Array.isArray(legs)||legs.length!==6||new Set(legs.map(Number)).size!==6)return 'Tramos incompletos';
+ for(const name of ['direct','crasher','banger']){
+  const ticket=p[name];let combinations=1;
+  if(!ticket?.legs)return 'Estructura incompleta';
+  for(const leg of legs){
+   const choices=ticket.legs['R'+leg],race=card.races?.find(r=>Number(r.raceNumber)===Number(leg));
+   if(!Array.isArray(choices)||!choices.length||new Set(choices.map(String)).size!==choices.length||!race)return 'Tramos incompatibles';
+   if(choices.some(n=>!race.horses?.some(h=>String(h.programNumber)===String(n))))return 'Ejemplar ajeno al tramo';
+   combinations*=choices.length;
+  }
+  if(Number(ticket.combinations)!==combinations)return 'Combinaciones inconsistentes';
+  if(p.unit!=null){
+   const unit=Number(p.unit);if(!Number.isFinite(unit)||unit<=0)return 'Unidad no verificada';
+   for(const key of ['derivedBaseCost','sourceStatedMathematicalCost','publishedCost']){
+    const value=ticket.cost?.[key];if(value!=null&&(!Number.isFinite(Number(value))||Math.abs(Number(value)-combinations*unit)>0.005))return 'Costo matemático inconsistente';
+   }
+  }
+ }
+ return '';
+}
+function publicationScope(cards){
+ const list=Array.isArray(cards)?cards:[],ready=list.filter(c=>c?.event?.preRaceFrozen===true),pending=list.filter(c=>c?.event?.preRaceFrozen!==true);
+ const label=c=>(c?.event?.track||'Hipódromo sin identificar')+' · '+(c?.event?.date||'Sin fecha')+' · '+(c?.races?.length||0)+' carreras';
+ const withheld=ready.filter(c=>pick6Issue(c));
+ const summary=(ready.length?'Listas para publicar: '+ready.map(label).join('; '):'Sin jornadas selladas para publicar.')+(pending.length?' | Se conservan en borrador: '+pending.map(label).join('; '):'')+(withheld.length?' | HypePick 6 pendiente de validar en '+withheld.length+' jornada(s); no se enviará.':'');
+ return {ready,pending,withheld,summary};
+}
+function prepareCards(cards){
+ const scope=publicationScope(cards);
+ if(Array.isArray(cards)&&cards.length&&!scope.ready.length)throw Error('No hay jornadas selladas para publicar. La biblioteca local se conserva.');
+ return scope.ready.map(card=>{const copy=clone(card);if(pick6Issue(card))delete copy.hypePick6;return copy});
+}
 function mergeCards(config,cards,tracks){
  const c=validate(config);c.horseData=c.horseData||{};c.hypepredict.analyses=c.hypepredict.analyses||{};c.raceDayHistory=c.raceDayHistory||{};
  for(const card of cards||[]){
@@ -47,7 +82,7 @@ function mergeCards(config,cards,tracks){
     const ref=x=>{const h=horses.find(h=>String(h.programNumber)===String(x?.horseNumber)||h.entryId===x?.horseId);return h?{entryId:h.entryId,programNumber:h.programNumber,name:h.name,hypeScore:h.hypeScore}:null};
    const refs=a=>(a||[]).map(ref).filter(Boolean),q=r.quickHits||{},pace=r.pace||{},risk=decision.risk||{};
    const a={trackId:tid,raceId:rid,status:'published',publicContract:'dashboard-safe-v3.0',horses:publishedHorses,
-    quickHits:{select:ref(q.select),rival:ref(q.rival),sleeper:ref(q.sleeper),huevazo:ref(q.huevazo),valuePlay:ref(q.valuePlay),value:display(q.value||'No cuantificable'),risk:risk.display||risk.level||'',selectConfidence:decision.selectConfidence||'',selectReliability:reliability(decision.selectReliability),gap:decision.gap??'',poolStatus:decision.poolStatus||'',decision:decision.officialDecision||'',decisionReason:decision.decisionExplanation||''},
+    quickHits:{select:ref(q.select),rival:ref(q.rival),sleeper:ref(q.sleeper),huevazo:ref(q.huevazo||q.longshot),valuePlay:ref(q.valuePlay),value:display(q.value||'No cuantificable'),risk:risk.display||risk.level||'',selectConfidence:decision.selectConfidence||'',selectReliability:reliability(decision.selectReliability),gap:decision.gap??'',poolStatus:decision.poolStatus||'',decision:decision.sourceText||decision.officialDecision||'',decisionReason:decision.decisionExplanation||''},
     raceMeta:{title:meta.display||'Carrera '+number,distance:meta.display||display(meta.value),surface:r.surface||'',condition:r.conditionDisplayRaw||r.condition||'',claiming:display(r.claimingPrice),purse:display(r.purse),participants:horses.length},
     paceProjection:{speed:refs(pace.speed),presser:refs(pace.pressers),stalker:refs(pace.stalkers),closer:refs(pace.closers),scenario:pace.scenario||''},raceRead:r.generalRead||'',
     hypeBoard:ranked.map(b=>{const h=ref(b);return h?{...h,rank:b.rank,hypeScore:b.hypeScore,reliability:reliability(b.reliability)}:null}).filter(Boolean),
@@ -67,5 +102,5 @@ function mergeCards(config,cards,tracks){
  }
  return validate(c);
 }
-root.PHPublication=Object.freeze({validate,mergeCards,clone});
+root.PHPublication=Object.freeze({validate,mergeCards,clone,publicationScope,prepareCards,pick6Issue});
 })(typeof window==='undefined'?globalThis:window);
