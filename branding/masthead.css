@@ -1,0 +1,19 @@
+/* Official PlayersHype masthead. Assets are packaged; no font or animation library. */
+.ph-masthead{position:relative;isolation:isolate;overflow:hidden;background:#080D18;color:#F4F7FC;border:0;border-bottom:1px solid #26344D;padding:0;backdrop-filter:none}
+.ph-masthead:before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:linear-gradient(108deg,transparent 28%,rgba(32,54,107,.52) 100%),repeating-linear-gradient(126deg,transparent 0 66px,rgba(79,124,255,.09) 67px 68px,transparent 69px 103px)}
+.ph-masthead:after{content:"";position:absolute;bottom:0;left:0;width:44%;height:2px;background:linear-gradient(90deg,transparent,#2677FF 46%,#64FFDA 68%,transparent);opacity:0;pointer-events:none}
+.ph-masthead .ph-masthead-inner{position:relative;max-width:1600px;min-height:94px;margin:auto;padding:14px 22px;display:flex;align-items:center;gap:22px}
+.ph-masthead .ph-logo{display:block;flex:none;width:110px;height:auto;aspect-ratio:640/382;object-fit:contain}
+.ph-masthead .ph-brand-copy{min-width:0;padding-left:20px;border-left:1px solid #26344D}
+.ph-masthead .ph-kicker{display:block;margin:0 0 5px;color:#64FFDA;font:800 9px/1.2 system-ui,sans-serif;letter-spacing:.17em;text-transform:uppercase}
+.ph-masthead .title{margin:0;color:#F4F7FC;font-size:26px;line-height:1.1;font-weight:900;letter-spacing:-.045em}
+.ph-masthead .sub{margin-top:5px;font-size:11px;line-height:1.3;color:#BCEBF2}
+.ph-masthead .public-chip{margin-left:auto;flex:none;font-size:9px;font-weight:800;letter-spacing:.04em;white-space:nowrap;color:#64FFDA;border:1px solid rgba(100,255,218,.35);background:rgba(100,255,218,.06);border-radius:6px;padding:8px 9px}
+.ph-masthead .ph-home-copy b{display:block;font-size:15px;line-height:1.25;font-weight:800;max-width:170px;letter-spacing:-.02em}
+.ph-masthead .status{margin-left:auto;flex:none;min-height:36px;color:#BCEBF2;border-radius:6px;background:rgba(8,13,24,.6);border-color:#26344D;font-size:9px}
+@keyframes ph-logo-enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ph-light-pass{0%{opacity:0;transform:translateX(-110%)}15%{opacity:1}80%{opacity:.8}100%{opacity:0;transform:translateX(340%)}}
+@media(prefers-reduced-motion:no-preference){.ph-masthead .ph-logo{animation:ph-logo-enter .55s ease-out both}.ph-masthead:after{animation:ph-light-pass 4.6s cubic-bezier(.22,.61,.36,1) .1s both}}
+@media(max-width:520px){.ph-masthead .ph-masthead-inner{min-height:88px;padding:13px 16px;gap:13px}.ph-masthead .ph-logo{width:96px}.ph-masthead .ph-brand-copy{padding-left:13px}.ph-masthead .title{font-size:23px}.ph-masthead .ph-kicker{font-size:8px;letter-spacing:.11em}.ph-masthead .sub{font-size:10px}.ph-masthead .public-chip{font-size:8px;padding:7px}.ph-masthead .ph-home-copy b{font-size:13px}.ph-masthead .status{padding:7px;font-size:8px}}
+@media(max-width:374px){.ph-masthead .ph-masthead-inner{padding-inline:12px;gap:10px}.ph-masthead .ph-logo{width:84px}.ph-masthead .ph-brand-copy{padding-left:10px}.ph-masthead .title{font-size:21px}.ph-masthead .public-chip{font-size:7px;padding:6px}.ph-masthead .ph-kicker{font-size:7px;letter-spacing:.08em}}
+@media(prefers-reduced-motion:reduce){.ph-masthead .ph-logo,.ph-masthead:after{animation:none!important}.ph-masthead:after{opacity:0}}
