@@ -107,6 +107,7 @@ jobs:
         run: |
           node android-sync/tests/sync.test.cjs "$SRC_DIR"
           node android-sync/tests/admin-workspace-publication.test.cjs "$SRC_DIR"
+          node android-sync/tests/publication-scope.test.cjs
 
       - name: Verify structured horse profiles and safe imported text
         run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
