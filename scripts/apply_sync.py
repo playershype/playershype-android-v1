@@ -1,6 +1,7 @@
 """Install the two-route publishing integration on the retained Android source."""
 from pathlib import Path
 import argparse,re,json,shutil
+from patch_admin_workspace_scope import patch_admin_workspace_scope
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -127,6 +128,9 @@ def main():
  s=s.replace('<script src="control.js">','<script src="/assets/sync/publication.js"></script><script src="/assets/sync/sync.js"></script><script src="control.js">')
  index.write_text(s)
  admin=r/'app-admin/src/main/assets/hypepredict/admin.html';s=admin.read_text();s=s.replace('</body>','<script src="/assets/sync/publication.js"></script><script src="/assets/sync/sync.js"></script></body>');admin.write_text(s)
+ # Match HypePredict's snapshot-scoped storage. Without this, a GitHub
+ # commit may succeed while zero newly imported races are published.
+ patch_admin_workspace_scope(admin, assets/'native/live-publish.js',r/'app-admin/src/main/assets/hypepredict/module.js')
  # Dedicated sync tests supplement, rather than replace, existing protections.
  for p in (overlay/'tests').glob('*.java'):shutil.copy(p,r/'shared/src/test/java/com/playershype/shared'/p.name)
  for module in ['app-user','app-admin']:
