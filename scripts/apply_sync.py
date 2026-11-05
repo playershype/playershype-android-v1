@@ -2,6 +2,7 @@
 from pathlib import Path
 import argparse,re,json,shutil
 from patch_admin_workspace_scope import patch_admin_workspace_scope
+from apply_branding import apply_native
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -156,5 +157,6 @@ def main():
  audit.write_text(s)
  security=r/'scripts/security_audit.py';s=security.read_text().replace("checks['publisher bounded to HTML']='Only public HTML may be published' in publisher and '32 * 1024 * 1024' in publisher", "checks['publisher bounded to public HTML or verified dual-route bundle']='Only public HTML or a validated publication bundle may be published' in publisher and '32 * 1024 * 1024' in publisher and 'AtomicGitPublisher' in publisher")
  security.write_text(s)
+ apply_native(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()
