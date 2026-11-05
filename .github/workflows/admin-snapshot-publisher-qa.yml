@@ -1,0 +1,21 @@
+name: Admin snapshot publisher QA
+on:
+  pull_request:
+    paths:
+      - scripts/apply_sync.py
+      - scripts/patch_admin_workspace_scope.py
+      - scripts/test_admin_workspace_scope.py
+      - .github/workflows/admin-snapshot-publisher-qa.yml
+  push:
+    branches: [main]
+    paths:
+      - scripts/apply_sync.py
+      - scripts/patch_admin_workspace_scope.py
+      - scripts/test_admin_workspace_scope.py
+jobs:
+  snapshot-workspace:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test HypePredict Admin snapshot/publication alignment
+        run: python3 -m unittest discover -s scripts -p test_admin_workspace_scope.py -v
