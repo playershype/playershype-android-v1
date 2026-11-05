@@ -101,6 +101,9 @@ jobs:
       - name: Verify Admin publishing, both destinations and failure recovery
         run: node android-sync/tests/sync.test.cjs "$SRC_DIR"
 
+      - name: Verify structured horse profiles and safe imported text
+        run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
+
       - name: PDF import and hostile-input regression checks
         run: |
           npm ci --prefix security-tests --ignore-scripts --no-audit --no-fund
