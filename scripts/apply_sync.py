@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse,re,json,shutil
 from patch_admin_workspace_scope import patch_admin_workspace_scope
 from apply_branding import apply_native
+from apply_results import native as apply_results
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -20,7 +21,7 @@ def main():
  native=native.replace('async function load(){',"async function load(event){\n if(event?.type==='click'&&window.HypeAndroid){try{await HypeAndroid.request('sync')}catch(e){$('#status').textContent='Sin conexión · se conserva la última copia válida';return}}")
  native=native.replace('load();\n',"const phInitial=load();\nlet phSyncPending=null;window.PlayersHypeSync={refresh(){if(!phSyncPending)phSyncPending=(async()=>{try{await HypeAndroid.request('sync');await load()}catch(e){$('#status').textContent='Sin conexión · última revisión: '+(DATA?.revision||'copia local')}})().finally(()=>phSyncPending=null);return phSyncPending}};document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.HypeAndroid)PlayersHypeSync.refresh()});phInitial.then(()=>{if(window.HypeAndroid)PlayersHypeSync.refresh()});\n")
  # Keep the native navigation contract when replacing the legacy public renderer.
- native+="\nwindow.HypePublic=Object.freeze({openHub(){phInitial.then(()=>{hpGoToJornada();render()})},openTrack(id){phInitial.then(()=>{hpGoToJornada();syncDateTracks($('#date').value||SELECTED_DATE,id)})}});\n"
+ native+="\nwindow.HypePublic=Object.freeze({openHub(){phInitial.then(()=>{hpGoToJornada();render()})},openResults(){phInitial.then(()=>{if(location.hash!=='#resultados')location.hash='#resultados';else if(!document.getElementById('hpResults'))render()})},openTrack(id){phInitial.then(()=>{hpGoToJornada();syncDateTracks($('#date').value||SELECTED_DATE,id)})}});\n"
  (assets/'sync/dashboard.js').write_text(native)
  html=re.sub(r'<script>[\s\S]*?</script>','<script src="/assets/native/bridge.js"></script><script src="/assets/sync/dashboard.js"></script>',source,count=1)
  html=html.replace('<head>',"<head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'\">")
@@ -158,5 +159,6 @@ def main():
  security=r/'scripts/security_audit.py';s=security.read_text().replace("checks['publisher bounded to HTML']='Only public HTML may be published' in publisher and '32 * 1024 * 1024' in publisher", "checks['publisher bounded to public HTML or verified dual-route bundle']='Only public HTML or a validated publication bundle may be published' in publisher and '32 * 1024 * 1024' in publisher and 'AtomicGitPublisher' in publisher")
  security.write_text(s)
  apply_native(r)
+ apply_results(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()

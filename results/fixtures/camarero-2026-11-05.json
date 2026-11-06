@@ -1,0 +1,325 @@
+{
+  "ok": true,
+  "track": "Camarero",
+  "date": "2026-11-05",
+  "count": 7,
+  "races": [
+    {
+      "raceNumber": 1,
+      "raceId": "47dbd8b4-73ae-4f79-abda-866fca6a0c8a",
+      "winner": {
+        "position": 1,
+        "programNumber": "1",
+        "horse": "Libre Y Soberana",
+        "jockey": "J.I.Velez"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "1",
+          "horse": "Libre Y Soberana",
+          "jockey": "J.I.Velez"
+        },
+        {
+          "position": 2,
+          "programNumber": "2",
+          "horse": "Anaila Mariel",
+          "jockey": "J.Santiago"
+        },
+        {
+          "position": 3,
+          "programNumber": "4",
+          "horse": "Bella Salome",
+          "jockey": "L.F.Rivera"
+        }
+      ],
+      "payout": {
+        "win": "$3.10",
+        "place": null,
+        "show": null,
+        "exacta": null,
+        "quiniela": null,
+        "trifecta": null,
+        "superfecta": null
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 2,
+      "raceId": "d955344c-da5b-4cf6-9ceb-9a24c121e292",
+      "winner": {
+        "position": 1,
+        "programNumber": "5",
+        "horse": "Princess Natalie",
+        "jockey": "J.Gonzalez"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "5",
+          "horse": "Princess Natalie",
+          "jockey": "J.Gonzalez"
+        },
+        {
+          "position": 2,
+          "programNumber": "1",
+          "horse": "Perplexed",
+          "jockey": "**Sebastian Ortiz"
+        },
+        {
+          "position": 3,
+          "programNumber": "4",
+          "horse": "Mythical Girl",
+          "jockey": "J.J.Esquilin"
+        },
+        {
+          "position": 4,
+          "programNumber": "3",
+          "horse": "Miss Mamibryan",
+          "jockey": "Alondra Maldonado"
+        }
+      ],
+      "payout": {
+        "win": "$4.50",
+        "place": "$2.10/2.10",
+        "show": null,
+        "exacta": "5-1 $7.10",
+        "quiniela": null,
+        "trifecta": null,
+        "superfecta": null
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 3,
+      "raceId": "83a16d27-2a25-4982-9a56-36771c9f367a",
+      "winner": {
+        "position": 1,
+        "programNumber": "1",
+        "horse": "Holy Coffee",
+        "jockey": "J.I.Velez"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "1",
+          "horse": "Holy Coffee",
+          "jockey": "J.I.Velez"
+        },
+        {
+          "position": 2,
+          "programNumber": "5",
+          "horse": "Lookin To Rock",
+          "jockey": "N.Figueroa"
+        },
+        {
+          "position": 3,
+          "programNumber": "4",
+          "horse": "Kantarita",
+          "jockey": "**Sebastian Ortiz"
+        },
+        {
+          "position": 4,
+          "programNumber": "3",
+          "horse": "Cuteness",
+          "jockey": "J.J.Esquilin"
+        }
+      ],
+      "payout": {
+        "win": "$2.40",
+        "place": null,
+        "show": null,
+        "exacta": "1-5 $2.10",
+        "quiniela": null,
+        "trifecta": null,
+        "superfecta": null
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 4,
+      "raceId": "f2fa3663-ff07-4a91-a835-3c7f51674653",
+      "winner": {
+        "position": 1,
+        "programNumber": "1",
+        "horse": "Sarai",
+        "jockey": "J.Santiago"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "1",
+          "horse": "Sarai",
+          "jockey": "J.Santiago"
+        },
+        {
+          "position": 2,
+          "programNumber": "2",
+          "horse": "In Open Court",
+          "jockey": "O.Y.Adorno"
+        },
+        {
+          "position": 3,
+          "programNumber": "4",
+          "horse": "Sur America",
+          "jockey": "E.Ramirez"
+        },
+        {
+          "position": 4,
+          "programNumber": "3",
+          "horse": "Legendary Princess",
+          "jockey": "**Christopher Hernandez"
+        }
+      ],
+      "payout": {
+        "win": "$4.10",
+        "place": "$2.10/2.30",
+        "show": null,
+        "exacta": "1-2 $18.50",
+        "quiniela": null,
+        "trifecta": "1-2-4 $42.35",
+        "superfecta": null
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 5,
+      "raceId": "d96bfb74-4193-4e29-9173-28c3cc73a043",
+      "winner": {
+        "position": 1,
+        "programNumber": "3",
+        "horse": "Bold Move",
+        "jockey": "E.Ramirez"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "3",
+          "horse": "Bold Move",
+          "jockey": "E.Ramirez"
+        },
+        {
+          "position": 2,
+          "programNumber": "5",
+          "horse": "Impactante",
+          "jockey": "N.Figueroa"
+        },
+        {
+          "position": 3,
+          "programNumber": "9",
+          "horse": "Honor Story",
+          "jockey": "L.F.Rivera"
+        },
+        {
+          "position": 4,
+          "programNumber": "1",
+          "horse": "El Diamante",
+          "jockey": "J.C.Diaz Jr."
+        }
+      ],
+      "payout": {
+        "win": "$16.70",
+        "place": "$7.50/7.90",
+        "show": null,
+        "exacta": "3-[ ] $26.50",
+        "quiniela": "3-5 $24.30",
+        "trifecta": "3-5-9 $64.15",
+        "superfecta": "3-5-9-1 $372.20"
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 6,
+      "raceId": "50ef63ca-9ef5-4180-a981-4580c255cedf",
+      "winner": {
+        "position": 1,
+        "programNumber": "1",
+        "horse": "El Serio",
+        "jockey": "J.C.Diaz Jr."
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "1",
+          "horse": "El Serio",
+          "jockey": "J.C.Diaz Jr."
+        },
+        {
+          "position": 2,
+          "programNumber": "5",
+          "horse": "One For Sammy",
+          "jockey": "A.Hernandez Sanchez"
+        },
+        {
+          "position": 3,
+          "programNumber": "3",
+          "horse": "Mr Macallan",
+          "jockey": "O.Y.Adorno"
+        },
+        {
+          "position": 4,
+          "programNumber": "2",
+          "horse": "Compasivo",
+          "jockey": "N.Figueroa"
+        }
+      ],
+      "payout": {
+        "win": "$7.90",
+        "place": "$2.90/2.40",
+        "show": null,
+        "exacta": "1-5 $10.40",
+        "quiniela": "1-5 $4.80",
+        "trifecta": "1-5-3 $11.00",
+        "superfecta": "1-5-3-2 $17.50"
+      },
+      "source": "Hipodromo Camarero"
+    },
+    {
+      "raceNumber": 7,
+      "raceId": "53d5440f-36c5-4152-9a83-07cf9004a550",
+      "winner": {
+        "position": 1,
+        "programNumber": "5",
+        "horse": "Zalamera Baby Boy",
+        "jockey": "N.Figueroa"
+      },
+      "top4": [
+        {
+          "position": 1,
+          "programNumber": "5",
+          "horse": "Zalamera Baby Boy",
+          "jockey": "N.Figueroa"
+        },
+        {
+          "position": 2,
+          "programNumber": "6",
+          "horse": "Handsome Sham",
+          "jockey": "L.F.Rivera"
+        },
+        {
+          "position": 3,
+          "programNumber": "1",
+          "horse": "No Te Quites",
+          "jockey": "O.Y.Adorno"
+        },
+        {
+          "position": 4,
+          "programNumber": "4",
+          "horse": "El Musico DN",
+          "jockey": "**Chrisjoel Laboy"
+        }
+      ],
+      "payout": {
+        "win": "$5.10",
+        "place": "$3.50/5.70",
+        "show": null,
+        "exacta": "5-6 $22.20",
+        "quiniela": null,
+        "trifecta": "5-6-1 $80.35",
+        "superfecta": "5-6-1-[ ] $78.50"
+      },
+      "source": "Hipodromo Camarero"
+    }
+  ],
+  "updatedAt": "2026-11-05T23:57:27.884Z"
+}
