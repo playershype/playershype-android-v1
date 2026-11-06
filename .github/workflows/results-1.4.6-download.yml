@@ -1,0 +1,91 @@
+name: Publish verified PlayersHype 1.4.6 downloads
+on:
+  push:
+    branches: [delivery/results-1.4.6-download-final]
+    paths: [.github/workflows/results-1.4.6-download.yml]
+permissions: {}
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: playershype/playershype-android-v1
+    steps:
+      - name: Require successful tested source build
+        shell: bash
+        run: |
+          gh api repos/$GH_REPO/actions/runs/42134902160 > tested-run.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open('tested-run.json'))
+          assert r['head_sha']=='63dab72ccfc4d490383917e606586aa3100d1ee6'
+          assert r['conclusion']=='success' and r['status']=='completed'
+          PY
+      - name: Download the tested APKs
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: playershype/playershype-android-v1
+          run-id: 42134902160
+          artifact-ids: 13465690719
+          merge-multiple: true
+          path: verified-build
+      - name: Download the exact successful emulator attempt
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/$GH_REPO/actions/artifacts/13466002767/zip" > verified-emulator.zip
+          echo '25422410dcf3020d8e5decce06b0787a303e211f70383f028b87a2b177f6d4c7  verified-emulator.zip' | sha256sum --check -
+          mkdir -p verified-emulator
+          unzip -q verified-emulator.zip -d verified-emulator
+      - name: Verify exact APKs and prepare downloads
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,shutil
+          root=Path('verified-build')
+          assert (root/'BUILD_COMMIT.txt').read_text().strip()=='63dab72ccfc4d490383917e606586aa3100d1ee6'
+          hashes={'App':'998254c0e0228764e529dcaf6afd043e0b40c0536e960b8efb5b0cfdcf080fbf','Admin':'367e446cd05996ff700db9303443563e6e3b0e9330fa90422f67d0e4ef0cfc30'}
+          for role,expected in hashes.items():
+              data=(root/f'PlayersHype-{role}-V1.3.1-RC-PREVIEW.apk').read_bytes()
+              assert hashlib.sha256(data).hexdigest()==expected
+              meta=(root/f'{role}-metadata.txt').read_text()
+              assert "versionCode='14'" in meta and "versionName='1.4.6-preview'" in meta
+              assert 'application-debuggable' not in meta
+              assert '622da637f469afd52692fb911c8ca5bfa478de52dcabfbd590e0b85aefb48934' in (root/f'{role}-signature.txt').read_text()
+              Path(f'PlayersHype-{role}-1.4.6.apk').write_bytes(data)
+          assert not json.loads((root/'secrets-apks.json').read_text())['findings']
+          assert 'PASS' in Path('verified-emulator/RESULT.txt').read_text()
+          assert 'PASS' in Path('verified-emulator/SYNC_RESULT.txt').read_text()
+          assert 'PASS' in Path('verified-emulator/RESULTS_RESULT.txt').read_text()
+          shutil.copy('verified-emulator/App-results-online.png','PlayersHype-1.4.6-Resultados.png')
+          Path('release-notes.md').write_text('Resultados oficiales de Camarero con acceso desde Inicio, HypePredict y una pestana nativa Resultados. Selector de fecha independiente, orden de llegada y pagos, consulta cada dos minutos y copia sin conexion de la fecha correcta. No cambia el analisis sellado ni los HypeScores. Mantiene el logo original y el icono distinto del Admin.\n\nInstala los APK como actualizaciones sobre las versiones con firma permanente. No desinstales esas versiones. El Admin 1.4.6 conserva la pantalla de resultados en futuras publicaciones.\n\nVersion 1.4.6-preview / codigo 13. Pruebas Android y emulador completas; descarga online y reinicio sin conexion verificados. Analisis y scores sin cambios.\n\nCompilacion 63dab72ccfc4d490383917e606586aa3100d1ee6.\n\n'+''.join(role+' SHA-256: '+sha+'\n' for role,sha in hashes.items()),encoding='utf-8')
+          Path('SHA256SUMS.txt').write_text(''.join(sha+'  PlayersHype-'+role+'-1.4.6.apk\n' for role,sha in hashes.items()))
+          PY
+      - name: Publish verified APKs as prerelease downloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_tag=results-v1.4.6-preview
+          if ! gh release view "$release_tag" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$release_tag" --repo "$GH_REPO" \
+              --target 63dab72ccfc4d490383917e606586aa3100d1ee6 \
+              --title 'PlayersHype 1.4.6 · Resultados oficiales (Preview)' \
+              --prerelease --notes-file release-notes.md
+          fi
+          for file in PlayersHype-App-1.4.6.apk PlayersHype-Admin-1.4.6.apk PlayersHype-1.4.6-Resultados.png SHA256SUMS.txt; do
+            expected_digest="sha256:$(sha256sum "$file" | cut -d ' ' -f 1)"
+            existing_digest=$(gh api "repos/$GH_REPO/releases/tags/$release_tag" --jq ".assets[] | select(.name == \"$file\") | .digest")
+            if [ -z "$existing_digest" ]; then
+              gh release upload "$release_tag" "$file" --repo "$GH_REPO"
+            elif [ "$existing_digest" != "$expected_digest" ]; then
+              echo 'Existing asset differs; refusing to overwrite it.'
+              exit 1
+            fi
+          done
+          gh api "repos/$GH_REPO/releases/tags/$release_tag" --jq '.assets[].browser_download_url' >> "$GITHUB_STEP_SUMMARY"
