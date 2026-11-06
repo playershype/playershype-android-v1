@@ -112,6 +112,9 @@ jobs:
       - name: Verify structured horse profiles and safe imported text
         run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
 
+      - name: Verify public results, dates, payments and offline recovery
+        run: node results/tests/reader.test.cjs "$SRC_DIR"
+
       - name: Verify official user branding and unchanged Admin launcher
         run: python3 scripts/check_branding.py "$SRC_DIR"
 
@@ -299,7 +302,7 @@ jobs:
             -noaudio
             -no-boot-anim
             -camera-back none
-          script: cd "$SRC_DIR" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_launch.py" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_sync.py"
+          script: cd "$SRC_DIR" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_launch.py" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_sync.py" && python3 "$GITHUB_WORKSPACE/android-sync/tests/emulator_results.py"
 
       - name: Upload emulator evidence
         if: always()
