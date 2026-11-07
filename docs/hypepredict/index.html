@@ -353,6 +353,22 @@ html,body{background:#E8EDF2;color:#0A192F}
 .results-screen{grid-column:1/-1;max-width:1180px;width:100%;margin:0 auto;padding:8px 0 20px}.results-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;background:linear-gradient(120deg,#0A192F,#20366B);padding:24px;border-radius:18px;color:#E0FBFC}.results-kicker{font-size:10px;letter-spacing:.16em;color:#64FFDA;font-weight:850}.results-heading h2{font-size:30px;margin:8px 0;letter-spacing:-.04em}.results-heading p{margin:0;font-size:13px;color:#BCEBF2}.results-heading #resultsState{border:1px solid #37577A;border-radius:6px;padding:8px;font-size:10px;font-weight:800;color:#64FFDA}.results-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin:20px 0 12px}.results-controls label{display:block;font-size:11px;font-weight:800;margin-bottom:6px}.results-controls select,.results-controls input,.results-controls button{box-sizing:border-box;width:100%;min-width:0;min-height:46px;font:700 14px system-ui;color:#20366B;background:#E0FBFC;border:1px solid #BCEBF2;border-radius:10px;padding:10px}.results-controls button{background:#FF491C;color:#0A192F;border-color:#FF491C;cursor:pointer}.results-controls button:disabled{opacity:.55}.results-screen #resultsNote{font-size:13px;line-height:1.6;margin:12px 0 5px}.results-screen #resultsUpdated{font-size:11px;color:#37577A;margin:0 0 18px}.results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.result-card{display:flex;align-items:center;gap:14px;text-align:left;padding:18px;background:#fff;color:#20366B;border:1px solid #BCEBF2;border-radius:14px;cursor:pointer;min-width:0;font:inherit}.result-card:disabled{opacity:.6;cursor:default}.result-race{align-self:stretch;display:grid;place-items:center;min-width:42px;border-radius:8px;background:#20366B;color:#E0FBFC;font-weight:900;font-size:17px}.result-copy{flex:1;min-width:0;overflow-wrap:anywhere}.result-copy small{display:block;font-size:9px;letter-spacing:.08em;font-weight:850;color:#37577A}.result-copy strong{display:block;font-size:18px;margin:5px 0}.result-copy>span{font-size:11px;color:#37577A}.result-pay{font-size:23px;letter-spacing:-.03em;font-weight:900;white-space:nowrap}.result-pay small{display:block;font-size:9px;letter-spacing:0;text-align:right;font-weight:600}.results-empty{grid-column:1/-1;padding:26px;border:1px dashed #37577A;border-radius:12px;font-size:14px;line-height:1.6}.results-foot{margin-top:18px;border-top:1px solid #BCEBF2;padding:16px 0;font-size:11px;line-height:1.6}.results-source-link{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:850;color:#20366B;text-decoration:underline}.results-foot p{margin:4px 0;color:#37577A}.result-modal{position:fixed;inset:0;background:rgba(8,13,24,.78);z-index:2000;display:grid;place-items:center;padding:20px}.result-dialog{background:#E8EDF2;border:1px solid #BCEBF2;max-width:650px;width:100%;max-height:90vh;overflow:auto;border-radius:18px;color:#20366B}.result-dialog>header{position:sticky;top:0;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#0A192F;color:#E0FBFC;padding:18px 22px;z-index:1}.result-dialog header small{font-size:10px;letter-spacing:.12em;color:#64FFDA}.result-dialog h2{font-size:21px;margin:5px 0 0}.result-dialog #resultClose{flex:none;width:44px;height:44px;border-radius:9px;border:1px solid #37577A;background:#20366B;color:#E0FBFC;font-size:26px;cursor:pointer}.result-dialog-body{padding:22px}.result-dialog h3{font-size:14px;text-transform:uppercase;letter-spacing:.05em;margin:0 0 14px}.result-dialog h3:not(:first-child){margin-top:24px}.results-table-wrap{overflow:auto}.result-dialog table{width:100%;border-collapse:collapse;font-size:13px}.result-dialog th{text-align:left;font-size:10px;color:#37577A}.result-dialog th,.result-dialog td{border-bottom:1px solid #BCEBF2;padding:12px 10px}.result-dialog td small{display:block;font-size:11px;color:#37577A;margin-top:4px}.results-pays{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}.results-pays>div{background:#E0FBFC;border:1px solid #BCEBF2;border-radius:9px;padding:12px}.results-pays dt{font-size:11px;color:#37577A}.results-pays dd{margin:5px 0 0;font-size:17px;font-weight:850;overflow-wrap:anywhere}.results-pays dd small{display:block;margin-top:7px;font-size:10px;color:#8C391B}.results-source{font-size:11px;line-height:1.7;margin:20px 0 0;color:#37577A}.results-screen :focus-visible,.result-dialog :focus-visible{outline:3px solid #00B4D8;outline-offset:3px}@media(max-width:600px){.results-heading{padding:19px;flex-direction:column;gap:12px}.results-heading h2{font-size:28px}.results-controls{grid-template-columns:1fr 1fr}.results-controls button{grid-column:1/-1}.results-grid{grid-template-columns:1fr}.result-card{padding:15px;gap:12px}.result-copy strong{font-size:17px}.result-pay{font-size:21px}.result-modal{padding:10px}.result-dialog-body{padding:17px}.results-pays{grid-template-columns:1fr 1fr}.results-heading #resultsState{font-size:9px}}
 
 /* PH_RESULTS_CSS_END */
+
+/* PH_EXPERIENCE_START */
+.xp-checklist,.xp-profile{--xp-ink:#102946;--xp-accent:#64ffda;--xp-muted:#48627a;color:var(--xp-ink)}
+.xp-checklist [hidden],.xp-profile [hidden]{display:none!important}
+.xp-check-card>summary::before,.xp-check-reading>summary::before{content:none!important}
+.xp-check-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px}.xp-check-toolbar b{font-size:16px}.xp-check-toolbar p,.xp-note{font-size:12px;color:var(--xp-muted);line-height:1.5;margin:5px 0 10px}.xp-review-count{flex:none;font-size:12px;font-weight:800;padding:9px;border-radius:9px;background:#20376a;color:#fff}.xp-review-progress{width:100%;height:7px;accent-color:#128a79;margin:5px 0 14px}.xp-search{display:grid;gap:6px;font-size:12px;font-weight:800;margin-bottom:16px}.xp-search input{box-sizing:border-box;width:100%;min-height:46px;border:1px solid #a2d9e3;background:#f5ffff;border-radius:12px;padding:10px 14px;font:inherit;font-size:16px;color:#102946}
+.xp-check-card{border:1px solid #b1dfe7;background:#f3feff;border-radius:16px;margin:10px 0;overflow:hidden}.xp-check-card>summary{list-style:none;display:flex;gap:10px;align-items:center;min-height:82px;padding:12px;cursor:pointer}.xp-check-card>summary::-webkit-details-marker{display:none}.xp-check-name{flex:1;min-width:0}.xp-check-name strong{display:block;font-size:17px;overflow-wrap:anywhere}.xp-check-name small{display:block;margin-top:5px;color:#416078;font-weight:700;font-size:12px}.xp-check-score{font-size:26px;font-weight:900;text-align:right}.xp-check-score small{display:block;font-size:9px;font-weight:700}.xp-chevron{font-size:22px}.xp-check-card[open]>.xp-chevron,.xp-check-card[open]>summary .xp-chevron{transform:rotate(180deg)}.xp-check-card[open]>summary{background:#d6f7f7;border-bottom:1px solid #b1dfe7}.xp-check-content{padding:16px}.xp-reviewed{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:800;font-size:14px}.xp-reviewed input{width:22px;height:22px;accent-color:#157b69;flex:none}.xp-check-reliability{font-size:14px;font-weight:800;margin:10px 0 16px}.xp-facts{margin:0}.xp-facts>div{display:grid;grid-template-columns:minmax(110px,.85fr) minmax(0,1.15fr);gap:16px;padding:11px 0;border-top:1px solid #cfe8ed;font-size:13px;line-height:1.5}.xp-facts dt{color:#416078}.xp-facts dd{margin:0;font-weight:700;overflow-wrap:anywhere}.xp-check-reading{margin-top:16px;border-top:1px solid #cfe8ed}.xp-check-reading summary{padding:14px 0;font-size:14px;font-weight:800;min-height:44px;box-sizing:border-box}.xp-check-reading h5{margin:15px 0 6px;font-size:13px}.xp-check-reading p,.xp-check-uniform p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.7;margin:6px 0}.xp-open-profile{display:block;width:100%;border:0;border-radius:12px;background:#20376a;color:white;min-height:48px;font:inherit;font-size:14px;font-weight:800;padding:12px;margin-top:16px;cursor:pointer}.xp-check-uniform{margin-top:14px}
+.xp-silk-art{margin:0;padding:12px 8px;text-align:center;background:linear-gradient(155deg,#e8fcff,#c6f0f1);border-radius:14px}.xp-silk-views{display:flex;justify-content:center;gap:22px}.xp-silk-views>div{max-width:135px;flex:1}.xp-silk-views svg{display:block;width:100%;height:140px;filter:drop-shadow(0 7px 3px #10294622)}.xp-silk-views small{display:block;color:#416078;letter-spacing:.12em;font-size:10px;font-weight:800;margin:6px 0}.xp-silk-art figcaption{font-size:10px;line-height:1.5;color:#48627a;max-width:320px;margin:10px auto 0}.xp-silk-mini{display:block;width:42px;height:48px;flex:none}.xp-silk-mini svg{width:100%;height:100%}.xp-silk-pending{display:flex;gap:12px;align-items:center;justify-content:center;min-height:90px;background:#e0f2f5;border:1px dashed #93bdc8;border-radius:12px;padding:12px;box-sizing:border-box}.xp-silk-pending>span{font-size:30px;color:#536c7f}.xp-silk-pending small{font-size:12px;line-height:1.5;max-width:180px;color:#48627a}.xp-silk-pending.compact{width:42px;min-height:44px;padding:0;flex:none}.xp-silk-pending.compact small{display:none}.xp-uniform-description{font-size:13px;line-height:1.6;color:#416078;padding:0 16px;white-space:pre-wrap}
+.xp-profile .profile-body{padding:16px;max-width:800px;margin:auto}.xp-profile .profile-metrics{gap:8px;margin-bottom:16px}.xp-profile .profile-metric{padding:12px;min-height:80px;box-sizing:border-box}.xp-profile .profile-metric strong{font-size:29px;line-height:1.2}.xp-profile .profile-metric small{display:block;font-size:10px;color:#bcebf2;margin-top:4px}.xp-profile .profile-hero{margin-bottom:16px}.xp-profile .profile-role{font-size:12px}.xp-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:5px;background:#c8eaf1;border-radius:12px;margin:0 0 16px}.xp-tabs button{min-width:0;min-height:44px;padding:8px 3px;border:0;background:transparent;border-radius:9px;color:#284963;font:inherit;font-weight:800;font-size:12px;cursor:pointer}.xp-tabs button[aria-selected=true]{background:#20376a;color:#fff;box-shadow:0 2px 5px #10294620}.xp-profile .profile-section{margin-bottom:14px}.xp-profile .profile-table th{width:37%}.xp-profile .profile-table td{width:63%}.xp-profile .profile-table th,.xp-profile .profile-table td{font-size:13px;line-height:1.55;padding:12px}.xp-profile .profile-reading p{font-size:16px;line-height:1.75;padding:16px;margin:0;white-space:pre-wrap}.xp-profile .profile-use,.xp-use-badge{display:flex;justify-content:space-between;gap:12px;padding:15px;background:#d9fbef;font-size:13px;line-height:1.5;overflow-wrap:anywhere}.xp-use-badge{border-radius:12px}.xp-workouts{padding:0 14px;margin:0;list-style:none}.xp-workouts li{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid #cfe8ed;align-items:flex-start}.xp-work-index{display:grid;place-items:center;width:32px;height:32px;flex:none;background:#20376a;color:white;border-radius:9px;font-size:12px;font-weight:800}.xp-workouts p{margin:0;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}.xp-profile .profile-works>.xp-note{padding:0 16px}.xp-quick{display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}.xp-quick .xp-quick-cta{display:block;font-size:10px;font-weight:800;color:#285a69;margin-top:8px}.xp-profile button:focus-visible,.xp-checklist :focus-visible,.xp-quick:focus-visible{outline:3px solid #006cbd;outline-offset:3px}
+@media(max-width:380px){.xp-check-card>summary{gap:7px;padding:10px}.xp-check-card .saddle{width:32px;height:36px;font-size:21px}.xp-silk-mini,.xp-silk-pending.compact{width:30px}.xp-check-name strong{font-size:15px}.xp-check-score{font-size:22px}.xp-check-content{padding:12px}.xp-tabs button{font-size:11px}.xp-check-toolbar{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:no-preference){.xp-tabs button{transition:background-color .15s,color .15s}.xp-check-card[open] .xp-check-content{animation:xp-reveal .16s ease-out}@keyframes xp-reveal{from{opacity:.5;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}}
+/* PH_EXPERIENCE_END */
+
+
+
+
 </style>
 </head>
 <body>
@@ -362,6 +378,108 @@ html,body{background:#E8EDF2;color:#0A192F}
 <main class="grid" id="app"></main><aside id="horseModal" class="horse-modal" aria-live="polite"></aside><aside id="matchModal" class="hm-modal" aria-live="polite"></aside>
 <footer>PLAYERSHYPE · No seguimos el hype. Lo creamos.</footer>
 <script>
+/* PH_EXPERIENCE_START: public presentation only; never writes published data. */
+function xpText(value){
+ if(value===null||value===undefined)return '';
+ if(Array.isArray(value))return value.map(xpText).filter(Boolean).join(' · ');
+ const text=String(value).trim();
+ if(text.startsWith('[')){try{const parsed=JSON.parse(text);if(Array.isArray(parsed))return xpText(parsed)}catch{}}
+ return text;
+}
+function xpLabel(value){
+ const text=xpText(value),key=text.toLowerCase().replace(/[_-]/g,' ');
+ return ({'co base':'Co-base',select:'Select',contendiente:'Contendiente',rival:'Rival',tapada:'Tapada',huevazo:'Huevazo',descarte:'Descarte'})[key]||text;
+}
+function xpKnown(value){return !!xpText(value)&&!/^(no publicado|no disponible|sin datos)$/i.test(xpText(value))}
+function xpSilkSpec(description){
+ const raw=xpText(description),text=raw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\bvde\b/g,'verde');
+ // Only complete, explicitly located designs are drawn. Unknown logos/patterns fail closed.
+ const colors={verde:'#16875f',naranja:'#ff851b',azul:'#1764bd',rojo:'#dc343d',roja:'#dc343d',blanco:'#f5f7fa',blanca:'#f5f7fa',negro:'#202733',negra:'#202733',amarillo:'#ffd329',amarilla:'#ffd329'};
+ const solid=text.match(/^(verde|azul|rojo|roja|blanco|blanca|negro|negra|amarillo|amarilla)[.,]?$/);
+ const diamond=text.match(/^(verde|azul|rojo|roja|blanco|blanca|negro|negra|amarillo|amarilla)\s*,?\s*diamante\s+(naranja|verde|azul|rojo|roja|blanco|blanca|negro|negra|amarillo|amarilla)\s+(?:frte|frente|al frente)\s+y\s+espalda[.]?$/);
+ if(diamond)return {base:colors[diamond[1]],mark:colors[diamond[2]],back:true,raw,partial:false};
+ if(solid)return {base:colors[solid[1]],mark:null,back:false,raw,partial:false};
+ const allColors={...colors,marron:'#784c38',gris:'#8c939c',vino:'#722c49','azul claro':'#80bce1','azul marino':'#172d51'};
+ const base=text.match(/^(azul claro|azul marino|verde|azul|rojo|roja|blanco|blanca|negro|negra|amarillo|amarilla|naranja|marron|gris|vino)\b/);
+ // Two body colors without a specified arrangement cannot become a one-color jersey.
+ if(base&&!/^\s*(?:y\s+(?:verde|azul|rojo|roja|negra|blanca|amarilla|naranja)\b|,\s*(?:verde|azul|rojo|amarillo|naranja)\b)/.test(text.slice(base[0].length))){
+  const sleeves=text.match(/(?:mangas|mgs|mgas)\s+(amarillas?|blancas?|negras?|rojas?|azules?|verdes?)\b(?!\s+y\b)/);
+  const sleeveKey=sleeves&&sleeves[1].replace(/s$/,'').replace(/^azule$/,'azul');
+  return {base:allColors[base[1]],mark:null,back:false,raw,partial:true,sleeve:allColors[sleeveKey]};
+ }
+ return null;
+}
+function xpSilk(description,compact=false){
+ const raw=xpText(description),spec=xpSilkSpec(raw);
+ if(!spec)return '<div class="xp-silk-pending'+(compact?' compact':'')+'"><span aria-hidden="true">◇</span><small>'+(xpKnown(raw)?'Uniforme pendiente de referencia':'Uniforme no publicado')+'</small></div>';
+ function view(back){
+  const diamond=spec.mark?'<path d="M60 43 78 67 60 91 42 67Z" fill="'+spec.mark+'"/>':'';
+  return '<svg viewBox="0 0 120 130" role="img" aria-label="'+hpEsc((spec.partial?'Ilustración parcial: ':'')+(back?'Espalda: ':'Frente: ')+raw)+'"><path d="M37 22 22 27 6 86 23 93 37 48M83 22 98 27 114 86 97 93 83 48" fill="'+(spec.sleeve||'#c4cdd4')+'" stroke="#536779" stroke-width="1.5"/><path d="M37 22 49 17Q60 23 71 17L83 22 86 113Q60 122 34 113Z" fill="'+spec.base+'" stroke="#102946" stroke-width="1.8"/>'+diamond+'<path d="M37 26 40 108M83 26 80 108" fill="none" stroke="white" stroke-opacity=".24" stroke-width="2"/><path d="M49 17Q60 33 71 17" fill="none" stroke="#102946" stroke-width="2"/><path d="M44 108Q60 111 76 108" fill="none" stroke="#102946" stroke-opacity=".25"/></svg>';
+ }
+ if(compact)return '<span class="xp-silk-mini" title="'+(spec.partial?'Ilustración parcial':'Ilustración según descripción')+'">'+view(false)+'</span>';
+ return '<figure class="xp-silk-art"><div class="xp-silk-views"><div>'+view(false)+'<small>'+(spec.partial?'VISTA PARCIAL':'FRENTE')+'</small></div>'+(spec.back?'<div>'+view(true)+'<small>ESPALDA</small></div>':'')+'</div><figcaption>'+(spec.partial?'Ilustración parcial: faltan logos o detalles de la descripción. ':'Ilustración según descripción. ')+(spec.sleeve?'':'Mangas en gris: sin detalle representado. ')+'Gorra sin representar.</figcaption></figure>';
+}
+function xpFieldPairs(h){
+ const data=hpProfileData(h),get=data.get;
+ return [['Peso',get('Peso',h.raceData?.weight)],['Días sin correr',get('Días sin correr',h.raceData?.daysSinceLastRace)],['Jinete',get('Jinete',h.connections?.jockey)],['Entrenador',get('Entrenador',h.connections?.trainer)],['Establo / propietario',get('Establo/propietario',h.connections?.stable||h.connections?.owner)],['Últimas cinco',get('Últimas cinco',h.form?.lastFiveDisplay)],['Perfil de paso',get('Perfil',h.paceProfile?.display)],['Power / Rating',get('Power/Rating',h.raceData?.powerNumber)],['En la distancia',get('Distancia',h.form?.distanceRecord)],['Value',get('Value',h.value?.gradeDisplay)]];
+}
+var xpReviewed=new Set();
+function xpReviewKey(a,h){return JSON.stringify([DATA?.revision||'',a.raceId||'',h.programNumber,h.name])}
+function fullCheckList(a){
+ const horses=Array.isArray(a?.horses)?a.horses:[];
+ if(!horses.length)return '<p class="missing-field">Checklist no recibido.</p>';
+ const count=horses.filter(h=>xpReviewed.has(xpReviewKey(a,h))).length;
+ return '<div class="xp-checklist"><div class="xp-check-toolbar"><div><b>Tu revisión del campo</b><p>Marca cada ficha después de revisarla.</p></div><output class="xp-review-count" aria-live="polite">'+count+' / '+horses.length+' revisados</output></div><progress class="xp-review-progress" value="'+count+'" max="'+horses.length+'" aria-label="Fichas revisadas"></progress><label class="xp-search"><span>Buscar ejemplar</span><input type="search" placeholder="Número o nombre" data-xp-search autocomplete="off"></label><p class="xp-no-matches" hidden>Sin coincidencias.</p>'+horses.map((h,i)=>{
+  const data=hpProfileData(h),get=data.get,key=xpReviewKey(a,h),silk=get('Uniforme',h.silks?.description);
+  return '<details class="xp-check-card" data-xp-name="'+hpEsc('#'+h.programNumber+' '+h.name)+'"><summary>'+hpSaddle(h.programNumber)+xpSilk(silk,true)+'<span class="xp-check-name"><strong>'+hpEsc(h.name)+'</strong><small>'+hpEsc(xpLabel(h.role||h.roles?.primary))+'</small></span><span class="xp-check-score">'+hpScore(h)+'<small>HypeScore</small></span><span class="xp-chevron" aria-hidden="true">⌄</span></summary><div class="xp-check-content"><label class="xp-reviewed"><input type="checkbox" data-xp-reviewed="'+hpEsc(key)+'" '+(xpReviewed.has(key)?'checked':'')+'> Ficha revisada por mí</label><p class="xp-note">Marca personal de lectura; no cambia la evaluación.</p><div class="xp-check-reliability">Confiabilidad: '+hpEsc(get('Confiabilidad',h.reliability||h.model?.reliability))+'</div><dl class="xp-facts">'+xpFieldPairs(h).map(([label,value])=>'<div><dt>'+hpEsc(label)+'</dt><dd>'+hpEsc(value)+'</dd></div>').join('')+'</dl><div class="xp-check-uniform">'+xpSilk(silk)+'<b>Uniforme publicado</b><p>'+hpEsc(silk)+'</p></div><details class="xp-check-reading"><summary>Leer briseos, lectura y uso</summary><h5>Briseos disponibles</h5><p>'+hpEsc(get('Briseos disponibles',Array.isArray(h.works)?h.works.map(w=>w.raw||'').filter(Boolean).join(' | '):undefined))+'</p><h5>Lectura</h5><p>'+hpEsc(get('LECTURA',h.reading))+'</p><h5>Uso recomendado</h5><p>'+hpEsc(xpLabel(get('USO',h.roles?.recommendedUse)))+'</p></details><button type="button" class="xp-open-profile" data-xp-profile="'+i+'">Abrir perfil completo →</button></div></details>';
+ }).join('')+'<p class="xp-note">Las marcas se conservan durante esta sesión y corresponden a esta publicación.</p></div>';
+}
+function hpHorseProfile(h,raceNo){
+ const data=hpProfileData(h),get=data.get,missing='No publicado';
+ const score=h.hypeScore??h.model?.hypeScore??get('HypeScore'),reliability=h.reliability||h.model?.reliability||get('Confiabilidad');
+ const last=get('Últimas cinco',h.form?.lastFiveDisplay),results=/^\d+(?:\s*[-–]\s*\d+)*$/.test(last)?last.split(/\s*[-–]\s*/):null;
+ const works=get('Briseos disponibles',Array.isArray(h.works)?h.works.map(w=>w.raw||'').filter(Boolean).join(' | '):undefined),workRows=xpKnown(works)?works.split(/\s*\|\s*/).filter(Boolean):[];
+ const silk=get('Uniforme',h.silks?.description),reading=get('LECTURA',h.reading),use=xpLabel(get('USO',h.roles?.recommendedUse));
+ const metrics=[['HypeScore',score],['Confiabilidad',reliability],['Peso',get('Peso',h.raceData?.weight)],['Días sin correr',get('Días sin correr',h.raceData?.daysSinceLastRace)]];
+ const tabs=[['summary','Resumen'],['form','Forma'],['works','Briseos'+(workRows.length?' · '+workRows.length:'')],['reading','Lectura']];
+ function panel(key,html){return '<div role="tabpanel" id="xp-panel-'+key+'" aria-labelledby="xp-tab-'+key+'" tabindex="0" '+(key!=='summary'?'hidden':'')+'>'+html+'</div>'}
+ return '<div class="horse-panel profile-panel xp-profile" role="dialog" aria-modal="true" aria-labelledby="profileName" tabindex="-1"><div class="horse-panel-header"><div><span class="profile-eyebrow">PLAYERSHYPE · HYPEPREDICT</span><b>PERFIL DEL EJEMPLAR</b></div><button id="closeHorse" type="button" aria-label="Cerrar perfil">×</button></div><div class="profile-body"><header class="profile-hero"><div class="profile-identity">'+hpSaddle(h.programNumber)+'<div><span class="profile-eyebrow">CARRERA '+hpEsc(raceNo)+'</span><h2 id="profileName">'+hpEsc(h.name)+'</h2></div></div><span class="profile-role">'+hpEsc(xpLabel(h.role||h.roles?.primary))+'</span></header><div class="profile-metrics">'+metrics.map((m,i)=>'<div class="profile-metric '+(i===0?'primary':'')+'"><span>'+hpEsc(m[0])+'</span><strong>'+hpEsc(m[1])+'</strong>'+(i===0?'<small>de 10 · puntuación del modelo</small>':'')+'</div>').join('')+'</div><nav class="xp-tabs" role="tablist" aria-label="Información del ejemplar">'+tabs.map(([key,label],i)=>'<button type="button" role="tab" id="xp-tab-'+key+'" aria-controls="xp-panel-'+key+'" aria-selected="'+(i===0)+'" tabindex="'+(i===0?'0':'-1')+'" data-xp-tab="'+key+'">'+label+'</button>').join('')+'</nav>'+
+ panel('summary','<section class="profile-section xp-uniform"><h3>Uniforme del ejemplar</h3>'+xpSilk(silk)+'<p class="xp-uniform-description">'+hpEsc(silk)+'</p></section>'+hpProfileTable('Conexiones',[['Jinete',get('Jinete',h.connections?.jockey)],['Entrenador',get('Entrenador',h.connections?.trainer)],['Establo / propietario',get('Establo/propietario',h.connections?.stable||h.connections?.owner)]])+'<div class="xp-use-badge"><span>Uso recomendado</span><strong>'+hpEsc(use)+'</strong></div>')+
+ panel('form','<section class="profile-section"><h3>Forma y rendimiento</h3><div class="profile-form"><span>Últimas cinco publicadas</span>'+(results?'<div class="profile-results" aria-label="Últimas cinco: '+hpEsc(last)+'">'+results.map((v,i)=>'<span class="profile-result '+(v==='1'?'win':'')+'" title="Resultado publicado '+(i+1)+'">'+hpEsc(v)+'</span>').join('')+'</div>':'<strong>'+hpEsc(last)+'</strong>')+'</div>'+hpProfileTable('Rendimiento publicado',xpFieldPairs(h).slice(6))+'</section>')+
+ panel('works','<section class="profile-section profile-works"><h3>Briseos disponibles <span class="profile-count">'+workRows.length+'</span></h3>'+(workRows.length?'<ol class="xp-workouts">'+workRows.map((w,i)=>'<li><span class="xp-work-index">'+String(i+1).padStart(2,'0')+'</span><p>'+hpEsc(w)+'</p></li>').join('')+'</ol>':'<p class="profile-missing">'+hpEsc(works)+'</p>')+'<p class="xp-note">Se conserva el orden y el detalle publicado.</p></section>')+
+ panel('reading','<section class="profile-section profile-reading"><h3>Lectura del ejemplar</h3><p>'+hpEsc(reading)+'</p><div class="profile-use"><span>Uso recomendado</span><strong>'+hpEsc(use)+'</strong></div></section>'+(data.extra.length?'<section class="profile-section"><h3>Información adicional</h3><p class="profile-additional">'+hpEsc(data.extra.join('\n'))+'</p></section>':''))+'</div></div>';
+}
+function xpSelectTab(button){
+ const root=button.closest('.xp-profile');if(!root)return;
+ root.querySelectorAll('[data-xp-tab]').forEach(b=>{const active=b===button;b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;const panel=root.querySelector('#'+b.getAttribute('aria-controls'));if(panel)panel.hidden=!active});
+}
+document.addEventListener('click',event=>{
+ const tab=event.target.closest('[data-xp-tab]');if(tab){xpSelectTab(tab);return}
+ const open=event.target.closest('[data-xp-profile]');if(open){hpOpenHorse(Number(open.dataset.xpProfile));return}
+ const pick=event.target.closest('[data-xp-pick]');if(pick){const ctx=hpMatchSource(hpScreen()),index=ctx?.a?.horses?.findIndex(h=>String(h.programNumber)===pick.dataset.xpPick);if(index>=0)hpOpenHorse(index)}
+});
+document.addEventListener('keydown',event=>{
+ const tab=event.target.closest('[data-xp-tab]');if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ const tabs=Array.from(tab.parentElement.querySelectorAll('[data-xp-tab]')),i=tabs.indexOf(tab),next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(i+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+ event.preventDefault();xpSelectTab(tabs[next]);tabs[next].focus();
+});
+document.addEventListener('input',event=>{
+ if(!event.target.matches('[data-xp-search]'))return;
+ const root=event.target.closest('.xp-checklist'),query=event.target.value.trim().toLocaleLowerCase();let count=0;
+ root.querySelectorAll('.xp-check-card').forEach(card=>{card.hidden=!card.dataset.xpName.toLocaleLowerCase().includes(query);if(!card.hidden)count++});root.querySelector('.xp-no-matches').hidden=count>0;
+});
+document.addEventListener('change',event=>{
+ if(!event.target.matches('[data-xp-reviewed]'))return;
+ const box=event.target,key=box.dataset.xpReviewed;if(box.checked)xpReviewed.add(key);else xpReviewed.delete(key);
+ while(xpReviewed.size>300)xpReviewed.delete(xpReviewed.values().next().value);
+ document.querySelectorAll('.xp-checklist').forEach(root=>{const boxes=Array.from(root.querySelectorAll('[data-xp-reviewed]'));boxes.forEach(b=>b.checked=xpReviewed.has(b.dataset.xpReviewed));const count=boxes.filter(b=>b.checked).length;root.querySelector('output').textContent=count+' / '+boxes.length+' revisados';root.querySelector('progress').value=count});
+});
+/* PH_EXPERIENCE_END */
+
+
+
+
+
 const CONFIG_URL='../app/config.json'; let DATA=null, SELECTED_DATE='';
 const URL_PARAMS=new URLSearchParams(location.search);
 const REQUESTED_TRACK=URL_PARAMS.get('track')||'';
@@ -397,7 +515,7 @@ function detailField(label,val) {
 
 function quickPick(label,h,variant="") {
  if(!h||!h.name)return "";
- return '<div class="quick-cell '+hpEsc(variant)+'"><div class="slot">'+hpEsc(label)+'</div><div class="horse">'+hpSaddle(h.programNumber)+'<span>'+hpEsc(h.name)+'</span></div><div class="score">'+(h.hypeScore==null?"—":hpEsc(h.hypeScore))+' <span style="font-size:10px;font-weight:800;color:#536f7f">/ 10</span></div></div>';
+ return '<button type="button" class="quick-cell xp-quick '+hpEsc(variant)+'" data-xp-pick="'+hpEsc(h.programNumber)+'" aria-label="Ver perfil de '+hpEsc(h.name)+'"><div class="slot">'+hpEsc(label)+'</div><div class="horse">'+hpSaddle(h.programNumber)+'<span>'+hpEsc(h.name)+'</span></div><div class="score">'+(h.hypeScore==null?"—":hpEsc(h.hypeScore))+' <span style="font-size:10px;font-weight:800;color:#536f7f">/ 10</span></div><span class="xp-quick-cta">Ver perfil ↗</span></button>';
 }
 
 
@@ -436,11 +554,6 @@ function roleAndBoard(a) {
 }
 
 
-function fullCheckList(a){
- const horses=Array.isArray(a?.horses)?a.horses:[];
- if(!horses.length)return `<p class="missing-field">Checklist no recibido.</p>`;
- return horses.map(h=>`<section class="horse-detail"><h5>#${esc(h.programNumber)} ${esc(h.name)} · ${esc(h.role||"HypeBoard")}</h5><pre class="source">${esc(h.sourceText||"Detalle no disponible en la fuente publicada.")}</pre></section>`).join("");
-}
 
 function raceCard(r,trackId,date) {
  const a=analysisFor(r);
@@ -462,11 +575,11 @@ function raceCard(r,trackId,date) {
  </header>
  <div class="race-core">
   <section><h4 class="section-label">⚡ QUICK HITS</h4><div class="quick-grid">${picks||`<p class="missing-field">Selecciones no disponibles.</p>`}</div><div class="stats">${stats}</div></section>
-  <section class="decision"><b>Veredicto: ${esc(q.decision||risk.decision||"No disponible")}</b>${q.decisionReason?`<div>${esc(q.decisionReason)}</div>`:""}</section>
+  <section class="decision"><b>Veredicto: ${esc(xpLabel(q.decision||risk.decision||"No disponible"))}</b>${q.decisionReason?`<div>${esc(q.decisionReason)}</div>`:""}</section>
   <section class="read"><h4 class="block-title">🧠 Lectura de la carrera</h4><p>${esc(a.raceRead||"No hay lectura general disponible.")}</p></section>
   <section><h4 class="block-title">⚡ Pace Projection</h4><div class="pace-lanes">${paceLane("Speed",pace.speed)}${paceLane("Presser",pace.presser)}${paceLane("Stalker",pace.stalker)}${paceLane("Closer",pace.closer)}</div>${pace.scenario?`<p class="pace-scenario"><b>Escenario:</b> ${esc(pace.scenario)}</p>`:""}</section>
   <section><h4 class="block-title">🏆 HypeBoard · Campo completo</h4>${roleAndBoard(a)}</section>
-  <section class="risk"><h4 class="block-title">⚖️ Control de Riesgo</h4><p class="risk-text"><b>${esc(risk.decision||q.decision||"Sin decisión")}</b>${risk.factors?" · "+esc(risk.factors):""}</p></section>
+  <section class="risk"><h4 class="block-title">⚖️ Control de Riesgo</h4><p class="risk-text"><b>${esc(xpLabel(risk.decision||q.decision||"Sin decisión"))}</b>${risk.factors?" · "+esc(risk.factors):""}</p></section>
   <section><h4 class="block-title">🎯 Pool Intelligence</h4>${poolParts?`<div class="pool-grid">${poolParts}</div>`:""}${pool.strategy?`<p class="strategy" style="margin-top:12px">${esc(pool.strategy)}</p>`:""}${pool.budgetCut?`<p class="strategy" style="margin-top:8px"><b>Corte de presupuesto:</b> ${esc(pool.budgetCut)}</p>`:""}</section>
   ${wager?`<section class="wager"><h4 class="block-title">🎯 HypeBet</h4><pre>${esc(wager)}</pre></section>`:""}
  </div>
@@ -788,26 +901,6 @@ function hpProfileData(h){
 function hpProfileTable(title,rows){
  return '<section class="profile-section"><h3>'+hpEsc(title)+'</h3><table class="profile-table"><caption class="profile-sr">'+hpEsc(title)+'</caption><tbody>'+rows.map(row=>'<tr><th scope="row">'+hpEsc(row[0])+'</th><td>'+hpEsc(row[1])+'</td></tr>').join('')+'</tbody></table></section>';
 }
-function hpHorseProfile(h,raceNo){
- const data=hpProfileData(h),get=data.get,missing='No publicado';
- const score=h.hypeScore??h.model?.hypeScore??get('HypeScore');
- const reliability=h.reliability||h.model?.reliability||get('Confiabilidad');
- const role=h.role||h.roles?.primary||'';
- const last=get('Últimas cinco',h.form?.lastFiveDisplay);
- const results=/^\d+(?:\s*[-–]\s*\d+)*$/.test(last)?last.split(/\s*[-–]\s*/):null;
- const works=get('Briseos disponibles',Array.isArray(h.works)?h.works.map(w=>w.raw||'').filter(Boolean).join(' | '):undefined);
- const workRows=works===missing?[]:works.split(/\s*\|\s*/).filter(Boolean);
- const metrics=[['HypeScore',score],['Confiabilidad',reliability],['Peso',get('Peso',h.raceData?.weight)],['Días sin correr',get('Días sin correr',h.raceData?.daysSinceLastRace)]];
- const reading=get('LECTURA',h.reading),use=get('USO',h.roles?.recommendedUse);
- return '<div class="horse-panel profile-panel" role="dialog" aria-modal="true" aria-labelledby="profileName" tabindex="-1"><div class="horse-panel-header"><div><span class="profile-eyebrow">PLAYERSHYPE · HYPEPREDICT</span><b>PERFIL DEL EJEMPLAR</b></div><button id="closeHorse" type="button" aria-label="Cerrar perfil">×</button></div>'+
- '<div class="profile-body"><header class="profile-hero"><div class="profile-identity">'+hpSaddle(h.programNumber)+'<div><span class="profile-eyebrow">CARRERA '+hpEsc(raceNo)+'</span><h2 id="profileName">'+hpEsc(h.name)+'</h2></div></div>'+(role?'<span class="profile-role">'+hpEsc(role)+'</span>':'')+'</header>'+
- '<div class="profile-metrics">'+metrics.map((m,i)=>'<div class="profile-metric '+(i===0?'primary':'')+'"><span>'+hpEsc(m[0])+'</span><strong>'+hpEsc(m[1])+'</strong></div>').join('')+'</div>'+
- hpProfileTable('Conexiones', [['Jinete',get('Jinete',h.connections?.jockey)],['Entrenador',get('Entrenador',h.connections?.trainer)],['Establo / propietario',get('Establo/propietario',h.connections?.stable||h.connections?.owner)],['Uniforme',get('Uniforme',h.silks?.description)]])+
- '<section class="profile-section"><h3>Forma y rendimiento</h3><div class="profile-form"><span>Últimas cinco</span>'+(results?'<div class="profile-results" aria-label="Últimas cinco: '+hpEsc(last)+'">'+results.map((v,i)=>'<span class="profile-result '+(v==='1'?'win':'')+'" title="Resultado '+(i+1)+'">'+hpEsc(v)+'</span>').join('')+'</div>':'<strong>'+hpEsc(last)+'</strong>')+'</div><table class="profile-table"><caption class="profile-sr">Rendimiento publicado</caption><tbody>'+[['Perfil de paso',get('Perfil',h.paceProfile?.display)],['Power / Rating',get('Power/Rating',h.raceData?.powerNumber)],['En la distancia',get('Distancia',h.form?.distanceRecord)],['Value',get('Value',h.value?.gradeDisplay)]].map(row=>'<tr><th scope="row">'+hpEsc(row[0])+'</th><td>'+hpEsc(row[1])+'</td></tr>').join('')+'</tbody></table></section>'+
- '<details class="profile-section profile-works" open><summary><span>Briseos disponibles</span><span class="profile-count">'+(workRows.length?workRows.length:'—')+'</span></summary>'+(workRows.length?'<div class="profile-scroll" role="region" aria-label="Registros de briseos" tabindex="0"><table class="profile-table profile-work-table"><caption class="profile-sr">Briseos publicados, conservados en el orden original</caption><thead><tr><th scope="col">Registro</th><th scope="col">Detalle publicado</th></tr></thead><tbody>'+workRows.map((w,i)=>'<tr><th scope="row">'+String(i+1).padStart(2,'0')+'</th><td>'+hpEsc(w)+'</td></tr>').join('')+'</tbody></table></div>':'<p class="profile-missing">'+missing+'</p>')+'</details>'+
- '<section class="profile-section profile-reading"><h3>Lectura del ejemplar</h3><p>'+hpEsc(reading)+'</p><div class="profile-use"><span>Uso recomendado</span><strong>'+hpEsc(use)+'</strong></div></section>'+
- (data.extra.length?'<section class="profile-section"><h3>Información adicional</h3><p class="profile-additional">'+hpEsc(data.extra.join('\n'))+'</p></section>':'')+'</div></div>';
-}
 
 function hpOpenHorse(i){
  var n=hpScreen(),id=document.querySelector("#track").value,d=day(id,document.querySelector("#date").value),r=(d&&d.races||[]).find(function(x){return Number(x.number)===n}),a=r&&analysisFor(r),h=a&&a.horses&&a.horses[i];
@@ -829,10 +922,10 @@ function hpDecisionStrip(a){
   ["RIESGO",q.risk||risk.risk||"—",/alto/i.test(String(q.risk||risk.risk||""))?"danger":"warn"],
   ["CONFIANZA",q.selectConfidence||"No disponible",""],
   ["CONFIABILIDAD",q.selectReliability||risk.selectReliability||"No disponible",""],
-  ["GAP SELLADO",q.gap||risk.gap||"No disponible",""],
+  ["GAP SELLADO",q.gap??risk.gap??"No disponible",""],
   ["ESTADO DEL POOL",String(q.poolStatus||"No disponible").replace(/\s*👉\s*$/,""),""]
  ];
- return '<div class="race-strip">'+fields.map(function(f){return '<div class="strip-cell '+f[2]+'"><div class="strip-label">'+hpEsc(f[0])+'</div><div class="strip-value">'+hpEsc(f[1])+'</div></div>'}).join("")+'</div>';
+ return '<div class="race-strip">'+fields.map(function(f){return '<div class="strip-cell '+f[2]+'"><div class="strip-label">'+hpEsc(f[0])+'</div><div class="strip-value">'+hpEsc(f[0]==="DECISIÓN"?xpLabel(f[1]):f[1])+'</div></div>'}).join("")+'</div>';
 }
 
 function hpRaceView(track,dayData,race){
