@@ -4,6 +4,7 @@ import argparse,re,json,shutil
 from patch_admin_workspace_scope import patch_admin_workspace_scope
 from apply_branding import apply_native
 from apply_results import native as apply_results
+from apply_experience import transform as apply_experience
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -13,10 +14,11 @@ def main():
  ap=argparse.ArgumentParser();ap.add_argument('source',type=Path);args=ap.parse_args();r=args.source.resolve();overlay=P/'android-sync'
  shared=r/'shared/src/main';assets=shared/'assets';(assets/'sync').mkdir(exist_ok=True)
  for p in (overlay/'java').glob('*.java'):shutil.copy(p,shared/'java/com/playershype/shared'/p.name)
- for p in (overlay/'assets').glob('*.js'):shutil.copy(p,assets/'sync'/p.name)
+ for p in (overlay/'assets').glob('*.js'):
+  if p.name!='experience.js':shutil.copy(p,assets/'sync'/p.name)
  # Package the published snapshot as a first-install/offline seed; never invent a day.
  shutil.copy(P/'docs/app/config.json',assets/'sync/published-seed.json')
- source=(P/'docs/hypepredict/index.html').read_text();script=re.search(r'<script>([\s\S]*?)</script>',source).group(1)
+ source=apply_experience((P/'docs/hypepredict/index.html').read_text());script=re.search(r'<script>([\s\S]*?)</script>',source).group(1)
  native=script.replace("const CONFIG_URL='../app/config.json';","const CONFIG_URL='/core/app-config';")
  native=native.replace('async function load(){',"async function load(event){\n if(event?.type==='click'&&window.HypeAndroid){try{await HypeAndroid.request('sync')}catch(e){$('#status').textContent='Sin conexión · se conserva la última copia válida';return}}")
  native=native.replace('load();\n',"const phInitial=load();\nlet phSyncPending=null;window.PlayersHypeSync={refresh(){if(!phSyncPending)phSyncPending=(async()=>{try{await HypeAndroid.request('sync');await load()}catch(e){$('#status').textContent='Sin conexión · última revisión: '+(DATA?.revision||'copia local')}})().finally(()=>phSyncPending=null);return phSyncPending}};document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.HypeAndroid)PlayersHypeSync.refresh()});phInitial.then(()=>{if(window.HypeAndroid)PlayersHypeSync.refresh()});\n")
