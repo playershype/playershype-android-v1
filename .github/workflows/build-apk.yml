@@ -17,6 +17,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  mobile-fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare actual packaged Home and public reader
+        run: |
+          mkdir -p .mobile-source
+          unzip -q PlayersHype-Ecosystem-V1.3.1-RC-SOURCE.zip -d .mobile-source
+          python3 scripts/apply_theme.py .mobile-source/PlayersHype-Ecosystem-V1.3.1-RC
+          python3 scripts/apply_sync.py .mobile-source/PlayersHype-Ecosystem-V1.3.1-RC
+      - name: Install pinned browser for layout verification only
+        run: |
+          npm install --prefix /tmp/ph-mobile-qa --ignore-scripts --no-audit --no-fund playwright@1.62.1
+          /tmp/ph-mobile-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify actual layouts at phone widths with long published fields
+        env:
+          PH_PLAYWRIGHT_NODE_MODULES: /tmp/ph-mobile-qa/node_modules
+        run: node mobile/layout.test.cjs .mobile-source/PlayersHype-Ecosystem-V1.3.1-RC
+      - name: Upload width measurements and browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayersHype-mobile-fit
+          path: mobile-evidence/
+          if-no-files-found: error
+
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -252,7 +282,7 @@ jobs:
           rm -f "$RUNNER_TEMP/playershype-qa.jks"
 
   emulator:
-    needs: android
+    needs: [android, mobile-fit]
     runs-on: ubuntu-latest
     timeout-minutes: 25
 

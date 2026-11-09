@@ -3,6 +3,7 @@ from pathlib import Path
 import argparse,re,json,shutil
 from patch_admin_workspace_scope import patch_admin_workspace_scope
 from apply_branding import apply_native
+from apply_mobile_fit import public as fit_public, native as fit_native
 from apply_results import native as apply_results
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
@@ -11,6 +12,7 @@ def patch(path,old,new):
  path.write_text(s.replace(old,new))
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('source',type=Path);args=ap.parse_args();r=args.source.resolve();overlay=P/'android-sync'
+ fit_public()
  shared=r/'shared/src/main';assets=shared/'assets';(assets/'sync').mkdir(exist_ok=True)
  for p in (overlay/'java').glob('*.java'):shutil.copy(p,shared/'java/com/playershype/shared'/p.name)
  for p in (overlay/'assets').glob('*.js'):shutil.copy(p,assets/'sync'/p.name)
@@ -167,5 +169,6 @@ def main():
  patch(java,'    navigate(state==null?"home":state.getString("active","home"),null);','    if(isAdmin()||state!=null)navigate(state==null?"home":state.getString("active","home"),null);')
  patch(java,'public void handleOnBackPressed(){web.evaluateJavascript','public void handleOnBackPressed(){if(web==null){finish();return;}web.evaluateJavascript')
  apply_results(r)
+ fit_native(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()

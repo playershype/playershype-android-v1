@@ -1,0 +1,71 @@
+/* Fit the layout itself. Do not hide page overflow or shrink the text to conceal it. */
+html,body{max-width:100%;margin-inline:0}
+body{overflow-wrap:anywhere}
+:where(main,section,article,aside,header,footer,nav,div,details,summary,p,pre,form,label){min-width:0}
+:where(img,video,canvas,svg){max-width:100%}
+:where(input,select,textarea,button){min-width:0;max-width:100%}
+:where(button,select){overflow-wrap:anywhere}
+:where(pre){white-space:pre-wrap;overflow-wrap:anywhere}
+[hidden]{display:none!important}
+.grid,.dashboard-shell,.race-screen,.race-core{grid-template-columns:minmax(0,1fr)}
+.grid,.dashboard-shell,.race-screen,.race-page,.race-core,.race-core>*,.board-wrap,.horse-panel,.hm-dialog,.result-dialog{min-width:0;max-width:100%}
+.pace-lane,.read,.decision,.strategy,.risk-text,.pace-scenario,.profile-reading,.hm-reading{overflow-wrap:anywhere}
+.controls select,.controls input,.hm-choice select{width:100%;min-width:0;max-width:100%}
+.board-id,.quick-cell .horse,.profile-identity>div{min-width:0;overflow-wrap:anywhere}
+.board-id{flex-wrap:wrap}
+.section-head,.section-title,.match-head,.match-footer,.profile-form,.profile-use,.wx-footer{flex-wrap:wrap}
+.board-table,.profile-table,.result-dialog table{width:100%;max-width:100%;table-layout:fixed}
+.board-table th,.board-table td,.result-dialog th,.result-dialog td{overflow-wrap:anywhere}
+.hm-cell{flex-wrap:wrap}
+@media(max-width:760px){
+ .controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .race-core,.race-core>section{width:100%}
+ .screen-nav{flex-wrap:wrap;overflow:visible}
+ .screen-nav .nav-home{min-width:0}
+ .jornada-command,.profile-form,.profile-use{flex-wrap:wrap}
+ .profile-identity{flex-basis:100%}
+ .profile-role{margin-left:0}
+ .profile-results{flex-wrap:wrap}
+ .profile-panel{width:100%;scrollbar-gutter:auto}
+ .horse-panel-header>button{flex-shrink:0}
+ .hm-title,.hm-top>div,.result-dialog header>div{min-width:0;overflow-wrap:anywhere}
+ .hm-choice select{padding-inline:5px}
+ .hm-edge{white-space:normal}
+ .board-table{display:block;table-layout:auto}
+ .board-table thead{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ .board-table tbody{display:grid;grid-template-columns:minmax(0,1fr)}
+ .board-table tr{display:grid;grid-template-columns:30px minmax(0,1fr);border-bottom:1px solid #BCEBF2;padding:8px}
+ .board-table td{border:0;padding:5px 6px;min-width:0}
+ .board-table td:first-child{grid-column:1;grid-row:1/4;font-weight:900}
+ .board-table td:nth-child(2),.board-table td:nth-child(3),.board-table td:nth-child(4){grid-column:2}
+ .board-table td:nth-child(3):before{content:'HypeScore · ';font-size:12px;font-weight:600}
+ .board-table td:nth-child(4):before{content:'Confiabilidad · ';font-size:12px;font-weight:600}
+ .board-table tr:last-child{border-bottom:0}
+ .board-id{display:flex;align-items:center}
+ .board-id .name{flex:1;min-width:0}
+}
+@media(max-width:480px){
+ .pace-lanes{grid-template-columns:minmax(0,1fr)}
+ .quick{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .quick small{display:block;white-space:normal;overflow:visible;text-overflow:clip}
+ .programs,.tracks{grid-template-columns:minmax(0,1fr)}
+ .news{grid-template-columns:76px minmax(0,1fr) auto}
+ .news img{width:76px;max-width:100%;object-fit:cover}
+ .tool{grid-template-columns:40px minmax(0,1fr) auto}
+ .section-head{gap:8px}
+ .ph-masthead .ph-masthead-inner{flex-wrap:wrap;gap:10px}
+ .ph-masthead .ph-brand-copy{padding-left:10px}
+ .ph-masthead .public-chip{white-space:normal}
+ .result-card{display:grid;grid-template-columns:38px minmax(0,1fr);gap:10px}
+ .result-pay{grid-column:2;white-space:normal}
+ .result-pay small{text-align:left}
+ .results-pays{grid-template-columns:minmax(0,1fr)}
+ .hm-selectors{grid-template-columns:minmax(0,1fr)}
+ .hm-vs{justify-self:center}
+ .hm-fighters{grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr)}
+ .hm-row{grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr)}
+ .hm-cell{gap:3px}
+ .hm-center small{font-size:10px}
+ .wx-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .wx-hours{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
