@@ -3,6 +3,7 @@ package com.playershype.shared;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
@@ -48,11 +49,20 @@ public final class UserLaunchScreen {
     brand.addView(kicker);
     ImageView logo = new ImageView(activity);
     logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
+    logo.setContentDescription("Logo PlayersHype");
+    logo.setAlpha(1f);
+    // Keep the bitmap on a software layer while the parent uses native effects.
+    logo.setLayerType(View.LAYER_TYPE_SOFTWARE,null);
     try(InputStream in=activity.getAssets().open("launch-wordmark.webp")) {
-      logo.setImageBitmap(BitmapFactory.decodeStream(in));
+      BitmapFactory.Options options=new BitmapFactory.Options();
+      options.inPreferredConfig=Bitmap.Config.ARGB_8888;
+      Bitmap bitmap=BitmapFactory.decodeStream(in,null,options);
+      if(bitmap==null)throw new java.io.IOException("Invalid packaged wordmark");
+      logo.setImageBitmap(bitmap);
     } catch(java.io.IOException e) {
       // A missing graphic must never prevent access to the Home.
-      logo.setContentDescription("PlayersHype");
+      logo.setImageResource(activity.getApplicationInfo().icon);
+      android.util.Log.w("PlayersHypeLaunch","Using packaged launcher fallback");
     }
     LinearLayout.LayoutParams logoBox = new LinearLayout.LayoutParams(-1,dp(activity,180));
     logoBox.topMargin=dp(activity,24);
@@ -89,8 +99,9 @@ public final class UserLaunchScreen {
         line.setRotation(-14); line.setTranslationX(-intro.getWidth());
         line.animate().translationX(intro.getWidth()*1.4f).alpha(0).setStartDelay(i*35).setDuration(720).start();
       }
-      logo.setAlpha(0);logo.setTranslationX(-dp(activity,90));logo.setScaleX(1.65f);logo.setScaleY(1.65f);logo.setRotation(-7);
-      logo.animate().alpha(1).translationX(0).scaleX(1).scaleY(1).rotation(0).setStartDelay(180).setDuration(900).setInterpolator(new DecelerateInterpolator(2)).start();
+      // The logo must stay opaque even when an OEM skips or cancels animators.
+      logo.setTranslationX(-dp(activity,24));logo.setScaleX(.94f);logo.setScaleY(.94f);
+      logo.animate().translationX(0).scaleX(1).scaleY(1).setStartDelay(0).setDuration(650).setInterpolator(new DecelerateInterpolator(2)).start();
       kicker.setAlpha(0);kicker.setTranslationY(-dp(activity,15));
       kicker.animate().alpha(1).translationY(0).setStartDelay(700).setDuration(500).start();
       accent.setScaleX(0);accent.animate().scaleX(1).setStartDelay(800).setDuration(450).start();

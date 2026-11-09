@@ -29,7 +29,7 @@ for role,package,button in [('App','com.playershype.app.preview','Predict'),('Ad
     recording=None
     if role=='App':
         adb('shell','settings','put','global','animator_duration_scale','1.0')
-        recording=subprocess.Popen(['adb','shell','screenrecord','--time-limit','7','/sdcard/playershype-startup.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        recording=subprocess.Popen(['adb','shell','screenrecord','--time-limit','25','/sdcard/playershype-startup.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         time.sleep(.4)
     result=adb('shell','am','start','-W','-n',package+'/'+package.removesuffix('.preview')+'.MainActivity')
     if role=='App':
@@ -39,7 +39,7 @@ for role,package,button in [('App','com.playershype.app.preview','Predict'),('Ad
     assert 'Status: ok' in result or 'Status: timeout' in result,result
     xml=wait_for(lambda root:any(n.get('text')==button and n.get('class')=='android.widget.Button' for n in root.iter('node')),role+' native navigation')
     if recording is not None:
-        recording.wait(timeout=15)
+        recording.wait(timeout=35)
         adb('pull','/sdcard/playershype-startup.mp4',str(out/'App-startup.mp4'))
     root=ET.fromstring(xml);node=next(n for n in root.iter('node') if n.get('text')==button and n.get('class')=='android.widget.Button')
     x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
