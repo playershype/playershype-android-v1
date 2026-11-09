@@ -5,3 +5,7 @@ The supplied phone recording shows the launch text and streaks but no wordmark. 
 The 2.5-second full-screen entrance and Home handoff remain. No menus, network calls, permissions, new shipped libraries or data changes are added. The existing 13,850-byte logo asset is reused. Normal/resumed, reduced-motion and offline behavior remain part of device verification; the previously failing offline recovery check remains a separate limitation until it passes.
 
 Version 1.4.8, code 16. Permanent signing and both package identities remain unchanged. CI now records 25 seconds from launch so cold-start overhead does not truncate the animation evidence.
+
+## Follow-up 1.4.9, code 17
+
+Animated emulator capture showed cold WebView initialization consuming the entrance budget before native brand frames were presented. Fresh user launch now constructs the Home WebView only after the native 2.5-second sequence. The brand stays opaque until that construction returns; saved-state restoration and the Admin retain immediate navigation. Back during the pre-WebView entrance exits safely. This trades concurrent Home construction for reliable presentation of the requested animation. Network data acquisition remains on the existing background executor.

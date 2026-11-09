@@ -23,7 +23,7 @@ import java.io.InputStream;
 public final class UserLaunchScreen {
   private static final long DURATION_MS = 2500;
   private UserLaunchScreen() {}
-  public static void show(Activity activity, View home) {
+  public static void show(Activity activity, View home, Runnable prepareHome) {
     FrameLayout stage = new FrameLayout(activity);
     stage.setBackgroundColor(Color.rgb(8,13,24));
     home.setVisibility(View.INVISIBLE);
@@ -76,6 +76,8 @@ public final class UserLaunchScreen {
     brand.addView(phrase);
     Handler handler = new Handler(Looper.getMainLooper());
     Runnable finish = () -> {
+      // Construct the Home WebView only after the brand has had its full screen time.
+      prepareHome.run();
       home.setVisibility(View.VISIBLE);
       home.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
       stage.removeView(intro);
@@ -107,7 +109,7 @@ public final class UserLaunchScreen {
       accent.setScaleX(0);accent.animate().scaleX(1).setStartDelay(800).setDuration(450).start();
       phrase.setAlpha(0);phrase.setTranslationY(dp(activity,18));
       phrase.animate().alpha(1).translationY(0).setStartDelay(1000).setDuration(550).start();
-      intro.animate().alpha(0).scaleX(1.18f).scaleY(1.18f).setStartDelay(2120).setDuration(380).start();
+      // Keep the brand opaque until the Home is ready to take over.
     });
     intro.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
       public void onViewAttachedToWindow(View v){}

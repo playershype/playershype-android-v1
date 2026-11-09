@@ -161,7 +161,11 @@ def main():
  apply_native(r)
  # The native overlay covers the WebView AND native navigation on a fresh user launch.
  shutil.copy(P/'branding/playershype-wordmark.webp',r/'app-user/src/main/assets/launch-wordmark.webp')
- patch(java,'root.addView(nav);setContentView(root);','root.addView(nav);if(!isAdmin()&&state==null)UserLaunchScreen.show(this,root);else setContentView(root);')
+ patch(java,'root.addView(nav);setContentView(root);','root.addView(nav);if(!isAdmin()&&state==null)UserLaunchScreen.show(this,root,()->navigate("home",null));else setContentView(root);')
+ # A cold Home WebView can block the UI thread longer than the entire entrance.
+ # Its first construction is deferred until the local native brand sequence ends.
+ patch(java,'    navigate(state==null?"home":state.getString("active","home"),null);','    if(isAdmin()||state!=null)navigate(state==null?"home":state.getString("active","home"),null);')
+ patch(java,'public void handleOnBackPressed(){web.evaluateJavascript','public void handleOnBackPressed(){if(web==null){finish();return;}web.evaluateJavascript')
  apply_results(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()
