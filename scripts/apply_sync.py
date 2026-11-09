@@ -5,6 +5,8 @@ from patch_admin_workspace_scope import patch_admin_workspace_scope
 from apply_branding import apply_native
 from apply_results import native as apply_results
 from apply_home import apply as apply_home
+from apply_splash import apply as apply_splash
+from apply_mobile import html as mobile_html, native as apply_mobile
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -18,7 +20,7 @@ def main():
   if p.name!='home-page.js':shutil.copy(p,assets/'sync'/p.name)
  # Package the published snapshot as a first-install/offline seed; never invent a day.
  shutil.copy(P/'docs/app/config.json',assets/'sync/published-seed.json')
- source=(P/'docs/hypepredict/index.html').read_text();script=re.search(r'<script>([\s\S]*?)</script>',source).group(1)
+ source=mobile_html((P/'docs/hypepredict/index.html').read_text());script=re.search(r'<script>([\s\S]*?)</script>',source).group(1)
  native=script.replace("const CONFIG_URL='../app/config.json';","const CONFIG_URL='/core/app-config';")
  native=native.replace('async function load(){',"async function load(event){\n if(event?.type==='click'&&window.HypeAndroid){try{await HypeAndroid.request('sync')}catch(e){$('#status').textContent='Sin conexión · se conserva la última copia válida';return}}")
  native=native.replace('load();\n',"const phInitial=load();\nlet phSyncPending=null;window.PlayersHypeSync={refresh(){if(!phSyncPending)phSyncPending=(async()=>{try{await HypeAndroid.request('sync');await load()}catch(e){$('#status').textContent='Sin conexión · última revisión: '+(DATA?.revision||'copia local')}})().finally(()=>phSyncPending=null);return phSyncPending}};document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.HypeAndroid)PlayersHypeSync.refresh()});phInitial.then(()=>{if(window.HypeAndroid)PlayersHypeSync.refresh()});\n")
@@ -163,5 +165,7 @@ def main():
  apply_native(r)
  apply_results(r)
  apply_home(r)
+ apply_splash(r)
+ apply_mobile(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()
