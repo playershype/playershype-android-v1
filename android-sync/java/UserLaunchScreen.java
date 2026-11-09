@@ -88,7 +88,7 @@ public final class UserLaunchScreen {
       }
     };
     // Start only after the full-screen surface has dimensions and can be displayed.
-    intro.post(() -> {
+    Runnable startIntro = () -> {
       if(!intro.isAttachedToWindow())return;
       handler.postDelayed(finish,DURATION_MS);
       if(!ValueAnimator.areAnimatorsEnabled())return;
@@ -110,7 +110,22 @@ public final class UserLaunchScreen {
       phrase.setAlpha(0);phrase.setTranslationY(dp(activity,18));
       phrase.animate().alpha(1).translationY(0).setStartDelay(1000).setDuration(550).start();
       // Keep the brand opaque until the Home is ready to take over.
-    });
+    };
+    // Do not spend the 2.5-second budget behind Android 12+'s system splash.
+    if(android.os.Build.VERSION.SDK_INT>=31) {
+      activity.getSplashScreen().setOnExitAnimationListener(systemSplash -> {
+        systemSplash.remove();
+        intro.postOnAnimation(startIntro);
+      });
+    } else {
+      intro.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
+        public boolean onPreDraw(){
+          intro.getViewTreeObserver().removeOnPreDrawListener(this);
+          intro.postOnAnimation(startIntro);
+          return true;
+        }
+      });
+    }
     intro.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener(){
       public void onViewAttachedToWindow(View v){}
       public void onViewDetachedFromWindow(View v){handler.removeCallbacks(finish);intro.animate().cancel();}

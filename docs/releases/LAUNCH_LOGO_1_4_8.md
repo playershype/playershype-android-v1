@@ -9,3 +9,7 @@ Version 1.4.8, code 16. Permanent signing and both package identities remain unc
 ## Follow-up 1.4.9, code 17
 
 Animated emulator capture showed cold WebView initialization consuming the entrance budget before native brand frames were presented. Fresh user launch now constructs the Home WebView only after the native 2.5-second sequence. The brand stays opaque until that construction returns; saved-state restoration and the Admin retain immediate navigation. Back during the pre-WebView entrance exits safely. This trades concurrent Home construction for reliable presentation of the requested animation. Network data acquisition remains on the existing background executor.
+
+## Android system splash handoff: 1.4.10, code 18
+
+The native entrance clock now starts after the Android 12+ system splash exit callback removes the system overlay, using the platform SplashScreen API. Older Android versions start on the frame after first pre-draw. This prevents the 2.5-second budget from elapsing behind the system-owned starting window. Home construction remains deferred and the brand stays opaque. Reference: https://developer.android.com/develop/ui/views/launch/splash-screen
