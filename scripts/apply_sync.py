@@ -159,6 +159,9 @@ def main():
  security=r/'scripts/security_audit.py';s=security.read_text().replace("checks['publisher bounded to HTML']='Only public HTML may be published' in publisher and '32 * 1024 * 1024' in publisher", "checks['publisher bounded to public HTML or verified dual-route bundle']='Only public HTML or a validated publication bundle may be published' in publisher and '32 * 1024 * 1024' in publisher and 'AtomicGitPublisher' in publisher")
  security.write_text(s)
  apply_native(r)
+ # The native overlay covers the WebView AND native navigation on a fresh user launch.
+ shutil.copy(P/'branding/playershype-wordmark.webp',r/'app-user/src/main/assets/launch-wordmark.webp')
+ patch(java,'root.addView(nav);setContentView(root);','root.addView(nav);if(!isAdmin()&&state==null)UserLaunchScreen.show(this,root);else setContentView(root);')
  apply_results(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()

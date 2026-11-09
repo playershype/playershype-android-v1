@@ -24,10 +24,22 @@ def wait_for(predicate,label):
 for role,package,button in [('App','com.playershype.app.preview','Predict'),('Admin','com.playershype.admin.preview','HypePredict')]:
     apk=pathlib.Path('artifacts')/f'PlayersHype-{role}-V1.3.1-RC-PREVIEW.apk'
     assert 'Success' in adb('install','-r',str(apk))
+    # Capture the actual startup sequence before launching, including the overlay
+    # that must cover native menus. Keep this as device evidence, not a DOM mock.
+    recording=None
+    if role=='App':
+        recording=subprocess.Popen(['adb','shell','screenrecord','--time-limit','7','/sdcard/playershype-startup.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        time.sleep(.4)
     result=adb('shell','am','start','-W','-n',package+'/'+package.removesuffix('.preview')+'.MainActivity')
+    if role=='App':
+        with (out/'App-startup.png').open('wb') as f:subprocess.run(['adb','exec-out','screencap','-p'],stdout=f,check=True,timeout=30)
+
     # A cold emulator can time out am's launch wait; the real UI check below remains mandatory.
     assert 'Status: ok' in result or 'Status: timeout' in result,result
     xml=wait_for(lambda root:any(n.get('text')==button and n.get('class')=='android.widget.Button' for n in root.iter('node')),role+' native navigation')
+    if recording is not None:
+        recording.wait(timeout=15)
+        adb('pull','/sdcard/playershype-startup.mp4',str(out/'App-startup.mp4'))
     root=ET.fromstring(xml);node=next(n for n in root.iter('node') if n.get('text')==button and n.get('class')=='android.widget.Button')
     x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
     adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
