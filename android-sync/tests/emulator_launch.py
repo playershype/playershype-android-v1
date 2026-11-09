@@ -28,6 +28,7 @@ for role,package,button in [('App','com.playershype.app.preview','Predict'),('Ad
     # that must cover native menus. Keep this as device evidence, not a DOM mock.
     recording=None
     if role=='App':
+        adb('shell','settings','put','global','animator_duration_scale','1.0')
         recording=subprocess.Popen(['adb','shell','screenrecord','--time-limit','7','/sdcard/playershype-startup.mp4'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
         time.sleep(.4)
     result=adb('shell','am','start','-W','-n',package+'/'+package.removesuffix('.preview')+'.MainActivity')
