@@ -95,32 +95,33 @@ public final class PublicFeedStore {
     if (tracks != null && daysByTrack != null && analyses != null) {
       for (int i = 0; i < tracks.length(); i++) {
         JSONObject track = tracks.optJSONObject(i);
-        if (track != null && hasPublishedRace(daysByTrack.opt(track.optString("id")), analyses, date)) {
-          visible.put(track);
+        int count = track == null ? 0 : publishedRaceCount(daysByTrack.opt(track.optString("id")), analyses, date);
+        if (count > 0) {
+          visible.put(new JSONObject(track.toString()).put("date", date).put("publishedRaces", count).put("races", count));
         }
       }
     }
-    return home.put("tracks", visible);
+    return home.put("tracks", visible).put("homeDate", date);
   }
 
-  private static boolean hasPublishedRace(Object history, JSONObject analyses, String date) {
+  private static int publishedRaceCount(Object history, JSONObject analyses, String date) {
     JSONArray days = history instanceof JSONArray ? (JSONArray) history
         : history instanceof JSONObject ? ((JSONObject) history).optJSONArray("days") : null;
     if (days == null && history instanceof JSONObject) days = new JSONArray().put(history);
-    if (days == null) return false;
+    if (days == null) return 0;
+    Set<String> published = new HashSet<>();
     for (int i = 0; i < days.length(); i++) {
       JSONObject day = days.optJSONObject(i);
       if (day == null || !date.equals(day.optString("date"))) continue;
       JSONArray races = day.optJSONArray("races");
-      if (races == null) return false;
+      if (races == null) continue;
       for (int j = 0; j < races.length(); j++) {
         JSONObject race = races.optJSONObject(j);
         JSONObject analysis = race == null ? null : analyses.optJSONObject(race.optString("id"));
-        if (analysis != null && "published".equals(analysis.optString("status"))) return true;
+        if (analysis != null && "published".equals(analysis.optString("status"))) published.add(race.optString("id"));
       }
-      return false;
     }
-    return false;
+    return published.size();
   }
 
   public synchronized JSONObject snapshot()throws Exception{

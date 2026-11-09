@@ -110,7 +110,14 @@ jobs:
           node android-sync/tests/publication-scope.test.cjs
 
       - name: Verify structured horse profiles and safe imported text
-        run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
+        run: |
+          node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
+          node android-sync/tests/home-page.test.cjs "$SRC_DIR"
+          python3 -m unittest discover -s scripts -p test_mobile_fit.py -v
+          python3 scripts/preview_home.py "$SRC_DIR" --output "$RUNNER_TEMP/ph-home-review"
+          python3 scripts/export_home_review.py "$SRC_DIR" "$RUNNER_TEMP/ph-home-review" "$RUNNER_TEMP/ph-home.html"
+          python3 scripts/export_splash_review.py "$RUNNER_TEMP/ph-home.html" "$RUNNER_TEMP/ph-launch.html"
+          node android-sync/tests/splash.test.cjs "$SRC_DIR" "$RUNNER_TEMP/ph-launch.html"
 
       - name: Verify public results, dates, payments and offline recovery
         run: node results/tests/reader.test.cjs "$SRC_DIR"
