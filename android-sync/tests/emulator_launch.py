@@ -6,7 +6,7 @@ import atexit
 @atexit.register
 def diagnostics():
     try:
-        (out/'device-logcat.txt').write_bytes(subprocess.check_output(['adb','logcat','-d','-t','3000'],stderr=subprocess.STDOUT,timeout=30))
+        (out/'device-logcat.txt').write_bytes(subprocess.check_output(['adb','logcat','-d'],stderr=subprocess.STDOUT,timeout=30))
     except Exception: pass
 def adb(*args):return subprocess.check_output(['adb',*args],text=True,stderr=subprocess.STDOUT,timeout=90)
 def tree():
@@ -17,6 +17,7 @@ def wait_for(predicate,label):
     while time.monotonic()<deadline:
         try:
             xml=tree()
+            (out/'last-launch-screen.xml').write_text(xml)
             if predicate(ET.fromstring(xml)):return xml
         except (ET.ParseError,subprocess.CalledProcessError):pass
         time.sleep(2)
@@ -49,7 +50,10 @@ for role,package,button in [('App','com.playershype.app.preview','Predict'),('Ad
         assert not any(n.get('text') for n in icons),'No visible native labels'
         with (out/'App-home-icons.png').open('wb') as f:subprocess.run(['adb','exec-out','screencap','-p'],stdout=f,check=True,timeout=30)
         print('PASS five accessible icon buttons in one native row')
+    xml=wait_for(lambda root:any((n.get('text')==button or n.get('content-desc')==button) and n.get('clickable')=='true' for n in root.iter('node')),role+' fresh native navigation')
+    (out/(role+'-before-navigation.xml')).write_text(xml)
     root=ET.fromstring(xml);node=next(n for n in root.iter('node') if (n.get('text')==button or n.get('content-desc')==button) and n.get('clickable')=='true')
+    (out/(role+'-navigation-activity.txt')).write_text(adb('shell','dumpsys','activity','activities'))
     x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
     adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
     def hub(root):
