@@ -23,8 +23,9 @@ async function measure(page,label,width,factor){
  if(m.document>m.viewport+1||m.offenders.length||m.textBad.length){await page.screenshot({path:path.join(out,`FAIL-${width}-${factor}-${label}.png`)});throw Error(JSON.stringify(report.checks.at(-1)));}
  if(width===360&&factor===1)await page.screenshot({path:path.join(out,`${label}.png`)});
 }
+let browser;
 (async()=>{
- const browser=await chromium.launch({headless:true});
+ browser=await chromium.launch({headless:true});
  const context=await browser.newContext({viewport:{width:360,height:800},isMobile:true,hasTouch:true});
  await context.route('**/*',async route=>{
   const u=new URL(route.request().url());
@@ -62,4 +63,4 @@ async function measure(page,label,width,factor){
  assert.equal(JSON.stringify(config),before,'Published data remains byte-for-byte unchanged in the test');
  assert.deepEqual(report.errors,[],'No uncaught browser errors');
  await browser.close();console.log('PASS',report.checks.length,'real Chromium width checks, reported R6 reproduced, 320–768px, 100%/130% text');
-})().catch(e=>{console.error(e);process.exitCode=1}).finally(()=>fs.writeFileSync(path.join(out,'layout.json'),JSON.stringify(report,null,2)));
+})().catch(async e=>{console.error(e);process.exitCode=1;await browser?.close()}).finally(()=>fs.writeFileSync(path.join(out,'layout.json'),JSON.stringify(report,null,2)));
