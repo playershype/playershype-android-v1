@@ -8,10 +8,12 @@ The public reader remains usable without authentication. Native origin gates, HT
 
 Verification: local DOM checks for actual 10-Nov Indianapolis content, correct profile links, keyboard activation and focus return, searchable checklist, sortable tables, malformed bets, hostile labels, zero values, unavailable records, published record context, and unchanged configuration/signed envelope passed. Existing profile, sync/publication, results and branding regressions passed. Profile rendering: 0.107 ms/open in the local DOM benchmark (not a device latency measurement). No dependency, remote font, third-party playback, database, authentication, payment, import or credential change was introduced. Recognized-secret scan found no matches across 495 tracked objects/5 archives; this is not an exhaustive secret audit or pentest.
 
-Build evidence: https://github.com/playershype/playershype-android-v1/actions/runs/42896398533
+Build evidence: https://github.com/playershype/playershype-android-v1/actions/runs/42900515099
 
 100 real Chromium width checks passed at 320/360/390/430/768px with 100%/130% text, including expanded checklist and profile. Android compilation, unit tests, lint, static security, PDF import regression, branding and signed-artifact checks passed. Version 1.4.13-preview, code 21; package com.playershype.app.preview. Certificate remains the pinned permanent signing identity.
 
-Android installation, five-icon-row geometry, sync/offline and results device evidence must be reviewed before delivery. Physical Samsung validation remains separate from emulator validation.
+Passed Android API 36 installation and original HypePredict navigation for both signed APKs; five accessible icon buttons in one native row; real app-route synchronization of the full current archive; offline restart with the same revision; live Camarero Results gateway response (0 published winners for this test date) and matching cache after offline restart. Physical Samsung validation remains separate from emulator validation.
 
 The Android gate exposed an existing whole-archive synchronization memory failure (16 MB compact JSON). Refresh now stores the verified UTF-8 snapshot bytes directly and the native reader streams the validated cache/seed, retaining JSON validation, integrity, origin checks and atomic rollback. This removes full-archive reserialization and escaped-string copies. New unit tests retain paired/lone surrogate data exactly and reject altered hashes. Device verification must include the current full archive.
+
+Verified user APK SHA-256: 25c95493da791ee9ff6338be3e6b15433037453f0cf189d8a804cd94488e8d0b. Built and device-tested source: 4202543a20e114729afe2b472eb2c3bdd30b2ef4. Race markup generation after cached horse lookup: 0.832 ms locally, versus 32.950 ms during the first version of this batch; not a physical-device startup measurement.
