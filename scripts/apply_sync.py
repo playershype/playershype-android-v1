@@ -13,6 +13,8 @@ def patch(path,old,new):
  path.write_text(s.replace(old,new))
 def main():
  ap=argparse.ArgumentParser();ap.add_argument('source',type=Path);args=ap.parse_args();r=args.source.resolve();overlay=P/'android-sync'
+ from apply_reader_refresh import public as refresh_public, native as refresh_native
+ refresh_public()
  fit_public()
  shared=r/'shared/src/main';assets=shared/'assets';(assets/'sync').mkdir(exist_ok=True)
  for p in (overlay/'java').glob('*.java'):shutil.copy(p,shared/'java/com/playershype/shared'/p.name)
@@ -172,5 +174,6 @@ def main():
  apply_results(r)
  fit_native(r)
  apply_home(r)
+ refresh_native(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()

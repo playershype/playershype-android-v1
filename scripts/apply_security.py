@@ -72,14 +72,14 @@ def main():
  approved=json.loads((P/'security/vendor-manifest.json').read_text())['protected_core_sha256']
  if core_hash(audit,s)!=approved:raise RuntimeError('Unexpected post-security HypePredict core')
  for role in ['app-user','app-admin']:
-  p=r/role/'build.gradle';replace(p,'versionCode 8','versionCode 20');replace(p,"versionName '1.4.0'","versionName '1.4.12'")
- replace(audit,'versionCode 8','versionCode 20');replace(audit,"versionName '1.4.0'","versionName '1.4.12'")
+  p=r/role/'build.gradle';replace(p,'versionCode 8','versionCode 21');replace(p,"versionName '1.4.0'","versionName '1.4.13'")
+ replace(audit,'versionCode 8','versionCode 21');replace(audit,"versionName '1.4.0'","versionName '1.4.13'")
  replace(audit,'59705d564fe4c07dc445835b7df9f6b0805bec72c57fbb031213a10b4cd5324c',approved)
- replace(audit,'HypePredict V1 core unchanged from V1.2','HypePredict V1 core matches reviewed security build');replace(audit,'app version code 8','app version code 20');replace(audit,'app version 1.4.0','app version 1.4.12')
+ replace(audit,'HypePredict V1 core unchanged from V1.2','HypePredict V1 core matches reviewed security build');replace(audit,'app version code 8','app version code 21');replace(audit,'app version 1.4.0','app version 1.4.13')
  # Rebuildable source must enforce the same permanent identity as CI.
  (r/'security').mkdir(exist_ok=True)
  shutil.copy(P/'scripts/prepare_stable_signing.py',r/'scripts/prepare_ci_signing.py')
  shutil.copy(P/'security/signing-identity.json',r/'security/signing-identity.json')
  (r/'docs/SECURITY-BASELINE-27.md').write_text((P/'docs/security/SECURITY_BASELINE_27.md').read_text())
- print('Applied security baseline v1.4.12; pinned PDF.js '+manifest['version'])
+ print('Applied security baseline v1.4.13; pinned PDF.js '+manifest['version'])
 if __name__=='__main__':main()

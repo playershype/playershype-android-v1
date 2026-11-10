@@ -20,8 +20,8 @@ def wait_for(predicate,label):
  raise RuntimeError('Results UI timeout: '+label)
 def texts(root):return ' '.join(n.get('text','') for n in root.iter('node'))
 def tap_results():
- xml=wait_for(lambda r:any(n.get('text')=='Resultados' and n.get('class')=='android.widget.Button' for n in r.iter('node')),'native Results navigation')
- node=next(n for n in ET.fromstring(xml).iter('node') if n.get('text')=='Resultados' and n.get('class')=='android.widget.Button')
+ xml=wait_for(lambda r:any((n.get('text')=='Resultados' or n.get('content-desc')=='Resultados') and n.get('clickable')=='true' for n in r.iter('node')),'native Results navigation')
+ node=next(n for n in ET.fromstring(xml).iter('node') if (n.get('text')=='Resultados' or n.get('content-desc')=='Resultados') and n.get('clickable')=='true')
  x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')));adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
 def capture(name):
  with (out/(name+'.png')).open('wb') as f:subprocess.run(['adb','exec-out','screencap','-p'],stdout=f,check=True,timeout=30)

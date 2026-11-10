@@ -37,11 +37,19 @@ for role,package,button in [('App','com.playershype.app.preview','Predict'),('Ad
 
     # A cold emulator can time out am's launch wait; the real UI check below remains mandatory.
     assert 'Status: ok' in result or 'Status: timeout' in result,result
-    xml=wait_for(lambda root:any(n.get('text')==button and n.get('class')=='android.widget.Button' for n in root.iter('node')),role+' native navigation')
+    xml=wait_for(lambda root:any((n.get('text')==button or n.get('content-desc')==button) and n.get('clickable')=='true' for n in root.iter('node')),role+' native navigation')
     if recording is not None:
         recording.wait(timeout=35)
         adb('pull','/sdcard/playershype-startup.mp4',str(out/'App-startup.mp4'))
-    root=ET.fromstring(xml);node=next(n for n in root.iter('node') if n.get('text')==button and n.get('class')=='android.widget.Button')
+    if role=='App':
+        icons=[n for n in ET.fromstring(xml).iter('node') if n.get('content-desc') in ['Inicio','Jornada','Predict','Resultados','TV'] and n.get('class')=='android.widget.ImageButton']
+        assert len(icons)==5,'Five accessible icons required'
+        bounds=[list(map(int,re.findall(r'\d+',n.get('bounds')))) for n in icons]
+        assert len({(b[1],b[3]) for b in bounds})==1,'All five icons must share one row'
+        assert not any(n.get('text') for n in icons),'No visible native labels'
+        with (out/'App-home-icons.png').open('wb') as f:subprocess.run(['adb','exec-out','screencap','-p'],stdout=f,check=True,timeout=30)
+        print('PASS five accessible icon buttons in one native row')
+    root=ET.fromstring(xml);node=next(n for n in root.iter('node') if (n.get('text')==button or n.get('content-desc')==button) and n.get('clickable')=='true')
     x1,y1,x2,y2=map(int,re.findall(r'\d+',node.get('bounds')))
     adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
     def hub(root):

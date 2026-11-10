@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - v1.3-release-candidate
+      - ui-refresh-1.4.13
     paths-ignore:
       - 'docs/**'
 
@@ -140,7 +141,9 @@ jobs:
           node android-sync/tests/publication-scope.test.cjs
 
       - name: Verify structured horse profiles and safe imported text
-        run: node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
+        run: |
+          node android-sync/tests/horse-profile.test.cjs "$SRC_DIR"
+          node ui-refresh/reader.test.cjs "$SRC_DIR"
 
       - name: Verify public results, dates, payments and offline recovery
         run: node results/tests/reader.test.cjs "$SRC_DIR"
