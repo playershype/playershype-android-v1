@@ -21,14 +21,20 @@ public final class PublishedConfig {
   else if(v instanceof JSONArray){JSONArray a=(JSONArray)v;for(int i=0;i<a.length();i++)inspect(a.get(i),depth+1);}
   else if(v instanceof String&&EXECUTABLE.matcher((String)v).find())throw new IOException("Contenido ejecutable bloqueado");
  }
- public static JSONObject decode(String html)throws Exception{
+ public static final class Snapshot {
+  public final JSONObject config;
+  public final byte[] json;
+  Snapshot(JSONObject config,byte[] json){this.config=config;this.json=json;}
+ }
+ public static JSONObject decode(String html)throws Exception{return decodeSnapshot(html).config;}
+ public static Snapshot decodeSnapshot(String html)throws Exception{
   Matcher m=Pattern.compile("<script\\b[^>]*\\bid=['\"]phPublishedConfig['\"][^>]*>(.*?)</script\\s*>",Pattern.CASE_INSENSITIVE|Pattern.DOTALL).matcher(html);
   if(!m.find())throw new IOException("Falta la configuración de la app");JSONObject e=new JSONObject(m.group(1));
   if(!"gzip-base64".equals(e.optString("encoding")))throw new IOException("Formato de publicación incompatible");
   byte[] compressed=Base64.getDecoder().decode(e.getString("data"));ByteArrayOutputStream out=new ByteArrayOutputStream();
   try(InputStream in=new GZIPInputStream(new ByteArrayInputStream(compressed))){byte[] b=new byte[8192];int n,total=0;while((n=in.read(b))!=-1){total+=n;if(total>LIMIT)throw new IOException("Publicación demasiado grande");out.write(b,0,n);}}
-  byte[] json=out.toByteArray();if(!sha256(json).equals(e.getString("sha256")))throw new IOException("Integridad de la publicación inválida");
-  JSONObject c=validate(new JSONObject(new String(json,StandardCharsets.UTF_8)));if(!c.getString("revision").equals(e.getString("revision")))throw new IOException("Revisiones diferentes");return c;
+  byte[] json=out.toByteArray();out=null;if(!sha256(json).equals(e.getString("sha256")))throw new IOException("Integridad de la publicación inválida");
+  JSONObject c=validate(new JSONObject(new String(json,StandardCharsets.UTF_8)));if(!c.getString("revision").equals(e.getString("revision")))throw new IOException("Revisiones diferentes");return new Snapshot(c,json);
  }
  public static String safeJson(String json) {
   StringBuilder escaped = null;

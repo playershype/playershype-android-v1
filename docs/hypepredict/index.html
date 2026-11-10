@@ -502,7 +502,7 @@ function sourceHypeBet(a){
 
 
 function raceCard(r,trackId,date) {
- const a=analysisFor(r);
+ const a=analysisFor(r);hpRenderHorseList=Array.isArray(a?.horses)?a.horses:[];
  if(!a||a.status!=="published"||a.trackId!==trackId||a.raceId!==r.id||!String(r.id).startsWith(trackId+"-"+date+"-")){
   return `<article class="race" id="race-${esc(r.number)}"><div class="race-banner"><div class="race-head"><div class="race-no">${esc(r.number)}</div><div class="race-title"><h3>Carrera ${esc(r.number)}</h3></div></div></div><div class="race-core"><div class="empty-race">No hay análisis válido para este hipódromo y fecha. No se mostrará información de otra jornada.</div></div></article>`;
  }
@@ -858,9 +858,9 @@ function hpRaceView(track,dayData,race){
 }
 /* PH_READER_REFRESH_START */
 /* Trusted presentation only. Published analyses are never mutated. */
+var hpRenderHorseList=[];
 function hpHorseAttrs(h){
- const id=$('#track')?.value,date=$('#date')?.value,d=day(id,date),r=d?.races?.find(r=>Number(r.number)===hpScreen()),a=r&&analysisFor(r);
- const i=(a?.horses||[]).findIndex(x=>h?.entryId?x.entryId===h.entryId:String(x.programNumber)===String(h?.programNumber));
+ const i=hpRenderHorseList.findIndex(x=>h?.entryId?x.entryId===h.entryId:String(x.programNumber)===String(h?.programNumber));
  return i<0?'':` data-horse-index="${i}" aria-label="Abrir ficha de ${hpEsc(h.name||h.programNumber)}"`;
 }
 function quickPick(label,h,variant=''){

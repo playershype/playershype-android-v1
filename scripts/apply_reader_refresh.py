@@ -5,11 +5,15 @@ ROOT=Path(__file__).resolve().parents[1]
 FUNCTIONS=['quickPick','roleAndBoard','fullCheckList','hpDayView','hpHorseProfile']
 def document(path):
  s=path.read_text()
- if 'PH_READER_REFRESH_START' in s:return
+ if 'PH_READER_REFRESH_START' in s:
+  s=re.sub(r'/\* PH_READER_REFRESH_START \*/[\s\S]*?/\* PH_READER_REFRESH_END \*/',lambda _: '/* PH_READER_REFRESH_START */\n'+(ROOT/'ui-refresh/reader.js').read_text()+'\n/* PH_READER_REFRESH_END */',s,count=1)
+  s=s.replace('const a=analysisFor(r);','const a=analysisFor(r);hpRenderHorseList=Array.isArray(a?.horses)?a.horses:[];') if 'hpRenderHorseList=Array.isArray' not in s else s
+  path.write_text(s);return
  for name in FUNCTIONS:
   pattern=r'^function '+name+r'\([\s\S]*?(?=^function |^var |^/\* PH_RESULTS_START)'
   s,n=re.subn(pattern,'',s,count=1,flags=re.M)
   if n!=1:raise RuntimeError('Missing '+name+' in '+str(path))
+ s=s.replace('const a=analysisFor(r);','const a=analysisFor(r);hpRenderHorseList=Array.isArray(a?.horses)?a.horses:[];')
  s=s.replace('/* PH_RESULTS_START */','/* PH_READER_REFRESH_START */\n'+(ROOT/'ui-refresh/reader.js').read_text()+'\n/* PH_READER_REFRESH_END */\n/* PH_RESULTS_START */',1)
  s=s.replace('</style>',(ROOT/'ui-refresh/reader.css').read_text()+'\n</style>',1)
  s=re.sub(r' <details class="more"><summary>Leer el análisis original íntegro[\s\S]*?</details>\n','',s,count=1)
@@ -47,13 +51,16 @@ def native(root):
         UserNavIcon icon=new UserNavIcon(i);userIcons.put(route,icon);userButtons.put(route,b);b.setImageDrawable(icon);b.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
         int pad=Math.round(10*getResources().getDisplayMetrics().density);b.setPadding(pad,pad,pad,pad);b.setContentDescription(labels[i]);b.setTooltipText(labels[i]);
         b.setBackground(new android.graphics.drawable.RippleDrawable(android.content.res.ColorStateList.valueOf(0x3352f4d3),null,new android.graphics.drawable.ColorDrawable(Color.WHITE)));
-        b.setOnClickListener(v->{if(android.provider.Settings.Global.getFloat(getContentResolver(),android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,1f)>0){b.animate().cancel();b.setScaleX(.9f);b.setScaleY(.9f);b.animate().scaleX(1).scaleY(1).setDuration(140).start();}navigate(route,null);});
+        b.setOnClickListener(v->{if(android.animation.ValueAnimator.areAnimatorsEnabled()){b.animate().cancel();b.setScaleX(.9f);b.setScaleY(.9f);b.animate().scaleX(1).scaleY(1).setDuration(140).start();}navigate(route,null);});
         nav.addView(b,new LinearLayout.LayoutParams(0,Math.round(52*getResources().getDisplayMetrics().density),1));
       }
     }'''+s[end:]
  s=s.replace('  private FrameLayout content;', '  private FrameLayout content;\n  private final Map<String,UserNavIcon> userIcons=new LinkedHashMap<>();\n  private final Map<String,android.widget.ImageButton> userButtons=new LinkedHashMap<>();')
  target='    String page=(route.equals("predict")||route.equals("results"))?"predict":"home";active=route;'
  assert target in s;s=s.replace(target,target+'\n    for(Map.Entry<String,UserNavIcon> item:userIcons.entrySet()){boolean selected=item.getKey().equals(route);item.getValue().select(selected);userButtons.get(item.getKey()).setSelected(selected);}')
+ s=s.replace('response("application/json",200,feed.get().configuration())','responseStream("application/json",200,feed.get().configurationStream())')
+ s=s.replace('new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8))','stream')
+ s=s.replace('private static WebResourceResponse response(String mime,int status,String body){','private static WebResourceResponse response(String mime,int status,String body){return responseStream(mime,status,new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));}\n  private static WebResourceResponse responseStream(String mime,int status,InputStream stream){')
  java.write_text(s)
  shutil.copy(ROOT/'ui-refresh/UserNavIcon.java',root/'shared/src/main/java/com/playershype/shared/UserNavIcon.java')
 if __name__=='__main__':public()

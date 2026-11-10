@@ -1,7 +1,7 @@
 /* Trusted presentation only. Published analyses are never mutated. */
+var hpRenderHorseList=[];
 function hpHorseAttrs(h){
- const id=$('#track')?.value,date=$('#date')?.value,d=day(id,date),r=d?.races?.find(r=>Number(r.number)===hpScreen()),a=r&&analysisFor(r);
- const i=(a?.horses||[]).findIndex(x=>h?.entryId?x.entryId===h.entryId:String(x.programNumber)===String(h?.programNumber));
+ const i=hpRenderHorseList.findIndex(x=>h?.entryId?x.entryId===h.entryId:String(x.programNumber)===String(h?.programNumber));
  return i<0?'':` data-horse-index="${i}" aria-label="Abrir ficha de ${hpEsc(h.name||h.programNumber)}"`;
 }
 function quickPick(label,h,variant=''){

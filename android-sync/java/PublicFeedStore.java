@@ -66,15 +66,11 @@ public final class PublicFeedStore {
     return new JSONObject().put("origin", configOrigin).put("checkedAt", checkedAt);
   }
 
-  public synchronized String configuration() throws Exception {
+  /** Stream the validated on-disk bytes without serializing the entire archive again. */
+  public synchronized InputStream configurationStream() throws Exception {
     ensureConfig();
-    if (publishedConfig == null) return "{}";
-    JSONObject response = new JSONObject();
-    for (Iterator<String> names = publishedConfig.keys(); names.hasNext();) {
-      String name = names.next();
-      response.put(name, publishedConfig.get(name));
-    }
-    return PublishedConfig.safeJson(response.put("__sync", syncMetadata()).toString());
+    if(publishedConfig==null)return new ByteArrayInputStream("{}".getBytes(StandardCharsets.UTF_8));
+    return "bundled".equals(configOrigin)?appContext.getAssets().open("sync/published-seed.json"):configCache.openRead();
   }
 
   public synchronized String homeConfiguration() throws Exception {
@@ -149,10 +145,10 @@ public final class PublicFeedStore {
 
       String html = response.html;
       if (html.contains("id=\"phPublishedConfig\"")) {
-        JSONObject next = PublishedConfig.decode(html);
-        byte[] bytes = PublishedConfig.safeJson(next.toString()).getBytes(StandardCharsets.UTF_8);
-        write(configCache, bytes);
+        PublishedConfig.Snapshot decoded = PublishedConfig.decodeSnapshot(html);
+        JSONObject next = decoded.config;
         synchronized (this) {
+          write(configCache, decoded.json);
           publishedConfig = next;
           configOrigin = "github";
           checkedAt = Instant.now().toString();

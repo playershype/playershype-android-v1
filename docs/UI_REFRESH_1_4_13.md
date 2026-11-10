@@ -1,0 +1,17 @@
+# Race reader and compact navigation — 1.4.13
+
+User-requested batch: remove the radiography and pulse summaries, remove the repeated full-source disclosure, replace the public native menu with five small accessible vector icons in one 52dp row, link Quick Hits and HypeBoard rows to the correct horse profile, draw a right-moving pace map and published HypeBoard arrival projection with saddlecloth circles, render HypeBet as position tables, and organize the full checklist as searchable horse disclosures with sortable workouts/connections/performances tables.
+
+No scores, risk levels, race reads, selections, costs or combinations were recalculated. The original report remains in the published data. Workouts use structured fields when supplied or a conservative parser with full-text fallback. Race-by-race performances and connection records are shown only when actually supplied. A last-five finishing sequence is not fabricated into dated past performances. Unpublished statistics, periods and contexts are explicitly missing.
+
+The public reader remains usable without authentication. Native origin gates, HTTPS-only external navigation, CSP and Admin publication permissions are unchanged. Imported names, reports, betting labels and structured records are escaped. Invalid JSON bets show an interpretation message instead of raw JSON. Tables scroll within their bounded regions; the page itself fits the viewport. The Admin launcher and navigation remain separate.
+
+Verification: local DOM checks for actual 10-Nov Indianapolis content, correct profile links, keyboard activation and focus return, searchable checklist, sortable tables, malformed bets, hostile labels, zero values, unavailable records, published record context, and unchanged configuration/signed envelope passed. Existing profile, sync/publication, results and branding regressions passed. Profile rendering: 0.107 ms/open in the local DOM benchmark (not a device latency measurement). No dependency, remote font, third-party playback, database, authentication, payment, import or credential change was introduced. Recognized-secret scan found no matches across 495 tracked objects/5 archives; this is not an exhaustive secret audit or pentest.
+
+Build evidence: https://github.com/playershype/playershype-android-v1/actions/runs/42896398533
+
+100 real Chromium width checks passed at 320/360/390/430/768px with 100%/130% text, including expanded checklist and profile. Android compilation, unit tests, lint, static security, PDF import regression, branding and signed-artifact checks passed. Version 1.4.13-preview, code 21; package com.playershype.app.preview. Certificate remains the pinned permanent signing identity.
+
+Android installation, five-icon-row geometry, sync/offline and results device evidence must be reviewed before delivery. Physical Samsung validation remains separate from emulator validation.
+
+The Android gate exposed an existing whole-archive synchronization memory failure (16 MB compact JSON). Refresh now stores the verified UTF-8 snapshot bytes directly and the native reader streams the validated cache/seed, retaining JSON validation, integrity, origin checks and atomic rollback. This removes full-archive reserialization and escaped-string copies. New unit tests retain paired/lone surrogate data exactly and reject altered hashes. Device verification must include the current full archive.
