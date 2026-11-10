@@ -57,7 +57,7 @@ async function measure(page,label,width,factor){
   await page.locator('[data-match-race]').first().click();await page.locator('#matchModal.open').waitFor();await fontScale(page,factor);await measure(page,'head-to-head',width,factor);await page.evaluate(()=>hpMatchClose());
   await load(page,origin+'/hypepredict/?track=camarero&date=2026-11-05#resultados');await page.locator('[data-result-race]').first().waitFor();await fontScale(page,factor);await measure(page,'results',width,factor);
   await page.locator('[data-result-race]:not([disabled])').first().click();await page.locator('#resultModal').waitFor();await fontScale(page,factor);await measure(page,'result-details',width,factor);
-  await load(page,origin+'/home/');await page.locator('#heroTitle').filter({hasText:/\S/}).waitFor();await fontScale(page,factor);await measure(page,'home',width,factor);
+  await load(page,origin+'/home/');await page.locator('#home:not([aria-busy])').waitFor();await fontScale(page,factor);await measure(page,'home',width,factor);
  }
  assert.equal(JSON.stringify(config),before,'Published data remains byte-for-byte unchanged in the test');
  assert.deepEqual(report.errors,[],'No uncaught browser errors');

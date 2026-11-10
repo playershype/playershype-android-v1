@@ -5,6 +5,7 @@ from patch_admin_workspace_scope import patch_admin_workspace_scope
 from apply_branding import apply_native
 from apply_mobile_fit import public as fit_public, native as fit_native
 from apply_results import native as apply_results
+from apply_home import apply as apply_home
 P=Path(__file__).resolve().parents[1]
 def patch(path,old,new):
  s=path.read_text()
@@ -170,5 +171,6 @@ def main():
  patch(java,'public void handleOnBackPressed(){web.evaluateJavascript','public void handleOnBackPressed(){if(web==null){finish();return;}web.evaluateJavascript')
  apply_results(r)
  fit_native(r)
+ apply_home(r)
  print('Installed dual-route sync v1.4.0')
 if __name__=='__main__':main()

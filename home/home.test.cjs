@@ -1,0 +1,32 @@
+'use strict';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const source=path.resolve(process.argv[2]),assets=path.join(source,'app-user/src/main/assets');
+const {JSDOM}=require(path.join(source,'scripts/ui-tests/node_modules/jsdom'));
+const config=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../docs/app/config.json')));
+const errors=[],requests=[];
+const dom=new JSDOM(fs.readFileSync(path.join(assets,'index.html'),'utf8'),{url:'https://appassets.androidplatform.net/assets/index.html',runScripts:'outside-only'}),w=dom.window,d=w.document;
+w.addEventListener('error',e=>errors.push(e.message));
+let status='offline',fail=false;
+w.fetch=async url=>{requests.push(url);if(url==='/assets/public-app-config.json')return new Response(JSON.stringify(config));const u=new URL(url,'https://appassets.androidplatform.net');assert.equal(u.pathname,'/core/home-config');if(fail)throw Error('offline');const date=u.searchParams.get('date')||'2026-11-10';return new Response(JSON.stringify({...config,__homeDate:date,tracks:date==='2026-11-05'?[{id:'camarero',name:'Camarero <script>bad()</script>'}]:[],live:{enabled:true,status,url:'https://www.youtube.com/watch?v=example'}}));};
+w.eval(fs.readFileSync(path.join(assets,'home.js'),'utf8'));
+async function until(fn){for(let i=0;i<100;i++){if(fn())return;await new Promise(r=>setTimeout(r,10))}throw Error('Timed out');}
+(async()=>{
+ await until(()=>!d.querySelector('#home').hasAttribute('aria-busy'));
+ assert.equal(d.querySelector('#heroTitle').textContent,'HypePredict');
+ assert(d.querySelector('#module-live').hidden);
+ assert(d.querySelector('#tracksGrid').textContent.includes('No hay análisis'));
+ assert.equal(d.querySelector('#tvChannel').href,'https://www.youtube.com/@playershypetv');
+ assert([...d.querySelectorAll('#tvPrograms a')].every(a=>a.href.startsWith('https://')));
+ const order=[...d.querySelector('main').children].map(e=>e.id).filter(Boolean);
+ assert(order.indexOf('home')<order.indexOf('module-tracks'));
+ assert(order.indexOf('module-tracks')<order.indexOf('quickNav'));
+ assert(order.indexOf('quickNav')<order.indexOf('module-tv'));
+ const input=d.querySelector('#homeDate');input.value='2026-11-05';input.dispatchEvent(new w.Event('change'));
+ await until(()=>d.querySelector('#tracksGrid .track'));
+ const link=d.querySelector('#tracksGrid .track');assert.equal(new URL(link.href).searchParams.get('date'),'2026-11-05');
+ assert.equal(new URL(d.querySelector('#heroPrimary').href).searchParams.get('date'),'2026-11-05');
+ assert.equal(d.querySelector('#tracksGrid script'),null);assert(link.textContent.includes('<script>'));
+ status='live';await w.PlayersHypeSync.refresh();assert.equal(d.querySelector('#module-live').hidden,false);
+ fail=true;await w.PlayersHypeSync.refresh();assert.equal(d.querySelectorAll('#tracksGrid .track').length,0,'Unscoped bundled tracks never masquerade as the chosen day');
+ assert.deepEqual(errors,[]);w.close();console.log('PASS Home B order, real links, date selection, escaped track names, live visibility and safe offline fallback');
+})().catch(e=>{console.error(e);w.close();process.exitCode=1});

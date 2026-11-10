@@ -1,7 +1,7 @@
 """Verify real app-route download and an offline restart on the Android emulator."""
 import json,os,pathlib,re,subprocess,time,xml.etree.ElementTree as ET
 out=pathlib.Path('emulator-evidence');out.mkdir(exist_ok=True)
-repo=pathlib.Path(os.environ['GITHUB_WORKSPACE']);published=json.loads((repo/'docs/app/config.json').read_text());expected=published['revision'];hero_title=published['home']['hero']['title'];package='com.playershype.app.preview'
+repo=pathlib.Path(os.environ['GITHUB_WORKSPACE']);published=json.loads((repo/'docs/app/config.json').read_text());expected=published['revision'];hero_title='Tu análisis comienza aquí.';package='com.playershype.app.preview'
 def adb(*args):return subprocess.check_output(['adb',*args],text=True,stderr=subprocess.STDOUT,timeout=90)
 def tree():
  adb('shell','uiautomator','dump','/sdcard/playershype-sync.xml');return adb('shell','cat','/sdcard/playershype-sync.xml')

@@ -1,0 +1,46 @@
+/* Home B: analysis, published program, then video. Shared width rules still apply. */
+:root{--home-yellow:#ffdc00}
+.shell{max-width:780px;padding:18px 16px 28px}
+.hero{min-height:0;border:0;border-radius:0;background:none;box-shadow:none;display:block;overflow:visible}
+.hero-media,.hero-media:after{display:none}
+.hero-content{padding:0;max-width:none}
+.hero .eyebrow{display:none}
+.hero h1{font-size:28px;line-height:1.15;letter-spacing:-.03em;max-width:none;margin:0 0 6px;border-left:5px solid var(--home-yellow);padding-left:12px}
+.hero p{font-size:14px;max-width:none;color:#BCEBF2}
+.predict-banner{position:relative;isolation:isolate;margin-top:16px;padding:20px 16px;min-height:144px;border:1px solid #00B4D8;border-radius:16px;background:#20366B;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:16px}
+.predict-banner img{position:absolute;inset:0 0 0 auto;width:44%;height:100%;object-fit:cover;object-position:65% center;z-index:-2}
+.predict-banner:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#10294b 42%,rgba(16,41,75,.86) 62%,rgba(16,41,75,.12))}
+.predict-banner strong{font-size:20px;line-height:1.25;max-width:78%}
+.hero-actions{margin:0;max-width:100%}
+.btn{font-size:13px;min-height:46px;line-height:1.35;padding:12px 14px;text-align:center;white-space:normal}
+.btn.primary{background:var(--home-yellow);border-color:var(--home-yellow);color:#0A192F;box-shadow:none}
+.hero #heroSecondary{display:none}
+.section{margin-top:24px;padding-top:22px;border-top:1px solid #294460;scroll-margin-top:100px}
+.section-head{align-items:center;gap:10px;margin-bottom:14px}
+.section-head h2{font-size:21px;border-left:5px solid var(--home-yellow);padding-left:10px}
+.section-head p{font-size:13px;margin-top:5px;line-height:1.4}
+.section-icon{display:none}
+.section-link{font-size:12px;white-space:normal;min-height:44px;display:inline-flex;align-items:center}
+.date-control{display:flex;flex-direction:column;gap:5px;font-size:12px;color:#BCEBF2}
+.date-control input{font:inherit;font-size:14px;background:#10263f;color:#E0FBFC;border:1px solid #00B4D8;border-radius:10px;padding:9px;min-height:44px;max-width:100%}
+.tracks{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+.track{position:relative;min-height:80px;border:1px solid #00B4D8;border-radius:13px;background:linear-gradient(100deg,#173e79,#0A192F);padding:16px;display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:12px}
+.track:after{display:none}.track-symbol{font-size:26px;color:#BCEBF2}.track-name{font-size:18px;margin:0}.track-meta{font-size:13px;color:#BCEBF2;line-height:1.4}.track-arrow{font-size:26px}
+.quick{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.quick a{min-height:65px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:14px;text-align:left}
+.quick .ico{margin:0;font-size:24px}.quick b{font-size:15px}.quick small{display:none}
+.tv-grid{grid-template-columns:minmax(0,1fr);gap:20px}
+.tv-channel{min-height:160px}.tv-channel img{width:46%;object-position:center}.tv-channel:after{background:linear-gradient(90deg,rgba(10,25,47,.08),#0A192F 49%)}
+.tv-copy{min-height:160px;align-items:flex-start;padding:18px 14px 18px 46%;max-width:none}
+.tv-copy .eyebrow{display:none}.tv-copy h3{font-size:20px;line-height:1.2;margin:0 0 10px}.tv-copy p{display:none}
+.tv-handle{font-size:13px;color:#BCEBF2;margin-top:7px}.youtube-mark{display:inline-flex;background:#f03;color:white;border-radius:5px;padding:1px 6px;margin-right:5px}
+.programs{grid-template-columns:minmax(0,1fr);gap:10px}
+.program{position:relative;min-height:74px;display:grid;grid-template-columns:84px minmax(0,1fr) 16px;align-items:center;gap:14px;padding:0 14px 0 0;opacity:1}
+.program img{position:static;width:84px;height:74px;object-fit:cover}.program:after{display:none}.program-body{position:static;padding:10px 0}.program b{font-size:16px}.program small,.program .state{display:none}.program-arrow{font-size:23px;color:#BCEBF2}
+.latest{grid-template-columns:minmax(0,1fr)}.news b{font-size:14px}.news small{font-size:12px;line-height:1.4}
+.empty{font-size:14px;line-height:1.5;padding:18px}.footer{font-size:11px;line-height:1.5}.social a{font-size:13px;min-height:44px;display:flex;align-items:center}
+#module-live[hidden]{display:none!important}.live-content p{font-size:14px}.live-pill{font-size:12px}
+.ph-home-copy{display:none!important}.ph-masthead-inner{justify-content:space-between}.status{min-height:44px;font-size:12px}
+.programs-title{font-size:18px;margin:0 0 12px}
+@media(max-width:360px){.shell{padding-inline:12px}.predict-banner{padding:18px 12px}.predict-banner strong{max-width:90%}.tv-copy{padding-left:38%}.tv-channel img{width:40%}.quick a{gap:8px;padding:12px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

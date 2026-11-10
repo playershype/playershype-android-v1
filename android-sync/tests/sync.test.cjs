@@ -1,4 +1,5 @@
 'use strict';
+require('../../home/home.test.cjs');
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),vm=require('vm'),crypto=require('node:crypto'),zlib=require('node:zlib');
 const repo=path.resolve(__dirname,'../..'),src=path.resolve(process.argv[2]||path.join(repo,'.v131/PlayersHype-Ecosystem-V1.3.1-RC'));
 const {JSDOM}=require(path.join(src,'scripts/ui-tests/node_modules/jsdom'));

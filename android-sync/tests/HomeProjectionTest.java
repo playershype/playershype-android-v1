@@ -26,6 +26,7 @@ public class HomeProjectionTest {
     assertEquals("a", tracks.getJSONObject(0).getString("id"));
     assertEquals("b", tracks.getJSONObject(1).getString("id"));
     assertEquals("r1", home.getString("revision"));
+    assertEquals("2026-11-03", home.getString("__homeDate"));
     assertEquals("Predict", home.getJSONObject("hypepredict").getString("title"));
     assertFalse(home.has("raceDays"));
     assertFalse(home.has("raceDayHistory"));

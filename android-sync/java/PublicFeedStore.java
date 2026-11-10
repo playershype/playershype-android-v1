@@ -78,9 +78,14 @@ public final class PublicFeedStore {
   }
 
   public synchronized String homeConfiguration() throws Exception {
+    return homeConfiguration(null);
+  }
+
+  public synchronized String homeConfiguration(String selectedDate) throws Exception {
+    String date = selectedDate == null ? LocalDate.now(PUERTO_RICO).toString() : LocalDate.parse(selectedDate).toString();
     ensureConfig();
     if (publishedConfig == null) return "{}";
-    JSONObject home = homeProjection(publishedConfig, LocalDate.now(PUERTO_RICO).toString());
+    JSONObject home = homeProjection(publishedConfig, date);
     return PublishedConfig.safeJson(home.put("__sync", syncMetadata()).toString());
   }
 
@@ -100,7 +105,7 @@ public final class PublicFeedStore {
         }
       }
     }
-    return home.put("tracks", visible);
+    return home.put("tracks", visible).put("__homeDate", date);
   }
 
   private static boolean hasPublishedRace(Object history, JSONObject analyses, String date) {
