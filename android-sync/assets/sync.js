@@ -19,7 +19,7 @@ async function readRemote(){
   const response=await fetch(CONFIG_URL,{cache:'no-cache',signal:controller.signal});
   if(!response.ok)throw Error('No pude leer la configuración publicada: HTTP '+response.status);
   const text=await response.text();
-  const config=PHPublication.validate(JSON.parse(text));
+  const config=PHPublication.checkConfig(JSON.parse(text));
   const hash=await digest(text);
   await storage('base',config);
   localStorage.setItem(BASE_KEY,JSON.stringify({hash}));
@@ -47,9 +47,10 @@ async function snapshot(cards,tracks,explicit){
  let c=explicit||(await draft())||(await saved())?.config;
  if(!baseHash){const s=await saved();if(s?.hash)baseHash=s.hash;else {const published=await remote();c=c||published}}
  if(!c)throw Error('Carga primero una configuración publicada o importa tu respaldo');
- c=PHPublication.validate(c);
+
  // An empty workspace must not erase the remote configuration or historical days.
  if(Array.isArray(cards)&&cards.length){const ready=PHPublication.prepareCards(cards);if(window.HypeExportsReady)await HypeExportsReady;const html=HypeExports.public(ready,tracks||[],false);const doc=new DOMParser().parseFromString(html,'text/html');const clean=JSON.parse(doc.getElementById('embeddedData').textContent);const registry=JSON.parse(doc.getElementById('embeddedTrackRegistry').textContent);c=PHPublication.mergeCards(c,clean,registry)}
+ else c={...PHPublication.checkConfig(c)};
  c.revision='pub-'+new Date().toISOString().replace(/[:.]/g,'-')+'-'+crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
  return c;
 }
@@ -65,7 +66,7 @@ async function publish(target='both',cards,tracks,explicit){
  if(busy)throw Error('Ya hay una publicación en curso');busy=true;let transfer;
  try{
   if(!window.HypeAndroid)throw Error('Publicar requiere el Admin APK');
-  const c=await snapshot(cards,tracks,explicit),bundle=await pack(c),payload={...bundle,baseHash,target};const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+  const c=await snapshot(cards,tracks,explicit),bundle=await pack(c),payload={html:bundle.html,revision:bundle.revision,sha256:bundle.sha256,baseHash,target};const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
   transfer=await HypeAndroid.request('publishBegin',{size:blob.size,mime:'application/json',target});
   for(let start=0;start<blob.size;start+=196608){const bytes=new Uint8Array(await blob.slice(start,start+196608).arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));await HypeAndroid.request('publishChunk',{transfer,data:btoa(binary)})}
   const result=JSON.parse(await HypeAndroid.request('publishFinish',{transfer,message:'Publish '+target+' · '+bundle.revision}));
