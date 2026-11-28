@@ -7,6 +7,7 @@ on:
       - main
       - v1.3-release-candidate
       - ui-refresh-1.4.13
+      - fix/admin-publish-1.4.14
     paths-ignore:
       - 'docs/**'
 

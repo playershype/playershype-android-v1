@@ -1,12 +1,13 @@
 /* Public data adapter. It copies published scores; it never runs the scoring engine. */
 (function(root){'use strict';
 const clone=v=>JSON.parse(JSON.stringify(v)),id=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-function validate(c){
+function checkConfig(c){
  if(!c||c.schemaVersion!==2||!Array.isArray(c.tracks)||!c.home||!c.hypepredict||!c.raceDays)throw Error('Configuración pública V2 incompleta');
  if(JSON.stringify(c).length>24*1024*1024)throw Error('La publicación excede 24 MB');
  function inspect(v,path='',depth=0){if(depth>28)throw Error('Estructura demasiado profunda');if(typeof v==='string'&&(/<\/?(?:script|iframe|object)\b|javascript:/i.test(v)))throw Error('Contenido ejecutable bloqueado');if(v&&typeof v==='object')for(const [k,x] of Object.entries(v)){if(/token|password|secret|authorization|promptMaestro|hypeScoreWeights|postRaceCalibration|operationalNotes|rawSources|baseScore|tacticalAdjustment/i.test(k))throw Error('Campo privado bloqueado: '+k);inspect(x,path+'.'+k,depth+1)}}
- inspect(c);return clone(c);
+ inspect(c);return c;
 }
+function validate(c){return clone(checkConfig(c))}
 function reliability(v){return typeof v==='string'?v:(v?.display||'⭐'.repeat(Number(v?.rating)||0))}
 function display(v){return typeof v==='string'?v:(v==null?'':JSON.stringify(v))}
 function pick6Issue(card){
@@ -100,7 +101,7 @@ function mergeCards(config,cards,tracks){
   c.raceDays[tid]={days:[...days.values()].sort((a,b)=>a.date.localeCompare(b.date))};
   track.races=c.raceDays[tid].days.at(-1)?.races?.length||0;
  }
- return validate(c);
+ return checkConfig(c);
 }
-root.PHPublication=Object.freeze({validate,mergeCards,clone,publicationScope,prepareCards,pick6Issue});
+root.PHPublication=Object.freeze({validate,checkConfig,mergeCards,clone,publicationScope,prepareCards,pick6Issue});
 })(typeof window==='undefined'?globalThis:window);

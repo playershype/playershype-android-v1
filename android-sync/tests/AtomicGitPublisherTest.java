@@ -29,6 +29,14 @@ public class AtomicGitPublisherTest {
   String content(String path)throws Exception{for(int i=0;i<next.length();i++){JSONObject e=next.getJSONObject(i);if(e.getString("path").equals(path))return new String(blobs.get(e.getString("sha")),StandardCharsets.UTF_8);}return null;}
  }
  @Test public void bothRoutesShareOneCommitAndRevision()throws Exception{FakeApi api=new FakeApi();JSONObject r=new AtomicGitPublisher(api,"main").publish(bundle("both",api));assertTrue(r.getBoolean("verified"));assertEquals(1,api.commits);assertEquals(1,api.patches);assertEquals(2,r.getJSONArray("paths").length());assertEquals("new",new JSONObject(api.content(AtomicGitPublisher.DASHBOARD)).getString("revision"));assertEquals("new",PublishedConfig.decode(api.content(AtomicGitPublisher.APP)).getString("revision"));assertEquals("README.md",api.next.getJSONObject(0).getString("path"));}
+ @Test public void compactBundlePublishesExactDashboardBytes()throws Exception{
+  FakeApi api=new FakeApi();
+  JSONObject compact=bundle("both",api);
+  String dashboard=(String)compact.remove("config");
+  new AtomicGitPublisher(api,"main").publish(compact);
+  assertEquals(dashboard,api.content(AtomicGitPublisher.DASHBOARD));
+  assertEquals(compact.getString("html"),api.content(AtomicGitPublisher.APP));
+ }
  @Test public void appOnlyPreservesDashboard()throws Exception{FakeApi api=new FakeApi();new AtomicGitPublisher(api,"main").publish(bundle("app",api));assertEquals(new String(api.original,StandardCharsets.UTF_8),api.content(AtomicGitPublisher.DASHBOARD));assertNotNull(api.content(AtomicGitPublisher.APP));}
  @Test public void dashboardOnlyPreservesApp()throws Exception{FakeApi api=new FakeApi();new AtomicGitPublisher(api,"main").publish(bundle("dashboard",api));assertNull(api.content(AtomicGitPublisher.APP));assertEquals("new",new JSONObject(api.content(AtomicGitPublisher.DASHBOARD)).getString("revision"));}
  @Test public void staleDraftDoesNotWrite()throws Exception{FakeApi api=new FakeApi();JSONObject b=bundle("both",api).put("baseHash","stale");assertThrows(IOException.class,()->new AtomicGitPublisher(api,"main").publish(b));assertEquals(0,api.writes);}
